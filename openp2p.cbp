@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="openp2p" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/libopenp2p" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/libopenp2p" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-Os" />
+					<Add option="-O3" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-I/usr/lib/wx/include/gtk2-unicode-release-2.8 -I/usr/include/wx-2.8 -D_FILE_OFFSET_BITS=64 -D_LARGE_FILES -D__WXGTK__" />
+		</Compiler>
+		<Unit filename="src/Core/Buffer.cpp" />
+		<Unit filename="src/Core/Buffer.hpp" />
+		<Unit filename="src/Core/BufferIterator.cpp" />
+		<Unit filename="src/Core/BufferIterator.hpp" />
+		<Unit filename="src/Core/BufferQueue.cpp" />
+		<Unit filename="src/Core/BufferQueue.hpp" />
+		<Unit filename="src/Core/DataReader.cpp" />
+		<Unit filename="src/Core/DataReader.hpp" />
+		<Unit filename="src/Core/DataSource.hpp" />
+		<Unit filename="src/Core/Dispatcher.cpp" />
+		<Unit filename="src/Core/Dispatcher.hpp" />
+		<Unit filename="src/Core/Endpoint.cpp" />
+		<Unit filename="src/Core/Endpoint.hpp" />
+		<Unit filename="src/Core/FixedStream.cpp" />
+		<Unit filename="src/Core/FixedStream.hpp" />
+		<Unit filename="src/Core/Join.hpp" />
+		<Unit filename="src/Core/NullStream.cpp" />
+		<Unit filename="src/Core/NullStream.hpp" />
+		<Unit filename="src/Core/PacketReader.cpp" />
+		<Unit filename="src/Core/PacketReader.hpp" />
+		<Unit filename="src/Core/PacketStream.hpp" />
+		<Unit filename="src/Core/PacketWriter.cpp" />
+		<Unit filename="src/Core/PacketWriter.hpp" />
+		<Unit filename="src/Core/Queue.hpp" />
+		<Unit filename="src/Core/Serializable.hpp" />
+		<Unit filename="src/Core/SharedCount.hpp" />
+		<Unit filename="src/Core/SharedPtr.hpp" />
+		<Unit filename="src/Core/Socket.hpp" />
+		<Unit filename="src/Core/Strand.hpp" />
+		<Unit filename="src/Core/Stream.hpp" />
+		<Unit filename="src/Core/TCPClient.cpp" />
+		<Unit filename="src/Core/TCPClient.hpp" />
+		<Unit filename="src/Core/TCPServer.cpp" />
+		<Unit filename="src/Core/TCPServer.hpp" />
+		<Unit filename="src/Core/TCPStream.cpp" />
+		<Unit filename="src/Core/TCPStream.hpp" />
+		<Unit filename="src/Core/TimedStream.hpp" />
+		<Unit filename="src/Core/Timer.cpp" />
+		<Unit filename="src/Core/Timer.hpp" />
+		<Unit filename="src/Core/Types.hpp" />
+		<Unit filename="src/Core/UDPSocket.cpp" />
+		<Unit filename="src/Core/UDPSocket.hpp" />
+		<Unit filename="src/Core/WrappedHandler.hpp" />
+		<Unit filename="src/DHT/BucketSet.cpp" />
+		<Unit filename="src/DHT/BucketSet.hpp" />
+		<Unit filename="src/DHT/Database.hpp" />
+		<Unit filename="src/DHT/FindNode.hpp" />
+		<Unit filename="src/DHT/Hash.cpp" />
+		<Unit filename="src/DHT/Hash.hpp" />
+		<Unit filename="src/DHT/MapDatabase.cpp" />
+		<Unit filename="src/DHT/MapDatabase.hpp" />
+		<Unit filename="src/DHT/Network.cpp" />
+		<Unit filename="src/DHT/Network.hpp" />
+		<Unit filename="src/DHT/Node.cpp" />
+		<Unit filename="src/DHT/Node.hpp" />
+		<Unit filename="src/DHT/NodeGroup.hpp" />
+		<Unit filename="src/DHT/RPCManager.cpp" />
+		<Unit filename="src/DHT/RPCManager.hpp" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

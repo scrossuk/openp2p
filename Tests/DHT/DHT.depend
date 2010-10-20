@@ -1,0 +1,246 @@
+# depslib dependency file v1.0
+1286984915 source:/home/scross/Projects/openp2p/trunk/Tests/DHT/dht1.cpp
+	<iostream>
+	<boost/asio.hpp>
+	"../../src/Core.hpp"
+	"../../src/DHT.hpp"
+
+1286984155 /home/scross/Projects/openp2p/trunk/src/Core.hpp
+	"Core/Dispatcher.hpp"
+	"Core/Stream.hpp"
+	"Core/TCPClient.hpp"
+	"Core/TCPServer.hpp"
+	"Core/TCPStream.hpp"
+	"Core/PacketStream.hpp"
+	"Core/SharedCount.hpp"
+	"Core/SharedPtr.hpp"
+	"Core/Types.hpp"
+	"Core/Buffer.hpp"
+	"Core/BufferIterator.hpp"
+	"Core/BufferQueue.hpp"
+	"Core/DataReader.hpp"
+	"Core/DataSource.hpp"
+	"Core/FixedStream.hpp"
+	"Core/NullStream.hpp"
+	"Core/Serializable.hpp"
+	"Core/Endpoint.hpp"
+	"Core/UDPSocket.hpp"
+	"Core/Timer.hpp"
+	"Core/Strand.hpp"
+	"Core/Join.hpp"
+	"Core/Wrapper.hpp"
+	"Core/Handler.hpp"
+	"Core/Guard.hpp"
+	"Core/Activation.hpp"
+
+1286657809 /home/scross/Projects/openp2p/trunk/src/Core/Dispatcher.hpp
+	<boost/asio.hpp>
+	<boost/thread.hpp>
+
+1285851643 /home/scross/Projects/openp2p/trunk/src/Core/Stream.hpp
+	<boost/function.hpp>
+
+1285855495 /home/scross/Projects/openp2p/trunk/src/Core/TCPClient.hpp
+	<boost/function.hpp>
+	"Stream.hpp"
+
+1285855559 /home/scross/Projects/openp2p/trunk/src/Core/TCPServer.hpp
+	<boost/function.hpp>
+	"Stream.hpp"
+
+1285850389 /home/scross/Projects/openp2p/trunk/src/Core/TCPStream.hpp
+	<boost/asio.hpp>
+	<boost/bind.hpp>
+	"Stream.hpp"
+
+1285856013 /home/scross/Projects/openp2p/trunk/src/Core/PacketStream.hpp
+	<boost/bind.hpp>
+	"Stream.hpp"
+	"PacketReader.hpp"
+	"PacketWriter.hpp"
+
+1285368984 /home/scross/Projects/openp2p/trunk/src/Core/PacketReader.hpp
+	"Stream.hpp"
+	"Buffer.hpp"
+	"BufferQueue.hpp"
+
+1285685810 /home/scross/Projects/openp2p/trunk/src/Core/Buffer.hpp
+	<string>
+	"Types.hpp"
+	"SharedPtr.hpp"
+	"SharedCount.hpp"
+
+1279838480 /home/scross/Projects/openp2p/trunk/src/Core/Types.hpp
+	<stdint.h>
+	<cstdlib>
+
+1286576908 /home/scross/Projects/openp2p/trunk/src/Core/SharedPtr.hpp
+	<boost/function.hpp>
+	"Handler.hpp"
+
+1286634221 /home/scross/Projects/openp2p/trunk/src/Core/Handler.hpp
+	<boost/bind.hpp>
+
+1285867259 /home/scross/Projects/openp2p/trunk/src/Core/SharedCount.hpp
+	<boost/detail/atomic_count.hpp>
+
+1286633109 /home/scross/Projects/openp2p/trunk/src/Core/BufferQueue.hpp
+	<queue>
+	"Types.hpp"
+	"Buffer.hpp"
+	"BufferIterator.hpp"
+	"DataSource.hpp"
+
+1286627394 /home/scross/Projects/openp2p/trunk/src/Core/BufferIterator.hpp
+	<stack>
+	"SharedPtr.hpp"
+	"Types.hpp"
+	"Buffer.hpp"
+	"DataSource.hpp"
+
+1276697236 /home/scross/Projects/openp2p/trunk/src/Core/DataSource.hpp
+	"Types.hpp"
+
+1285368940 /home/scross/Projects/openp2p/trunk/src/Core/PacketWriter.hpp
+	"Stream.hpp"
+
+1276699046 /home/scross/Projects/openp2p/trunk/src/Core/DataReader.hpp
+	<string>
+	"Types.hpp"
+
+1285368599 /home/scross/Projects/openp2p/trunk/src/Core/FixedStream.hpp
+	"Stream.hpp"
+	"Buffer.hpp"
+	"BufferQueue.hpp"
+
+1276365842 /home/scross/Projects/openp2p/trunk/src/Core/NullStream.hpp
+	"Stream.hpp"
+	"Buffer.hpp"
+
+1278772992 /home/scross/Projects/openp2p/trunk/src/Core/Serializable.hpp
+	"Buffer.hpp"
+
+1286630086 /home/scross/Projects/openp2p/trunk/src/Core/Endpoint.hpp
+	<boost/asio.hpp>
+	"Types.hpp"
+
+1285855786 /home/scross/Projects/openp2p/trunk/src/Core/UDPSocket.hpp
+	<boost/function.hpp>
+	<boost/bind.hpp>
+	"Socket.hpp"
+
+1285801973 /home/scross/Projects/openp2p/trunk/src/Core/Socket.hpp
+	<boost/function.hpp>
+	"SharedCount.hpp"
+
+1285848343 /home/scross/Projects/openp2p/trunk/src/Core/Timer.hpp
+	<boost/function.hpp>
+
+1285878406 /home/scross/Projects/openp2p/trunk/src/Core/Strand.hpp
+	<boost/asio/io_service.hpp>
+	<boost/asio/strand.hpp>
+	<boost/asio/detail/wrapped_handler.hpp>
+	"Dispatcher.hpp"
+
+1286660488 /home/scross/Projects/openp2p/trunk/src/Core/Join.hpp
+	<boost/function.hpp>
+	"Strand.hpp"
+	"SharedCount.hpp"
+	"SharedPtr.hpp"
+	"Handler.hpp"
+
+1285951679 /home/scross/Projects/openp2p/trunk/src/Core/Wrapper.hpp
+
+1286576319 /home/scross/Projects/openp2p/trunk/src/Core/Guard.hpp
+	<queue>
+	<boost/function.hpp>
+	"Strand.hpp"
+	"SharedCount.hpp"
+	"SharedPtr.hpp"
+	"Handler.hpp"
+
+1286728252 /home/scross/Projects/openp2p/trunk/src/DHT.hpp
+	"DHT/BucketSet.hpp"
+	"DHT/Database.hpp"
+	"DHT/FindNode.hpp"
+	"DHT/Hash.hpp"
+	"DHT/MapDatabase.hpp"
+	"DHT/Network.hpp"
+	"DHT/Node.hpp"
+	"DHT/NodeGroup.hpp"
+	"DHT/RPCManager.hpp"
+
+1286576521 /home/scross/Projects/openp2p/trunk/src/DHT/BucketSet.hpp
+	<list>
+	"Hash.hpp"
+	"Node.hpp"
+
+1286629896 /home/scross/Projects/openp2p/trunk/src/DHT/Hash.hpp
+	"../Core.hpp"
+
+1286629811 /home/scross/Projects/openp2p/trunk/src/DHT/Node.hpp
+	"../Core.hpp"
+	"Hash.hpp"
+
+1286372055 /home/scross/Projects/openp2p/trunk/src/DHT/Database.hpp
+	<boost/tuple/tuple.hpp>
+	"../Core.hpp"
+
+1286728284 /home/scross/Projects/openp2p/trunk/src/DHT/FindNode.hpp
+	<set>
+	<boost/function.hpp>
+	"../Core.hpp"
+	"RPCManager.hpp"
+	"Hash.hpp"
+	"Node.hpp"
+	"NodeGroup.hpp"
+
+1286633482 /home/scross/Projects/openp2p/trunk/src/DHT/RPCManager.hpp
+	<map>
+	<boost/function.hpp>
+	"../Core.hpp"
+	"Hash.hpp"
+	"NodeGroup.hpp"
+	"BucketSet.hpp"
+	"Node.hpp"
+
+1286640670 /home/scross/Projects/openp2p/trunk/src/DHT/NodeGroup.hpp
+	<map>
+	<boost/function.hpp>
+	"Node.hpp"
+	"Hash.hpp"
+
+1286574568 /home/scross/Projects/openp2p/trunk/src/DHT/FindValue.hpp
+	<boost/function.hpp>
+	"../Core.hpp"
+	"RPCManager.hpp"
+	"Hash.hpp"
+
+1286575367 /home/scross/Projects/openp2p/trunk/src/DHT/MapDatabase.hpp
+	<map>
+	<boost/tuple/tuple.hpp>
+	"../Core.hpp"
+	"Database.hpp"
+
+1286728566 /home/scross/Projects/openp2p/trunk/src/DHT/Network.hpp
+	<boost/function.hpp>
+	"../Core.hpp"
+
+1286577270 /home/scross/Projects/openp2p/trunk/src/DHT/Ping.hpp
+	<boost/function.hpp>
+	"../Core.hpp"
+	"RPCManager.hpp"
+	"Node.hpp"
+
+1286628518 /home/scross/Projects/openp2p/trunk/src/DHT/Store.hpp
+	<boost/function.hpp>
+	"../Core.hpp"
+	"RPCManager.hpp"
+	"Hash.hpp"
+
+1286729756 /home/scross/Projects/openp2p/trunk/src/Core/Activation.hpp
+	<boost/function.hpp>
+	"Strand.hpp"
+	"SharedCount.hpp"
+	"SharedPtr.hpp"
+

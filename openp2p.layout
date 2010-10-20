@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_layout_file>
+	<ActiveTarget name="Debug" />
+	<File name="src/Core/Buffer.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1561" topLine="32" />
+	</File>
+	<File name="src/Core/Dispatcher.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1122" topLine="7" />
+	</File>
+	<File name="src/Core/Endpoint.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="1712" topLine="28" />
+	</File>
+	<File name="src/Core/Join.hpp" open="0" top="0" tabpos="3">
+		<Cursor position="1702" topLine="28" />
+	</File>
+	<File name="src/Core/Queue.hpp" open="1" top="1" tabpos="1">
+		<Cursor position="1668" topLine="29" />
+	</File>
+	<File name="src/Core/SharedPtr.hpp" open="0" top="0" tabpos="2">
+		<Cursor position="2386" topLine="61" />
+	</File>
+	<File name="src/Core/Strand.hpp" open="0" top="0" tabpos="1">
+		<Cursor position="1563" topLine="9" />
+	</File>
+	<File name="src/Core/Stream.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1145" topLine="0" />
+	</File>
+	<File name="src/Core/TCPClient.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="2171" topLine="42" />
+	</File>
+	<File name="src/Core/TCPClient.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1019" topLine="1" />
+	</File>
+	<File name="src/Core/TCPServer.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="2667" topLine="71" />
+	</File>
+	<File name="src/Core/TCPServer.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1057" topLine="0" />
+	</File>
+	<File name="src/Core/TCPStream.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="1903" topLine="23" />
+	</File>
+	<File name="src/Core/UDPSocket.cpp" open="0" top="0" tabpos="5">
+		<Cursor position="4082" topLine="110" />
+	</File>
+	<File name="src/Core/UDPSocket.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1598" topLine="13" />
+	</File>
+	<File name="src/Core/WrappedHandler.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1003" topLine="11" />
+	</File>
+	<File name="src/DHT/BucketSet.cpp" open="0" top="0" tabpos="4">
+		<Cursor position="1558" topLine="26" />
+	</File>
+	<File name="src/DHT/BucketSet.hpp" open="0" top="0" tabpos="3">
+		<Cursor position="1353" topLine="10" />
+	</File>
+	<File name="src/DHT/FindNode.hpp" open="0" top="0" tabpos="1">
+		<Cursor position="1579" topLine="27" />
+	</File>
+	<File name="src/DHT/Hash.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="1010" topLine="7" />
+	</File>
+	<File name="src/DHT/Hash.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1199" topLine="6" />
+	</File>
+	<File name="src/DHT/MapDatabase.cpp" open="0" top="0" tabpos="10">
+		<Cursor position="944" topLine="2" />
+	</File>
+	<File name="src/DHT/Network.cpp" open="0" top="0" tabpos="6">
+		<Cursor position="3455" topLine="46" />
+	</File>
+	<File name="src/DHT/Network.hpp" open="0" top="0" tabpos="0">
+		<Cursor position="1186" topLine="3" />
+	</File>
+	<File name="src/DHT/Node.cpp" open="0" top="0" tabpos="9">
+		<Cursor position="1103" topLine="9" />
+	</File>
+	<File name="src/DHT/Node.hpp" open="0" top="0" tabpos="5">
+		<Cursor position="1064" topLine="10" />
+	</File>
+	<File name="src/DHT/NodeGroup.hpp" open="0" top="0" tabpos="2">
+		<Cursor position="1955" topLine="85" />
+	</File>
+	<File name="src/DHT/RPCManager.cpp" open="0" top="0" tabpos="0">
+		<Cursor position="6088" topLine="162" />
+	</File>
+	<File name="src/DHT/RPCManager.hpp" open="0" top="0" tabpos="11">
+		<Cursor position="3167" topLine="56" />
+	</File>
+</CodeBlocks_layout_file>

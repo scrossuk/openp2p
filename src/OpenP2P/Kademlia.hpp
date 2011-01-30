@@ -1,0 +1,13 @@
+#include <OpenP2P/Kademlia/Database.hpp>
+#include <OpenP2P/Kademlia/BucketSet.hpp>
+#include <OpenP2P/Kademlia/DHT.hpp>
+#include <OpenP2P/Kademlia/FindNode.hpp>
+#include <OpenP2P/Kademlia/FindValue.hpp>
+#include <OpenP2P/Kademlia/Id.hpp>
+#include <OpenP2P/Kademlia/IdGenerator.hpp>
+#include <OpenP2P/Kademlia/MapDatabase.hpp>
+#include <OpenP2P/Kademlia/Node.hpp>
+#include <OpenP2P/Kademlia/NodeGroup.hpp>
+#include <OpenP2P/Kademlia/NodeQueue.hpp>
+#include <OpenP2P/Kademlia/Ping.hpp>
+#include <OpenP2P/Kademlia/Store.hpp>

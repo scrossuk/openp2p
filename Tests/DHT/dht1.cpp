@@ -1,95 +1,102 @@
+#include <stdint.h>
 #include <iostream>
 #include <boost/asio.hpp>
-#include "../../src/Core.hpp"
-#include "../../src/DHT.hpp"
+#include <boost/optional.hpp>
+#include <OpenP2P.hpp>
+#include <OpenP2P/Kademlia.hpp>
+#include <OpenP2P/UDP.hpp>
 
-using namespace openp2p::Core;
-using namespace openp2p::DHT;
-
-void printBuffer(Buffer buffer){
-	try{
-		std::string str;
-		BufferIterator iterator(buffer);
-		DataReader reader(iterator);
-		reader >> str;
-
-		std::cout << "String: " << str << std::endl;
-	}catch(BufferOutOfBoundsException){
-		std::cout << "Not a string" << std::endl;
+void printData(const OpenP2P::Buffer& buffer){
+	OpenP2P::BufferIterator iterator(buffer);
+	
+	uint8_t v;
+	while(iterator >> v){
+		std::cout << (char) v;
 	}
+	
+	std::cout << std::endl;
 }
 
-void endpointFound(Node node){
-	std::cout << "Endpoint found " << node.GetEndpoint().Port() << std::endl;
-}
-
-void endpointNotFound(){
-	std::cout << "Endpoint not found" << std::endl;
-}
-
-void nodeFound(Node node){
-	std::cout << "Node found" << std::endl;
-}
-
-void nodeNotFound(){
-	std::cout << "Node not found" << std::endl;
-}
-
-void storeSuccess(){
-	std::cout << "Store successful" << std::endl;
-}
-
-void storeFail(){
-	std::cout << "Store failed" << std::endl;
-}
-
-void valueFound(Buffer buffer){
-	std::cout << "Found data..." << std::endl;
-	printBuffer(buffer);
-}
-
-void valueNotFound(){
-	std::cout << "Data not found" << std::endl;
-}
+typedef OpenP2P::Kademlia::Id<1> IdType;
+typedef OpenP2P::Kademlia::Node<OpenP2P::UDP::Endpoint, 1> NodeType;
+typedef OpenP2P::Kademlia::NodeGroup<OpenP2P::UDP::Endpoint, 1> GroupType;
 
 int main(){
-	/*boost::asio::ip::udp::socket socket(GetGlobalIOService());
-	socket.open(boost::asio::ip::udp::v4());
-	boost::asio::socket_base::reuse_address option(true);
-	socket.set_option(option);
+	OpenP2P::UDP::Socket socket(46667);
+	
+	std::cout << "UDP socket created" << std::endl;
+	
+	OpenP2P::Kademlia::IdGenerator<1> generator;
+	
+	std::cout << "Created ID Generator" << std::endl;
+	
+	OpenP2P::RPCProtocol<OpenP2P::UDP::Endpoint, IdType> protocol(socket, generator);
+	
+	std::cout << "Created RPC Protocol" << std::endl;
+	
+	OpenP2P::Kademlia::MapDatabase<1> database;
+	
+	std::cout << "Created database" << std::endl;
+	
+	IdType myId;
+	myId.data[0] = 'A';
+	
+	OpenP2P::Kademlia::DHT<OpenP2P::UDP::Endpoint, 1> dht(protocol, myId, database);
+	
+	std::cout << "Created DHT" << std::endl;
 
-	try{
-		socket.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), 12345));
-	}catch(...){
-		std::cout << "Exception" << std::endl;
-		return 0;
-	}*/
-
-	char s[1];
-
-	Network dht(UDPSocketBuilder(46667), Hash('A'), new MapDatabase());
-
-	dht.AddEndpoint(Endpoint(boost::asio::ip::address_v4::loopback(), 46668), endpointFound, endpointNotFound);
-
-	std::cin.getline(s, 1);
+	boost::optional<NodeType> r1 = dht.addEndpoint(OpenP2P::UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 46668), OpenP2P::Timeout(2.0));
+	if(r1){
+		std::cout << "Endpoint found " << (*r1).endpoint.port() << " " << r1->id.data[0] << std::endl;
+	}else{
+		std::cout << "Endpoint not found" << std::endl;
+	}
 
 	std::cout << "Finding node..." << std::endl;
 
-	dht.FindNode(Hash('B'), nodeFound, nodeNotFound);
-
-	std::cin.getline(s, 1);
+	IdType findId;
+	findId.data[0] = 'B';
+	boost::optional<NodeType> r2 = dht.findNode(findId, OpenP2P::Timeout(2.0));
+	if(r2){
+		std::cout << "Node found" << std::endl;
+	}else{
+		std::cout << "Node not found" << std::endl;
+	}
+	
+	std::cout << "Bucket has:" << std::endl;
+	
+	GroupType group1 = dht.bucketNearest(findId);
+	for(GroupType::Iterator i = group1.iterator(); i.isValid(); i++){
+		std::cout << "   " << (*i).endpoint.port() << " " << (*i).id.data[0] << std::endl;
+	}
+	
+	std::cout << "DHT Nearest is:" << std::endl;
+	GroupType group2 = dht.findNearest(findId);
+	for(GroupType::Iterator i = group2.iterator(); i.isValid(); i++){
+		std::cout << "   " << (*i).endpoint.port() << " " << (*i).id.data[0] << std::endl;
+	}
 
 	std::cout << "Storing..." << std::endl;
 
-	dht.Store(Hash('C'), Buffer("Hello world"), storeSuccess, storeFail);
-
-	std::cin.getline(s, 1);
+	IdType dataId;
+	dataId.data[0] = 'C';
+	bool r3 = dht.store(dataId, OpenP2P::MakeBuffer("Hello world"), OpenP2P::Timeout(2.0));
+	if(r3){
+		std::cout << "Store successful" << std::endl;
+	}else{
+		std::cout << "Store failed" << std::endl;
+	}
 
 	std::cout << "Retrieving..." << std::endl;
 
-	dht.FindValue(Hash('C'), valueFound, valueNotFound);
-
-	std::cin.getline(s, 1);
+	boost::optional<OpenP2P::Buffer> r4 = dht.findValue(dataId, OpenP2P::Timeout(2.0));
+	if(r4){
+		std::cout << "Found data..." << std::endl;
+		printData(*r4);
+	}else{
+		std::cout << "Data not found" << std::endl;
+	}
 
 	return 0;
 }
+

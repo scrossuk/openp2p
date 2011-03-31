@@ -10,7 +10,7 @@
 
 #include <OpenP2P/Block.hpp>
 #include <OpenP2P/RPCProtocol.hpp>
-#include <OpenP2P/WaitHandler.hpp>
+#include <OpenP2P/WaitObject.hpp>
 #include <OpenP2P/Kademlia/BucketSet.hpp>
 #include <OpenP2P/Kademlia/Database.hpp>
 #include <OpenP2P/Kademlia/FindNode.hpp>
@@ -56,7 +56,7 @@ namespace OpenP2P{
 					ping_(protocol, "ping", boost::bind(&DHT::onPing, this, _1, _2)),
 					store_(protocol, "store", boost::bind(&DHT::onStore, this, _1, _2)) { }
 
-				boost::optional<NodeType> addEndpoint(const EndpointType& endpoint, WaitHandler handler = Block){
+				boost::optional<NodeType> addEndpoint(const EndpointType& endpoint, WaitObject& waitObject = defaultBlock){
 					boost::optional<PingReply> reply = ping_.send(endpoint, PingRequest());
 
 					if(reply){
@@ -68,7 +68,7 @@ namespace OpenP2P{
 					}
 				}
 
-				bool store(const IdType& id, const Buffer& buffer, WaitHandler handler = Block){
+				bool store(const IdType& id, const Buffer& buffer, WaitObject& waitObject = defaultBlock){
 					GroupType group = findNearest(id);
 
 					for(GroupIterator i = group.iterator(); i.isValid(); i++){
@@ -78,7 +78,7 @@ namespace OpenP2P{
 					return true;
 				}
 
-				boost::optional<NodeType> findNode(const IdType& id, WaitHandler handler = Block){
+				boost::optional<NodeType> findNode(const IdType& id, WaitObject& waitObject = defaultBlock){
 					GroupType group = findNearest(id);
 					boost::optional<NodeType> node = group.nearest();
 					if(node){
@@ -113,7 +113,7 @@ namespace OpenP2P{
 					return queue.group();
 				}
 
-				boost::optional<Buffer> findValue(const Id<IdSize>& id, WaitHandler handler = Block){
+				boost::optional<Buffer> findValue(const Id<IdSize>& id, WaitObject& waitObject = defaultBlock){
 					GroupType group = findNearest(id);
 
 					for(GroupIterator i = group.iterator(); i.isValid(); ++i){

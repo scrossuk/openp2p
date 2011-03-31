@@ -30,7 +30,7 @@ int main(){
 	
 	std::cout << "Created ID Generator" << std::endl;
 	
-	OpenP2P::RPCProtocol<OpenP2P::UDP::Endpoint, IdType> protocol(socket, generator);
+	OpenP2P::RPC::Protocol<OpenP2P::UDP::Endpoint, IdType> protocol(socket, generator);
 	
 	std::cout << "Created RPC Protocol" << std::endl;
 	
@@ -80,7 +80,7 @@ int main(){
 
 	IdType dataId;
 	dataId.data[0] = 'C';
-	bool r3 = dht.store(dataId, OpenP2P::MakeBuffer("Hello world"), OpenP2P::Timeout(2.0));
+	bool r3 = dht.store(dataId, OpenP2P::MakeBuffer<TextStream>("Hello world"), OpenP2P::Timeout(2.0));
 	if(r3){
 		std::cout << "Store successful" << std::endl;
 	}else{

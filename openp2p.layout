@@ -1,142 +1,34 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
-	<File name="src/OpenP2P.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="668" topLine="0" />
+	<File name="src/OpenP2P/BinaryStream.cpp" open="1" top="0" tabpos="1">
+		<Cursor position="3322" topLine="97" />
 	</File>
-	<File name="src/OpenP2P/Buffer.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="689" topLine="0" />
+	<File name="src/OpenP2P/IOService.cpp" open="1" top="1" tabpos="4">
+		<Cursor position="548" topLine="0" />
 	</File>
-	<File name="src/OpenP2P/BufferBuilder.cpp" open="0" top="0" tabpos="2">
-		<Cursor position="759" topLine="0" />
+	<File name="src/OpenP2P/IOService.hpp" open="1" top="0" tabpos="2">
+		<Cursor position="88" topLine="0" />
 	</File>
-	<File name="src/OpenP2P/BufferBuilder.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="576" topLine="0" />
+	<File name="src/OpenP2P/Runnable.hpp" open="1" top="0" tabpos="3">
+		<Cursor position="93" topLine="0" />
 	</File>
-	<File name="src/OpenP2P/BufferIterator.cpp" open="0" top="0" tabpos="0">
-		<Cursor position="2816" topLine="90" />
+	<File name="src/OpenP2P/TCP/Acceptor.cpp" open="1" top="0" tabpos="6">
+		<Cursor position="789" topLine="13" />
 	</File>
-	<File name="src/OpenP2P/BufferIterator.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="335" topLine="0" />
+	<File name="src/OpenP2P/TCP/Endpoint.hpp" open="1" top="0" tabpos="5">
+		<Cursor position="319" topLine="0" />
 	</File>
-	<File name="src/OpenP2P/DestroyHandler.hpp" open="0" top="0" tabpos="2">
-		<Cursor position="70" topLine="0" />
+	<File name="src/OpenP2P/TCP/Resolver.cpp" open="1" top="0" tabpos="7">
+		<Cursor position="630" topLine="2" />
 	</File>
-	<File name="src/OpenP2P/IStream.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="284" topLine="8" />
+	<File name="src/OpenP2P/TCP/Stream.cpp" open="1" top="0" tabpos="8">
+		<Cursor position="1820" topLine="48" />
 	</File>
-	<File name="src/OpenP2P/IdMap.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="229" topLine="0" />
+	<File name="src/OpenP2P/Thread.hpp" open="1" top="0" tabpos="10">
+		<Cursor position="252" topLine="0" />
 	</File>
-	<File name="src/OpenP2P/Join.cpp" open="0" top="0" tabpos="4">
-		<Cursor position="1080" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Join.hpp" open="0" top="0" tabpos="3">
-		<Cursor position="139" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="520" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/BucketSet.hpp" open="0" top="0" tabpos="7">
-		<Cursor position="1063" topLine="12" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/DHT.hpp" open="0" top="0" tabpos="1">
-		<Cursor position="5779" topLine="137" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/Database.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="210" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/FindNode.hpp" open="0" top="0" tabpos="6">
-		<Cursor position="231" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/FindValue.hpp" open="0" top="0" tabpos="4">
-		<Cursor position="660" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/Id.hpp" open="0" top="0" tabpos="8">
-		<Cursor position="1329" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/IdGenerator.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="190" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/MapDatabase.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="288" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/Node.hpp" open="0" top="0" tabpos="7">
-		<Cursor position="315" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/NodeGroup.hpp" open="0" top="0" tabpos="6">
-		<Cursor position="1588" topLine="41" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/NodeQueue.hpp" open="0" top="0" tabpos="5">
-		<Cursor position="917" topLine="27" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/Ping.hpp" open="0" top="0" tabpos="1">
-		<Cursor position="890" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Kademlia/Store.hpp" open="0" top="0" tabpos="1">
-		<Cursor position="309" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/NoBlock.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="113" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/OStream.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="276" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/RPCProtocol.hpp" open="0" top="0" tabpos="4">
-		<Cursor position="1838" topLine="21" />
-	</File>
-	<File name="src/OpenP2P/SafeMap.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="315" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Signal.cpp" open="0" top="0" tabpos="2">
-		<Cursor position="1161" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Signal.hpp" open="0" top="0" tabpos="6">
-		<Cursor position="236" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Socket.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="111" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/TCP.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="174" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/TCP/Accept.cpp" open="0" top="0" tabpos="4">
-		<Cursor position="436" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/TCP/Connect.cpp" open="0" top="0" tabpos="5">
-		<Cursor position="639" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/TCP/Endpoint.cpp" open="0" top="0" tabpos="0">
-		<Cursor position="949" topLine="19" />
-	</File>
-	<File name="src/OpenP2P/TCP/Endpoint.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="235" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/TCP/Resolve.cpp" open="0" top="0" tabpos="3">
-		<Cursor position="518" topLine="10" />
-	</File>
-	<File name="src/OpenP2P/TCP/Resolve.hpp" open="0" top="0" tabpos="2">
-		<Cursor position="0" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/TCP/Stream.cpp" open="0" top="0" tabpos="7">
-		<Cursor position="2941" topLine="67" />
-	</File>
-	<File name="src/OpenP2P/Timeout.cpp" open="0" top="0" tabpos="0">
-		<Cursor position="451" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/Timeout.hpp" open="0" top="0" tabpos="3">
-		<Cursor position="146" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/UDP/Socket.cpp" open="0" top="0" tabpos="5">
-		<Cursor position="2269" topLine="70" />
-	</File>
-	<File name="src/OpenP2P/Wait.cpp" open="0" top="0" tabpos="5">
-		<Cursor position="1736" topLine="23" />
-	</File>
-	<File name="src/OpenP2P/Wait.hpp" open="0" top="0" tabpos="0">
-		<Cursor position="68" topLine="0" />
-	</File>
-	<File name="src/OpenP2P/WaitHandler.hpp" open="0" top="0" tabpos="1">
-		<Cursor position="310" topLine="0" />
+	<File name="src/OpenP2P/UDP/Socket.cpp" open="1" top="0" tabpos="9">
+		<Cursor position="1324" topLine="5" />
 	</File>
 </CodeBlocks_layout_file>

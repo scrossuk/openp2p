@@ -1,16 +1,46 @@
 #ifndef OPENP2P_BINARYSTREAM_HPP
 #define OPENP2P_BINARYSTREAM_HPP
 
+#include <boost/array.hpp>
 #include <boost/optional.hpp>
-#include <OpenP2P/BasicStream.hpp>
+#include <OpenP2P/Buffer.hpp>
+#include <OpenP2P/Cancellable.hpp>
+#include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P{
 
-	class BinaryStream{
+	class BinaryStream: public Cancellable{
 		public:
-			BinaryStream(BasicStream&);
+			BinaryStream(Stream&);
+
+			inline operator bool(){
+				return isValid_;
+			}
+
+			inline void setValid(){
+				isValid_ = true;
+			}
+
+			inline void setInvalid(){
+				isValid_ = false;
+			}
+
+			bool read(uint8_t *, std::size_t);
+
+			bool write(const uint8_t *, std::size_t);
+
+			std::size_t tryRead(uint8_t *, std::size_t);
+
+			std::size_t tryWrite(const uint8_t *, std::size_t);
+
+			void cancel();
+
+		private:
+			Stream& stream_;
+			bool isValid_;
+
 	};
-	
+
 	BinaryStream& operator<<(BinaryStream&, bool);
 	BinaryStream& operator<<(BinaryStream&, uint8_t);
 	BinaryStream& operator<<(BinaryStream&, int8_t);
@@ -22,7 +52,8 @@ namespace OpenP2P{
 	BinaryStream& operator<<(BinaryStream&, int64_t);
 	BinaryStream& operator<<(BinaryStream&, const char *);
 	BinaryStream& operator<<(BinaryStream&, const std::string&);
-	
+	BinaryStream& operator<<(BinaryStream&, const Buffer&);
+
 
 	template <typename T, std::size_t N>
 	BinaryStream& operator<<(BinaryStream& stream, const boost::array<T, N>& array){
@@ -41,7 +72,7 @@ namespace OpenP2P{
 		}
 		return stream;
 	}
-	
+
 	BinaryStream& operator>>(BinaryStream&, bool&);
 	BinaryStream& operator>>(BinaryStream&, uint8_t&);
 	BinaryStream& operator>>(BinaryStream&, int8_t&);
@@ -52,6 +83,7 @@ namespace OpenP2P{
 	BinaryStream& operator>>(BinaryStream&, uint64_t&);
 	BinaryStream& operator>>(BinaryStream&, int64_t&);
 	BinaryStream& operator>>(BinaryStream&, std::string&);
+	BinaryStream& operator>>(BinaryStream&, Buffer&);
 
 	template <typename T, std::size_t N>
 	BinaryStream& operator>>(BinaryStream& stream, boost::array<T, N>& array){

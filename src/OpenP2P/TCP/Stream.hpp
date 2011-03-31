@@ -3,29 +3,44 @@
 
 #include <stdint.h>
 #include <cstddef>
-#include <list>
+#include <vector>
+
 #include <boost/asio.hpp>
-#include <boost/optional.hpp>
-#include <boost/shared_ptr.hpp>
-#include <OpenP2P/BasicStream.hpp>
-#include <OpenP2P/Block.hpp>
-#include <OpenP2P/WaitHandler.hpp>
+#include <boost/utility.hpp>
+
+#include <OpenP2P/IOService.hpp>
+#include <OpenP2P/Mutex.hpp>
+#include <OpenP2P/Stream.hpp>
+
+#include <OpenP2P/TCP/Endpoint.hpp>
 
 namespace OpenP2P{
 
 	namespace TCP{
 
-		class Stream: public BasicStream{
+		class Stream: public OpenP2P::Stream, boost::noncopyable{
 			public:
-				Stream(boost::shared_ptr<boost::asio::ip::tcp::socket>);
-				Stream(const Stream&);
+				Stream();
 
-				std::size_t writeSome(const uint8_t *, std::size_t, WaitHandler = Block);
+				bool connect(const Endpoint& endpoint);
 
-				std::size_t readSome(uint8_t *, std::size_t, WaitHandler = Block);
+				bool connect(const std::vector<Endpoint>& endpointList);
+
+				boost::asio::ip::tcp::socket& getInternal();
+
+				std::size_t writeSome(const uint8_t *, std::size_t);
+
+				std::size_t readSome(uint8_t *, std::size_t);
+
+				void cancel();
+
+				void close();
 
 			private:
-				boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
+				IOService service_;
+				Mutex mutex_;
+				boost::asio::ip::tcp::socket internalSocket_;
+				
 
 		};
 

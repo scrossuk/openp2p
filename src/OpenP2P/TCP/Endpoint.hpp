@@ -2,8 +2,7 @@
 #define OPENP2P_TCP_ENDPOINT_HPP
 
 #include <boost/asio.hpp>
-#include <OpenP2P/IStream.hpp>
-#include <OpenP2P/OStream.hpp>
+#include <OpenP2P/BinaryStream.hpp>
 
 namespace OpenP2P{
 
@@ -13,8 +12,8 @@ namespace OpenP2P{
 
 	}
 
-	IStream& operator>>(IStream&, TCP::Endpoint&);
-	OStream& operator<<(OStream&, const TCP::Endpoint&);
+	BinaryStream& operator>>(BinaryStream&, TCP::Endpoint&);
+	BinaryStream& operator<<(BinaryStream&, const TCP::Endpoint&);
 
 }
 #endif

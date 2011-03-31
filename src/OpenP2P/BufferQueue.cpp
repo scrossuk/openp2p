@@ -4,8 +4,6 @@
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferIterator.hpp>
 #include <OpenP2P/BufferQueue.hpp>
-#include <OpenP2P/IStream.hpp>
-#include <OpenP2P/WaitHandler.hpp>
 
 namespace OpenP2P{
 
@@ -22,13 +20,15 @@ namespace OpenP2P{
 		}
 	}
 
-	std::size_t BufferQueue::readSome(uint8_t * data, std::size_t dataSize, WaitHandler handler){
-		std::size_t readSize = iterator_.readSome(data, dataSize, handler);
+	std::size_t BufferQueue::readSome(uint8_t * data, std::size_t dataSize){
+		std::size_t readSize = iterator_.readSome(data, dataSize);
 		if(iterator_.remaining() == 0 && !queue_.empty()){
 			iterator_.set(queue_.front());
 			queue_.pop();
 		}
 		return readSize;
 	}
+
+	void BufferQueue::cancel(){ }
 
 }

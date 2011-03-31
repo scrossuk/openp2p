@@ -1,36 +1,82 @@
 #include <stdint.h>
 #include <iostream>
-#include <boost/thread.hpp>
-#include <openp2p.hpp>
+#include <vector>
 
-void handleStream(openp2p::tcp::stream stream){
-	std::cout << "---Started transfer" << std::endl;
+#include <OpenP2P.hpp>
+#include <OpenP2P/TCP.hpp>
 
-	for(unsigned int i = 0; i < 1000; i += 2){
-		uint32_t v;
-		stream >> v;
+using namespace OpenP2P;
 
-		if(v != i){
-			std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << " - Terminating connection" << std::endl;
-			return;
+template <typename T>
+class Container{
+	public:
+		~Container(){
+			for(typename std::vector<T *>::iterator i = data_.begin(); i != data_.end(); ++i){
+				delete (*i);
+			}
 		}
 
-		std::cout << "Received: " << i << std::endl;
+		T * add(T * t){
+			data_.push_back(t);
+			return t;
+		}
 
-		stream << uint32_t(i + 1);
-	}
+	private:
+		std::vector<T *> data_;
 
-	std::cout << "---Successfully completed transfer" << std::endl;
-}
+};
+
+class ClientThread: public Runnable{
+	public:
+		ClientThread() : binaryStream_(tcpStream_){ }
+
+		TCP::Stream& getTCPStream(){
+			return tcpStream_;
+		}
+
+		void run(){
+			std::cout << "---Started transfer" << std::endl;
+	
+			for(unsigned int i = 0; i < 1000; i += 2){
+				uint32_t v;
+				binaryStream_ >> v;
+
+				if(v != i){
+					std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << " - Terminating connection" << std::endl;
+					return;
+				}
+
+				std::cout << "Received: " << i << std::endl;
+
+				binaryStream_ << uint32_t(i + 1);
+			}
+
+			std::cout << "---Successfully completed transfer" << std::endl;
+		}
+
+		void cancel(){
+			tcpStream_.close();
+		}
+
+	private:
+		TCP::Stream tcpStream_;
+		BinaryStream binaryStream_;
+
+};
 
 int main(){
+	TCP::Acceptor acceptor(45556);
+
+	Container<ClientThread> clientThreads;
+	Container<Thread> threads;
+
 	while(true){
+		ClientThread * c = clientThreads.add(new ClientThread());
+
 		std::cout << "Start accept" << std::endl;
-		boost::optional<openp2p::tcp::stream> stream = openp2p::tcp::accept(45556);
-		std::cout << "Accept returned" << std::endl;
-		if(stream){
+		if(acceptor.accept(c->getTCPStream())){
 			//thread per connection
-			boost::thread thread(handleStream, *stream);
+			threads.add(new Thread(*c));
 		}else{
 			std::cout << "Error: Accept failed" << std::endl;
 			return 1;

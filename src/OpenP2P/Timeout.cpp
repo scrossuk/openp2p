@@ -1,35 +1,30 @@
-#include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#include <boost/shared_ptr.hpp>
-#include <OpenP2P/CancelFunction.hpp>
-#include <OpenP2P/Dispatcher.hpp>
+#include <boost/bind.hpp>
+#include <boost/ref.hpp>
+
+#include <OpenP2P/Cancellable.hpp>
 #include <OpenP2P/Timeout.hpp>
-#include <OpenP2P/WaitCallback.hpp>
-#include <OpenP2P/WaitHandler.hpp>
 
 namespace OpenP2P{
 
 	namespace{
 
-		void TimeoutCallback(WaitCallback callback, boost::shared_ptr<boost::asio::deadline_timer> timer, const boost::system::error_code& error){
-			callback();
-		}
-
-		void TimeoutCancel(boost::shared_ptr<boost::asio::deadline_timer> timer){
-			timer->cancel();
-		}
-
-		CancelFunction TimeoutStart(double secs, WaitCallback callback){
-			boost::shared_ptr<boost::asio::deadline_timer> timer(new boost::asio::deadline_timer(GlobalIOService()));
-			timer->expires_from_now(boost::posix_time::milliseconds((unsigned int) (secs * 1000.0)));
-			timer->async_wait(boost::bind(TimeoutCallback, callback, timer, _1));
-			return boost::bind(TimeoutCancel, timer);
+		void timeoutCallback(Cancellable& cancellable, const boost::system::error_code& ec){
+			if(!ec){
+				cancellable.cancel();
+			}
 		}
 
 	}
 
-	WaitHandler Timeout(double secs){
-		return WaitHandler(boost::bind(TimeoutStart, secs, _1));
+	Timeout::Timeout(double secs, Cancellable& cancellable) : internalTimer_(service_.getInternal()){
+		internalTimer_.expires_from_now(boost::posix_time::milliseconds(secs * 1000.0));
+		internalTimer_.async_wait(boost::bind(timeoutCallback, boost::ref(cancellable), _1));
+	}
+
+	Timeout::~Timeout(){
+		internalTimer_.cancel();
 	}
 
 }
+

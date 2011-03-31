@@ -1,27 +1,22 @@
 #include <stdint.h>
 #include <iostream>
-#include <openp2p.hpp>
-#include <boost/bind.hpp>
-#include <boost/optional.hpp>
-
-void blah(){
-	std::cout << "blah" << std::endl;
-}
+#include <OpenP2P.hpp>
+#include <OpenP2P/TCP.hpp>
 
 int main(){
-	//openp2p::wait(openp2p::timeout(5.0));
-	
-	std::cout << "Blah" << std::endl;
-	boost::optional<openp2p::tcp::stream> stream = openp2p::tcp::connect(openp2p::tcp::endpoint(boost::asio::ip::address_v4::loopback(), 45556), openp2p::timeout(5.0));
+	OpenP2P::TCP::Stream tcpStream;
+	OpenP2P::Timeout timeout(5.0, tcpStream);
+	bool success = tcpStream.connect(OpenP2P::TCP::Endpoint(boost::asio::ip::address_v4::loopback(), 45556));
 
 	std::cout << "Starting" << std::endl;
 
-	if(stream){
+	if(success){
+		OpenP2P::BinaryStream stream(tcpStream);
 		for(unsigned int i = 0; i < 1000; i += 2){
-			*stream << uint32_t(i);
+			stream << uint32_t(i);
 
 			uint32_t v;
-			*stream >> v;
+			stream >> v;
 
 			if(v != (i + 1)){
 				std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << std::endl;

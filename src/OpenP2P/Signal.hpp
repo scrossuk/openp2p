@@ -1,20 +1,17 @@
 #ifndef OPENP2P_SIGNAL_HPP
 #define OPENP2P_SIGNAL_HPP
 
-#include <map>
-#include <boost/thread.hpp>
 #include <boost/utility.hpp>
 
-#include <OpenP2P/CancelFunction.hpp>
-#include <OpenP2P/WaitCallback.hpp>
-#include <OpenP2P/WaitHandler.hpp>
+#include <OpenP2P/Cancellable.hpp>
+#include <OpenP2P/Condition.hpp>
+#include <OpenP2P/Mutex.hpp>
 
 namespace OpenP2P{
 
-	class Signal: public WaitObject{
+	class Signal: public Cancellable, boost::noncopyable{
 		public:
 			Signal();
-			Signal(std::size_t);
 
 			void activate();
 
@@ -22,15 +19,14 @@ namespace OpenP2P{
 
 			bool isActivated();
 
-			CancelFunction asyncWait(WaitCallback);
+			void wait();
+			
+			void cancel();
 
 		private:
-			void cancel(unsigned int);
-
-			boost::mutex mutex_;
-			std::size_t activateCount_, activateMax_;
-			std::size_t nextId_;
-			std::map<std::size_t, WaitCallback> callbacks_;
+			Mutex mutex_;
+			Condition cond_;
+			bool isActivated_;
 
 	};
 

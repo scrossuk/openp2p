@@ -4,7 +4,6 @@
 #include <boost/shared_ptr.hpp>
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferIterator.hpp>
-#include <OpenP2P/WaitHandler.hpp>
 
 namespace OpenP2P {
 
@@ -62,7 +61,7 @@ namespace OpenP2P {
 		return true;
 	}
 
-	std::size_t BufferIterator::readSome(uint8_t * data, std::size_t dataSize, WaitHandler) {
+	std::size_t BufferIterator::readSome(uint8_t * data, std::size_t dataSize) {
 		const uint8_t * readData = stack_.top()->data() + offset_;
 		std::size_t maxReadSize = stack_.top()->size() - offset_;
 
@@ -81,6 +80,8 @@ namespace OpenP2P {
 
 		return readSize;
 	}
+
+	void BufferIterator::cancel(){ }
 
 	bool BufferIterator::moveSuccessor() {
 		if (stack_.size() < 2) {
@@ -119,21 +120,6 @@ namespace OpenP2P {
 
 		stack_.push(node);
 		return true;
-	}
-
-	OStream& operator<<(OStream& stream, const Buffer& buffer){
-		BufferIterator iterator(buffer);
-
-		uint32_t bufferSize = buffer.size();
-		stream << bufferSize;
-
-		uint8_t data[1024];
-		std::size_t size = 1;
-		while((size = iterator.readSome(data, 1024)) != 0){
-			stream.write(data, size);
-		}
-
-		return stream;
 	}
 
 }

@@ -5,15 +5,12 @@
 #include <cstddef>
 #include <stack>
 #include <boost/shared_ptr.hpp>
-#include <OpenP2P/Block.hpp>
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/IStream.hpp>
-#include <OpenP2P/OStream.hpp>
-#include <OpenP2P/WaitHandler.hpp>
+#include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P {
 
-	class BufferIterator: public IStream {
+	class BufferIterator: public Stream {
 		public:
 			BufferIterator();
 
@@ -27,7 +24,9 @@ namespace OpenP2P {
 
 			bool seek(std::size_t);
 
-			std::size_t readSome(uint8_t *, std::size_t, WaitHandler = Block);
+			std::size_t readSome(uint8_t *, std::size_t);
+
+			void cancel();
 
 		private:
 			bool moveSuccessor();
@@ -39,8 +38,6 @@ namespace OpenP2P {
 			std::stack< boost::shared_ptr<BufferTree> > stack_;
 
 	};
-
-	OStream& operator<<(OStream&, const Buffer&);
 
 }
 

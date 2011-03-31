@@ -4,8 +4,7 @@
 #include <stdint.h>
 #include <cstddef>
 #include <boost/array.hpp>
-#include <OpenP2P/IStream.hpp>
-#include <OpenP2P/OStream.hpp>
+#include <OpenP2P/BinaryStream.hpp>
 
 namespace OpenP2P{
 
@@ -17,7 +16,7 @@ namespace OpenP2P{
 		};
 
 		template <std::size_t IdSize>
-		Id<IdSize> ZeroId(){
+		Id<IdSize> zeroId(){
 			Id<IdSize> id;
 			for(std::size_t i = 0; i < IdSize; ++i){
 				id.data[i] = 0;
@@ -26,8 +25,8 @@ namespace OpenP2P{
 		}
 
 		template <std::size_t IdSize>
-		Id<IdSize> MaxId(){
-			return ~(ZeroId<IdSize>());
+		Id<IdSize> maxId(){
+			return ~(zeroId<IdSize>());
 		}
 
 		template <std::size_t IdSize>
@@ -70,12 +69,12 @@ namespace OpenP2P{
 		}
 
 		template <std::size_t IdSize>
-		IStream& operator>>(IStream& stream, Id<IdSize>& id){
+		BinaryStream& operator>>(BinaryStream& stream, Id<IdSize>& id){
 			return stream >> id.data;
 		}
 
 		template <std::size_t IdSize>
-		OStream& operator<<(OStream& stream, const Id<IdSize>& id){
+		BinaryStream& operator<<(BinaryStream& stream, const Id<IdSize>& id){
 			return stream << id.data;
 		}
 

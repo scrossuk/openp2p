@@ -1,13 +1,14 @@
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
-#include <boost/utility.hpp>
+#include <boost/scoped_array.hpp>
 
+#include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferIterator.hpp>
-#include <OpenP2P/Dispatcher.hpp>
+#include <OpenP2P/Condition.hpp>
+#include <OpenP2P/Lock.hpp>
+#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Socket.hpp>
-#include <OpenP2P/Wait.hpp>
-#include <OpenP2P/WaitHandler.hpp>
+
 #include <OpenP2P/UDP/Endpoint.hpp>
 #include <OpenP2P/UDP/Socket.hpp>
 
@@ -15,77 +16,71 @@ namespace OpenP2P{
 
 	namespace UDP{
 
-		Socket::Socket() : socket_(GlobalIOService()), terminating_(false){
-			socket_.open(boost::asio::ip::udp::v4());
+		namespace{
 
-			doReceive();
-		}
-
-		Socket::Socket(unsigned short port) : socket_(GlobalIOService()), terminating_(false){
-			socket_.open(boost::asio::ip::udp::v4());
-			boost::asio::socket_base::reuse_address option(true);
-			socket_.set_option(option);
-			socket_.bind(Endpoint(boost::asio::ip::udp::v4(), port));
-
-			doReceive();
-		}
-
-		Socket::~Socket(){
-			{
-				boost::lock_guard<boost::mutex> lock(mutex_);
-				terminating_ = true;
-				socket_.close();
+			void receiveCallback(Mutex& mutex, Condition& condition, std::size_t& actualLength, const boost::system::error_code& ec, std::size_t length){
+				Lock lock(mutex);
+				actualLength = ec ? 0 : length;
+				condition.notify();
 			}
-			Wait(dataReady_);
+
 		}
 
-		bool Socket::send(const Endpoint& endpoint, const Buffer& buffer, WaitHandler handler){
+		Socket::Socket() : internalSocket_(service_.getInternal()){
+			internalSocket_.open(boost::asio::ip::udp::v4());
+		}
+
+		Socket::Socket(unsigned short port) : internalSocket_(service_.getInternal()){
+			internalSocket_.open(boost::asio::ip::udp::v4());
+			boost::asio::socket_base::reuse_address option(true);
+			internalSocket_.set_option(option);
+			internalSocket_.bind(Endpoint(boost::asio::ip::udp::v4(), port));
+		}
+
+
+		bool Socket::send(const Endpoint& endpoint, const Buffer& buffer){
 			if(buffer.size() > 65536){
 				return false;
 			}
 
-			uint8_t data[65536];
+			boost::scoped_array<uint8_t> ptr(new uint8_t[65536]);
 			BufferIterator iterator(buffer);
-			iterator.read(data, buffer.size());
+			BinaryStream binaryStream(iterator);
+			binaryStream.read(ptr.get(), buffer.size());
 
 			{
-				boost::lock_guard<boost::mutex> lock(mutex_);
-				socket_.send_to(boost::asio::buffer(data, buffer.size()), endpoint);
+				Lock lock(mutex_);
+				internalSocket_.send_to(boost::asio::buffer(ptr.get(), buffer.size()), endpoint);
 			}
 
 			return true;
 		}
 
-		bool Socket::receive(Endpoint& endpoint, Buffer& buffer, WaitHandler handler){
-			boost::lock_guard<boost::mutex> receiveLock(receiveMutex_);
+		bool Socket::receive(Endpoint& endpoint, Buffer& buffer){
+			Condition condition;
+			Lock lock(mutex_);
 
-			bool s = (Wait(dataReady_, handler) == 0);
+			boost::scoped_array<uint8_t> ptr(new uint8_t[65536]);
 
-			if(s){
-				boost::lock_guard<boost::mutex> lock(mutex_);
-				endpoint = receiveEndpoint_;
-				buffer = receiveBuffer_;
-				dataReady_.reset();
-				doReceive();
-			}
+			std::size_t length;
 
-			return s;
+			internalSocket_.async_receive_from(boost::asio::buffer(ptr.get(), 65536), endpoint, boost::bind(receiveCallback, boost::ref(mutex_), boost::ref(condition), boost::ref(length), _1, _2));
+
+			condition.wait(lock);
+
+			buffer = Buffer(ptr.get(), length);
+
+			return length > 0;
 		}
 
-		void Socket::doReceive(){
-			socket_.async_receive_from(boost::asio::buffer(receiveData_, 65536), receiveEndpoint_, boost::bind(&Socket::receiveCallback, this, _1, _2));
+		void Socket::cancel(){
+			Lock lock(mutex_);
+			internalSocket_.cancel();
 		}
 
-		void Socket::receiveCallback(const boost::system::error_code& error, std::size_t length){
-			boost::lock_guard<boost::mutex> lock(mutex_);
-			if(!error){
-				receiveBuffer_ = Buffer(receiveData_, length);
-				dataReady_.activate();
-			}else if(terminating_){
-				dataReady_.activate();
-			}else{
-				doReceive();
-			}
+		void Socket::close(){
+			Lock lock(mutex_);
+			internalSocket_.close();
 		}
 
 	}

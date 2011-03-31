@@ -1,15 +1,17 @@
 #include <stdint.h>
 #include <cstddef>
+#include <cstring>
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include <boost/optional.hpp>
-#include <boost/shared_ptr.hpp>
+#include <boost/ref.hpp>
 #include <boost/utility.hpp>
 
-#include <OpenP2P/CancelFunction.hpp>
-#include <OpenP2P/Wait.hpp>
-#include <OpenP2P/WaitCallback.hpp>
-#include <OpenP2P/WaitHandler.hpp>
+#include <OpenP2P/Condition.hpp>
+#include <OpenP2P/Lock.hpp>
+#include <OpenP2P/Mutex.hpp>
+
+#include <OpenP2P/TCP/Endpoint.hpp>
 #include <OpenP2P/TCP/Stream.hpp>
 
 namespace OpenP2P{
@@ -18,98 +20,77 @@ namespace OpenP2P{
 
 		namespace{
 
-			class WriteOperation: public WaitObject, boost::noncopyable{
-				public:
-					WriteOperation(boost::shared_ptr<boost::asio::ip::tcp::socket> socket, const uint8_t * data, std::size_t length) :
-						socket_(socket), data_(data), length_(length), size_(0){ }
+			void connectCallback(Mutex& mutex, Condition& condition, bool& success, const boost::system::error_code& ec){
+				Lock lock(mutex);
+				success = !bool(ec);
+				condition.notify();
+			}
 
-					std::size_t size() const{
-						return size_;
-					}
-
-					CancelFunction asyncWait(WaitCallback callback){
-						socket_->async_write_some(boost::asio::buffer(data_, length_),
-							boost::bind(&WriteOperation::callback, this, callback, _1, _2));
-						return boost::bind(&WriteOperation::cancel, this);
-					}
-
-					void callback(WaitCallback callback, const boost::system::error_code& ec, std::size_t len){
-						if(ec){
-							size_ = 0;
-						}else{
-							size_ = len;
-						}
-						callback();
-					}
-
-					void cancel(){
-						socket_->cancel();
-					}
-
-				private:
-					boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
-					const uint8_t * data_;
-					std::size_t length_;
-					std::size_t size_;
-
-			};
-
-			class ReadOperation: public WaitObject, boost::noncopyable{
-				public:
-					ReadOperation(boost::shared_ptr<boost::asio::ip::tcp::socket> socket, uint8_t * data, std::size_t length) :
-						socket_(socket), data_(data), length_(length), size_(0){ }
-
-					std::size_t size() const{
-						return size_;
-					}
-
-					CancelFunction asyncWait(WaitCallback callback){
-						socket_->async_read_some(boost::asio::buffer(data_, length_),
-							boost::bind(&ReadOperation::callback, this, callback, _1, _2));
-						return boost::bind(&ReadOperation::cancel, this);
-					}
-
-					void callback(WaitCallback callback, const boost::system::error_code& ec, std::size_t len){
-						if(ec){
-							size_ = 0;
-						}else{
-							size_ = len;
-						}
-						callback();
-					}
-
-					void cancel(){
-						socket_->cancel();
-					}
-
-				private:
-					boost::shared_ptr<boost::asio::ip::tcp::socket> socket_;
-					uint8_t * data_;
-					std::size_t length_;
-					std::size_t size_;
-
-			};
+			void readCallback(Mutex& mutex, Condition& condition, std::size_t& actualReadLength, const boost::system::error_code& ec, std::size_t len){
+				Lock lock(mutex);
+				actualReadLength = ec ? 0 : len;
+				condition.notify();
+			}
 
 		}
 
-		Stream::Stream(boost::shared_ptr<boost::asio::ip::tcp::socket> socket) : socket_(socket){ }
+		Stream::Stream() : internalSocket_(service_.getInternal()){ }
 
-		Stream::Stream(const Stream& stream) : socket_(stream.socket_){ }
+		bool Stream::connect(const Endpoint& endpoint){
+			Condition condition;
+			Lock lock(mutex_);
+			internalSocket_.close();
 
-		std::size_t Stream::writeSome(const uint8_t * data, std::size_t length, WaitHandler handler){
-			WriteOperation writeOp(socket_, data, length);
+			bool success = false;
 
-			Wait(writeOp, handler);
+			internalSocket_.async_connect(endpoint, boost::bind(connectCallback, boost::ref(mutex_), boost::ref(condition), boost::ref(success), _1));
 
-			return writeOp.size();
+			condition.wait(lock);
+
+			return success;
 		}
 
-		std::size_t Stream::readSome(uint8_t * data, std::size_t length, WaitHandler handler){
-			ReadOperation readOp(socket_, data, length);
+		bool Stream::connect(const std::vector<Endpoint>& endpointList){
+			for(std::vector<Endpoint>::const_iterator i = endpointList.begin(); i != endpointList.end(); ++i){
+				if(connect(*i)){
+					return true;
+				}
+			}
+			return false;
+		}
 
-			Wait(readOp, handler);
+		boost::asio::ip::tcp::socket& Stream::getInternal(){
+			return internalSocket_;
+		}
 
-			return readOp.size();
+		std::size_t Stream::writeSome(const uint8_t * data, std::size_t length){
+			Lock lock(mutex_);
+			boost::system::error_code ec;
+			return internalSocket_.write_some(boost::asio::buffer(data, length), ec);
+		}
+
+		std::size_t Stream::readSome(uint8_t * data, std::size_t length){
+			Condition condition;
+			Lock lock(mutex_);
+
+			std::size_t actualReadLength = 0;
+
+			internalSocket_.async_read_some(boost::asio::buffer(data, length),
+						boost::bind(readCallback, boost::ref(mutex_), boost::ref(condition), boost::ref(actualReadLength), _1, _2));
+
+			condition.wait(lock);
+
+			return actualReadLength;
+		}
+
+		void Stream::cancel(){
+			Lock lock(mutex_);
+			internalSocket_.cancel();
+		}
+
+		void Stream::close(){
+			Lock lock(mutex_);
+			internalSocket_.close();
 		}
 
 	}

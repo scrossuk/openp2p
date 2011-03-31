@@ -23,10 +23,13 @@ int main(){
 		
 		uint16_t& v = v_map[endpoint];
 		
-		BufferIterator iterator(data);
 		uint16_t i;
 		
-		iterator >> i;
+		{
+			BufferIterator iterator(data);
+			BinaryStream binaryStream(iterator);
+			binaryStream >> i;
+		}
 		
 		std::cout << "Received: " << i << " from " << endpoint << std::endl;
 		
@@ -39,7 +42,10 @@ int main(){
 		if(i < 10000){
 			v += 2;
 			std::cout << "Sent: " << (i + 1) << std::endl;
-			socket.send(endpoint, MakeBuffer<uint16_t>(i + 1));
+			BufferBuilder builder;
+			BinaryStream binaryStream(builder);
+			binaryStream << uint16_t(i + 1);
+			socket.send(endpoint, builder.getBuffer());
 		}
 		
 		if(i >= 9999){

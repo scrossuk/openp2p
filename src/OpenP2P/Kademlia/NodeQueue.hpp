@@ -3,10 +3,11 @@
 
 #include <cstddef>
 #include <queue>
-#include <set>
-#include <vector>
+#include <map>
 #include <boost/optional.hpp>
-#include <boost/thread.hpp>
+
+#include <OpenP2P/Kademlia/Id.hpp>
+#include <OpenP2P/Kademlia/Node.hpp>
 
 namespace OpenP2P {
 
@@ -16,8 +17,8 @@ namespace OpenP2P {
 		class NodeQueue {
 				typedef Id<IdSize> IdType;
 				typedef Node<EndpointType, IdSize> NodeType;
-				typedef NodeGroup<EndpointType, IdSize> GroupType;
-				typedef typename GroupType::Iterator GroupIteratorType;
+				typedef std::vector<NodeType> GroupType;
+				typedef typename GroupType::iterator GroupIteratorType;
 
 				struct Compare {
 					const IdType& id_;
@@ -33,61 +34,77 @@ namespace OpenP2P {
 
 						if (aDiff == bDiff) {
 							return aId < bId;
-						}
-						else {
+						} else {
 							return aDiff < bDiff;
 						}
 					}
 				};
 
 			public:
-				NodeQueue(const IdType& id) : id_(id), map_(Compare(id)),
+				NodeQueue(const IdType& targetId) : targetId_(targetId), map_(Compare(id)),
 						// Initial distance of the nearest node is maximum
-						distance_(MaxId<IdSize>()) { }
+						distance_(maxId<IdSize>()) { }
 
 				IdType distance() const {
 					return distance_;
 				}
 
-				void push(const GroupType& group) {
-					boost::lock_guard<boost::mutex> lock(mutex_);
+				std::size_t size() const{
+					return map_.size();
+				}
 
-					for (GroupIteratorType i = group.iterator(); i.isValid(); i++) {
+				void add(const GroupType& group) {
+					for (GroupIteratorType i = group.begin(); i != group.end(); ++i) {
 						map_.insert(std::pair<NodeType, bool>(*i, false));
 					}
 
 					// Attempt to reduce the distance of the nearest node
 					if (!map_.empty()) {
-						distance_ = map_.begin()->first.id ^ id_;
+						distance_ = map_.begin()->first.id ^ targetId_;
 					}
 				}
 
-				boost::optional<NodeType> pop() {
-					boost::lock_guard<boost::mutex> lock(mutex_);
+				bool isNearestVisited(){
+					if(map_.empty()) return true;
+					return (map_.begin())->second;
+				}
 
+				boost::optional<NodeType> getNearest(){
+					
+				}
+
+				//Looks for an unvisited node, and returns one if it is found, setting it as visited
+				boost::optional<NodeType> getNearestUnvisited() {
 					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end(); ++i) {
 						if (!i->second){
+							//Set to visited
 							i->second = true;
 							return boost::make_optional(i->first);
 						}
 					}
 
+					//All nodes have been visited
 					return boost::optional<NodeType>();
 				}
 
-				GroupType group() {
-					GroupType group;
-
-					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end(); ++i) {
-						group.add(i->first);
+				template <std::size_t N>
+				void getNearestFixedGroup(boost::array<NodeType, N>& group){
+					std::size_t c = 0;
+					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && c < N; ++i, ++c) {
+						group[c] = i->first;
 					}
+				}
 
-					return group;
+				GroupType getNearestGroup(){
+					GroupType group;
+					std::size_t c = 0;
+					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && c < group.size(); ++i, ++c) {
+						group[c] = i->first;
+					}
 				}
 
 			private:
-				boost::mutex mutex_;
-				IdType id_;
+				IdType targetId_;
 				std::map<NodeType, bool, Compare> map_;
 				IdType distance_;
 

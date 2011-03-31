@@ -13,18 +13,16 @@ void output(const uint8_t * data, std::size_t size){
 	}
 }
 
-class TestStream: public OpenP2P::IOStream{
+class TestStream: public OpenP2P::Stream{
 	public:
-		virtual std::size_t readSome(uint8_t * data, std::size_t size, OpenP2P::WaitHandler handler = OpenP2P::Block){
-			return 0;
-		}
-
-		virtual std::size_t writeSome(const uint8_t * data, std::size_t size, OpenP2P::WaitHandler handler = OpenP2P::Block){
+		std::size_t writeSome(const uint8_t * data, std::size_t size){
 			std::cout << "Write of size " << size << ": ";
 			output(data, size);
 			std::cout << std::endl;
 			return size;
 		}
+
+		void cancel(){ }
 
 };
 
@@ -37,17 +35,23 @@ int main(int argc, char *argv[]){
 	std::string path = (argc == 3) ? argv[2] : "/";
 
 	std::string domain = argv[1];
+	
+	//Timeout timeout(5.0);
 
 	std::cout << "Resolving..." << std::endl;
+	
+	TCP::Resolver resolver;
 
-	std::list<OpenP2P::TCP::Endpoint> endpointList = OpenP2P::TCP::Resolve(domain, "http", OpenP2P::Timeout(5.0));
+	std::list<TCP::Endpoint> endpointList = resolver.resolve(domain, "http");
 
 	std::cout << "Connecting..." << std::endl;
 
-	boost::optional<OpenP2P::TCP::Stream> opStream = OpenP2P::TCP::Connect(endpointList, OpenP2P::Timeout(10.0));
+	TCP::Stream tcpStream;
+	
+	tcpStream.connect(endpointList);
 
-	if(opStream){
-		OpenP2P::TCP::Stream& stream = *opStream;
+	if(tcpStream.isConnected()){
+		TextStream stream(tcpStream);
 
 		std::cout << "Connected" << std::endl;
 

@@ -1,9 +1,11 @@
 #include <stdint.h>
 #include <cstddef>
+
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
-#include <OpenP2P/IStream.hpp>
-#include <OpenP2P/OStream.hpp>
+
+#include <OpenP2P/BinaryStream.hpp>
+
 #include <OpenP2P/UDP/Endpoint.hpp>
 
 namespace OpenP2P {
@@ -15,7 +17,7 @@ namespace OpenP2P {
 
 	}
 
-	IStream& operator>>(IStream& stream, UDP::Endpoint& endpoint) {
+	BinaryStream& operator>>(BinaryStream& stream, UDP::Endpoint& endpoint) {
 		uint8_t ipversion;
 		uint8_t address_data[16];
 		uint16_t port;
@@ -44,7 +46,7 @@ namespace OpenP2P {
 		return stream;
 	}
 
-	OStream& operator<<(OStream& stream, const UDP::Endpoint& endpoint) {
+	BinaryStream& operator<<(BinaryStream& stream, const UDP::Endpoint& endpoint) {
 		uint8_t ipVersion;
 		const uint8_t * addressData;
 		std::size_t addressSize;

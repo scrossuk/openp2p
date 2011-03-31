@@ -552,17 +552,15 @@
 	<openp2p/wait_handler.hpp>
 	<openp2p/udp/endpoint.hpp>
 
-1295648080 source:/home/scross/Projects/openp2p/src/OpenP2P/Block.cpp
-	<boost/bind.hpp>
+1299490307 source:/home/scross/Projects/openp2p/src/OpenP2P/Block.cpp
+	<boost/thread.hpp>
 	<OpenP2P/Block.hpp>
-	<OpenP2P/CancelFunction.hpp>
-	<OpenP2P/Dispatcher.hpp>
-	<OpenP2P/WaitCallback.hpp>
+	<OpenP2P/WaitObject.hpp>
 
 1293836218 /home/scross/Projects/openp2p/src/OpenP2P/CancelFunction.hpp
 	<boost/function.hpp>
 
-1293845159 /home/scross/Projects/openp2p/src/OpenP2P/Dispatcher.hpp
+1293845158 /home/scross/Projects/openp2p/src/OpenP2P/Dispatcher.hpp
 	<boost/asio.hpp>
 	<boost/function.hpp>
 	<boost/thread.hpp>
@@ -580,27 +578,23 @@
 	<boost/shared_ptr.hpp>
 	<OpenP2P/Buffer.hpp>
 
-1295644241 /home/scross/Projects/openp2p/src/OpenP2P/Buffer.hpp
+1295644240 /home/scross/Projects/openp2p/src/OpenP2P/Buffer.hpp
 	<stdint.h>
 	<cstddef>
 	<boost/shared_ptr.hpp>
 
-1295650584 source:/home/scross/Projects/openp2p/src/OpenP2P/BufferBuilder.cpp
+1301182513 source:/home/scross/Projects/openp2p/src/OpenP2P/BufferBuilder.cpp
 	<stdint.h>
 	<algorithm>
 	<cstddef>
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/BufferBuilder.hpp>
-	<OpenP2P/WaitHandler.hpp>
 
-1295650584 /home/scross/Projects/openp2p/src/OpenP2P/BufferBuilder.hpp
+1301282236 /home/scross/Projects/openp2p/src/OpenP2P/BufferBuilder.hpp
 	<stdint.h>
 	<cstddef>
-	<OpenP2P/Block.hpp>
 	<OpenP2P/Buffer.hpp>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/OStream.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/Stream.hpp>
 
 1295650584 /home/scross/Projects/openp2p/src/OpenP2P/OStream.hpp
 	<stdint.h>
@@ -611,11 +605,15 @@
 	<OpenP2P/Block.hpp>
 	<OpenP2P/WaitHandler.hpp>
 
-1293845525 /home/scross/Projects/openp2p/src/OpenP2P/Stream.hpp
+1301282256 /home/scross/Projects/openp2p/src/OpenP2P/Stream.hpp
+	<stdint.h>
+	<cstddef>
+	<OpenP2P/Cancellable.hpp>
 
-1295648070 /home/scross/Projects/openp2p/src/OpenP2P/Block.hpp
-	<OpenP2P/CancelFunction.hpp>
-	<OpenP2P/WaitHandler.hpp>
+1299490329 /home/scross/Projects/openp2p/src/OpenP2P/Block.hpp
+	<boost/thread.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/WaitObject.hpp>
 
 1295945841 /home/scross/Projects/openp2p/src/OpenP2P/WaitHandler.hpp
 	<boost/bind.hpp>
@@ -624,25 +622,21 @@
 	<OpenP2P/CancelFunction.hpp>
 	<OpenP2P/WaitCallback.hpp>
 
-1295650584 source:/home/scross/Projects/openp2p/src/OpenP2P/BufferIterator.cpp
+1301182518 source:/home/scross/Projects/openp2p/src/OpenP2P/BufferIterator.cpp
 	<stdint.h>
 	<cstddef>
 	<stack>
 	<boost/shared_ptr.hpp>
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/BufferIterator.hpp>
-	<OpenP2P/WaitHandler.hpp>
 
-1295650584 /home/scross/Projects/openp2p/src/OpenP2P/BufferIterator.hpp
+1301182491 /home/scross/Projects/openp2p/src/OpenP2P/BufferIterator.hpp
 	<stdint.h>
 	<cstddef>
 	<stack>
 	<boost/shared_ptr.hpp>
-	<OpenP2P/Block.hpp>
 	<OpenP2P/Buffer.hpp>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/OStream.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/Stream.hpp>
 
 1295650584 /home/scross/Projects/openp2p/src/OpenP2P/IStream.hpp
 	<stdint.h>
@@ -654,25 +648,21 @@
 	<OpenP2P/Block.hpp>
 	<OpenP2P/WaitHandler.hpp>
 
-1295650584 source:/home/scross/Projects/openp2p/src/OpenP2P/BufferQueue.cpp
+1301182435 source:/home/scross/Projects/openp2p/src/OpenP2P/BufferQueue.cpp
 	<cstddef>
 	<stdint.h>
 	<queue>
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/BufferIterator.hpp>
 	<OpenP2P/BufferQueue.hpp>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/WaitHandler.hpp>
 
-1295650584 /home/scross/Projects/openp2p/src/OpenP2P/BufferQueue.hpp
+1301182309 /home/scross/Projects/openp2p/src/OpenP2P/BufferQueue.hpp
 	<cstddef>
 	<stdint.h>
 	<queue>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/Block.hpp>
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/BufferIterator.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/Stream.hpp>
 
 1293900342 source:/home/scross/Projects/openp2p/src/OpenP2P/Dispatcher.cpp
 	<boost/asio.hpp>
@@ -687,26 +677,22 @@
 	<OpenP2P/IStream.hpp>
 	<OpenP2P/WaitHandler.hpp>
 
-1295650584 source:/home/scross/Projects/openp2p/src/OpenP2P/Join.cpp
+1299491660 source:/home/scross/Projects/openp2p/src/OpenP2P/Join.cpp
 	<boost/bind.hpp>
 	<boost/ref.hpp>
-	<OpenP2P/CancelFunction.hpp>
 	<OpenP2P/Join.hpp>
 	<OpenP2P/Signal.hpp>
-	<OpenP2P/WaitCallback.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/WaitObject.hpp>
 
-1295650584 /home/scross/Projects/openp2p/src/OpenP2P/Join.hpp
+1299490172 /home/scross/Projects/openp2p/src/OpenP2P/Join.hpp
 	<boost/utility.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/WaitObject.hpp>
 
-1295945009 /home/scross/Projects/openp2p/src/OpenP2P/Signal.hpp
-	<map>
-	<boost/thread.hpp>
+1301182843 /home/scross/Projects/openp2p/src/OpenP2P/Signal.hpp
 	<boost/utility.hpp>
-	<OpenP2P/CancelFunction.hpp>
-	<OpenP2P/WaitCallback.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/Cancellable.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/Mutex.hpp>
 
 1295648105 source:/home/scross/Projects/openp2p/src/OpenP2P/NoBlock.cpp
 	<OpenP2P/CancelFunction.hpp>
@@ -724,14 +710,13 @@
 	<OpenP2P/OStream.hpp>
 	<OpenP2P/WaitHandler.hpp>
 
-1295945036 source:/home/scross/Projects/openp2p/src/OpenP2P/Signal.cpp
+1301182790 source:/home/scross/Projects/openp2p/src/OpenP2P/Signal.cpp
 	<map>
 	<boost/thread.hpp>
-	<OpenP2P/CancelFunction.hpp>
-	<OpenP2P/Dispatcher.hpp>
-	<OpenP2P/NullFunction.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/Lock.hpp>
+	<OpenP2P/Mutex.hpp>
 	<OpenP2P/Signal.hpp>
-	<OpenP2P/WaitCallback.hpp>
 
 1295945251 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Accept.cpp
 	<list>
@@ -759,16 +744,16 @@
 	<OpenP2P/Block.hpp>
 	<OpenP2P/WaitHandler.hpp>
 
-1295650584 /home/scross/Projects/openp2p/src/OpenP2P/TCP/Stream.hpp
+1300997951 /home/scross/Projects/openp2p/src/OpenP2P/TCP/Stream.hpp
 	<stdint.h>
 	<cstddef>
-	<list>
+	<vector>
 	<boost/asio.hpp>
-	<boost/optional.hpp>
-	<boost/shared_ptr.hpp>
-	<OpenP2P/IOStream.hpp>
-	<OpenP2P/Block.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/IOService.hpp>
+	<OpenP2P/Mutex.hpp>
+	<OpenP2P/Stream.hpp>
+	<OpenP2P/TCP/Endpoint.hpp>
 
 1293845335 /home/scross/Projects/openp2p/src/OpenP2P/IOStream.hpp
 	<OpenP2P/IStream.hpp>
@@ -801,18 +786,16 @@
 	<OpenP2P/WaitHandler.hpp>
 	<OpenP2P/TCP/Endpoint.hpp>
 
-1293900782 /home/scross/Projects/openp2p/src/OpenP2P/TCP/Endpoint.hpp
+1301283718 /home/scross/Projects/openp2p/src/OpenP2P/TCP/Endpoint.hpp
 	<boost/asio.hpp>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/OStream.hpp>
+	<OpenP2P/BinaryStream.hpp>
 
-1293900836 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Endpoint.cpp
+1301283754 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Endpoint.cpp
 	<stdint.h>
 	<cstddef>
 	<boost/array.hpp>
 	<boost/asio.hpp>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/OStream.hpp>
+	<OpenP2P/BinaryStream.hpp>
 	<OpenP2P/TCP/Endpoint.hpp>
 
 1295945360 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Resolve.cpp
@@ -838,73 +821,71 @@
 	<OpenP2P/WaitHandler.hpp>
 	<OpenP2P/TCP/Endpoint.hpp>
 
-1295945395 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Stream.cpp
+1301284069 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Stream.cpp
 	<stdint.h>
 	<cstddef>
+	<cstring>
 	<boost/asio.hpp>
 	<boost/bind.hpp>
-	<boost/optional.hpp>
-	<boost/shared_ptr.hpp>
+	<boost/ref.hpp>
 	<boost/utility.hpp>
-	<OpenP2P/CancelFunction.hpp>
-	<OpenP2P/Wait.hpp>
-	<OpenP2P/WaitCallback.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/Lock.hpp>
+	<OpenP2P/Mutex.hpp>
+	<OpenP2P/TCP/Endpoint.hpp>
 	<OpenP2P/TCP/Stream.hpp>
 
-1295945490 source:/home/scross/Projects/openp2p/src/OpenP2P/Timeout.cpp
-	<boost/bind.hpp>
+1301183350 source:/home/scross/Projects/openp2p/src/OpenP2P/Timeout.cpp
 	<boost/asio.hpp>
-	<boost/shared_ptr.hpp>
-	<OpenP2P/CancelFunction.hpp>
-	<OpenP2P/Dispatcher.hpp>
+	<boost/bind.hpp>
+	<boost/ref.hpp>
+	<OpenP2P/Cancellable.hpp>
 	<OpenP2P/Timeout.hpp>
-	<OpenP2P/WaitCallback.hpp>
-	<OpenP2P/WaitHandler.hpp>
 
-1295912001 /home/scross/Projects/openp2p/src/OpenP2P/Timeout.hpp
-	<OpenP2P/WaitHandler.hpp>
+1301183471 /home/scross/Projects/openp2p/src/OpenP2P/Timeout.hpp
+	<boost/asio.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/Cancellable.hpp>
+	<OpenP2P/IOService.hpp>
 
-1293836940 source:/home/scross/Projects/openp2p/src/OpenP2P/UDP/Endpoint.cpp
+1300984511 source:/home/scross/Projects/openp2p/src/OpenP2P/UDP/Endpoint.cpp
 	<stdint.h>
 	<cstddef>
 	<boost/array.hpp>
 	<boost/asio.hpp>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/OStream.hpp>
+	<OpenP2P/BinaryStream.hpp>
 	<OpenP2P/UDP/Endpoint.hpp>
 
-1293836808 /home/scross/Projects/openp2p/src/OpenP2P/UDP/Endpoint.hpp
+1300984777 /home/scross/Projects/openp2p/src/OpenP2P/UDP/Endpoint.hpp
 	<boost/asio.hpp>
-	<OpenP2P/IStream.hpp>
-	<OpenP2P/OStream.hpp>
+	<OpenP2P/BinaryStream.hpp>
 
-1295650584 source:/home/scross/Projects/openp2p/src/OpenP2P/UDP/Socket.cpp
+1301547359 source:/home/scross/Projects/openp2p/src/OpenP2P/UDP/Socket.cpp
 	<boost/asio.hpp>
-	<boost/thread.hpp>
-	<boost/utility.hpp>
+	<boost/scoped_array.hpp>
+	<OpenP2P/BinaryStream.hpp>
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/BufferIterator.hpp>
-	<OpenP2P/Dispatcher.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/Lock.hpp>
+	<OpenP2P/Mutex.hpp>
 	<OpenP2P/Socket.hpp>
-	<OpenP2P/Wait.hpp>
-	<OpenP2P/WaitHandler.hpp>
 	<OpenP2P/UDP/Endpoint.hpp>
 	<OpenP2P/UDP/Socket.hpp>
 
-1295650584 /home/scross/Projects/openp2p/src/OpenP2P/Socket.hpp
-	<OpenP2P/Block.hpp>
+1301182850 /home/scross/Projects/openp2p/src/OpenP2P/Socket.hpp
 	<OpenP2P/Buffer.hpp>
-	<OpenP2P/WaitHandler.hpp>
+	<OpenP2P/Cancellable.hpp>
 
-1295650584 /home/scross/Projects/openp2p/src/OpenP2P/UDP/Socket.hpp
+1301547341 /home/scross/Projects/openp2p/src/OpenP2P/UDP/Socket.hpp
 	<boost/asio.hpp>
-	<boost/thread.hpp>
-	<OpenP2P/Block.hpp>
+	<boost/utility.hpp>
 	<OpenP2P/Buffer.hpp>
-	<OpenP2P/Signal.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/IOService.hpp>
+	<OpenP2P/Lock.hpp>
+	<OpenP2P/Mutex.hpp>
 	<OpenP2P/Socket.hpp>
-	<OpenP2P/WaitHandler.hpp>
 	<OpenP2P/UDP/Endpoint.hpp>
 
 1295945131 source:/home/scross/Projects/openp2p/src/OpenP2P/Wait.cpp
@@ -920,4 +901,98 @@
 1295648126 /home/scross/Projects/openp2p/src/OpenP2P/NoBlock.hpp
 	<OpenP2P/CancelFunction.hpp>
 	<OpenP2P/WaitCallback.hpp>
+
+1301548097 source:/home/scross/Projects/openp2p/src/OpenP2P/BinaryStream.cpp
+	<stdint.h>
+	<cstddef>
+	<cstring>
+	<string>
+	<OpenP2P/BinaryStream.hpp>
+	<OpenP2P/BufferBuilder.hpp>
+	<OpenP2P/BufferIterator.hpp>
+
+1301434560 /home/scross/Projects/openp2p/src/OpenP2P/BinaryStream.hpp
+	<boost/array.hpp>
+	<boost/optional.hpp>
+	<OpenP2P/Buffer.hpp>
+	<OpenP2P/Cancellable.hpp>
+	<OpenP2P/Stream.hpp>
+
+1299491414 /home/scross/Projects/openp2p/src/OpenP2P/WaitObject.hpp
+	<OpenP2P/Block.hpp>
+
+1301182361 /home/scross/Projects/openp2p/src/OpenP2P/Cancellable.hpp
+
+1301283690 source:/home/scross/Projects/openp2p/src/OpenP2P/IOService.cpp
+	<boost/asio.hpp>
+	<OpenP2P/IOService.hpp>
+	<OpenP2P/Thread.hpp>
+
+1301284560 /home/scross/Projects/openp2p/src/OpenP2P/IOService.hpp
+	<boost/asio.hpp>
+	<OpenP2P/Runnable.hpp>
+	<OpenP2P/Thread.hpp>
+
+1301283628 /home/scross/Projects/openp2p/src/OpenP2P/Runnable.hpp
+	<OpenP2P/Cancellable.hpp>
+
+1301284091 /home/scross/Projects/openp2p/src/OpenP2P/Thread.hpp
+	<boost/thread.hpp>
+	<OpenP2P/Runnable.hpp>
+
+1301182600 /home/scross/Projects/openp2p/src/OpenP2P/Condition.hpp
+	<boost/thread.hpp>
+	<OpenP2P/Cancellable.hpp>
+	<OpenP2P/Lock.hpp>
+
+1300985091 /home/scross/Projects/openp2p/src/OpenP2P/Lock.hpp
+	<boost/thread.hpp>
+	<OpenP2P/Mutex.hpp>
+
+1300660214 /home/scross/Projects/openp2p/src/OpenP2P/Mutex.hpp
+
+1301283984 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Acceptor.cpp
+	<boost/asio.hpp>
+	<boost/ref.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/IOService.hpp>
+	<OpenP2P/Lock.hpp>
+	<OpenP2P/Mutex.hpp>
+	<OpenP2P/TCP/Acceptor.hpp>
+	<OpenP2P/TCP/Stream.hpp>
+
+1301283945 /home/scross/Projects/openp2p/src/OpenP2P/TCP/Acceptor.hpp
+	<boost/asio.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/Cancellable.hpp>
+	<OpenP2P/IOService.hpp>
+	<OpenP2P/Mutex.hpp>
+	<OpenP2P/TCP/Stream.hpp>
+
+1301284002 source:/home/scross/Projects/openp2p/src/OpenP2P/TCP/Resolver.cpp
+	<list>
+	<string>
+	<boost/asio.hpp>
+	<boost/ref.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/Lock.hpp>
+	<OpenP2P/Mutex.hpp>
+	<OpenP2P/TCP/Endpoint.hpp>
+	<OpenP2P/TCP/Resolver.hpp>
+
+1301021562 /home/scross/Projects/openp2p/src/OpenP2P/TCP/Resolver.hpp
+	<list>
+	<string>
+	<boost/asio.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/Cancellable.hpp>
+	<OpenP2P/Mutex.hpp>
+	<OpenP2P/TCP/Endpoint.hpp>
+
+1301283588 source:/home/scross/Projects/openp2p/src/OpenP2P/Thread.cpp
+	<boost/bind.hpp>
+	<boost/ref.hpp>
+	<boost/thread.hpp>
+	<OpenP2P/Runnable.hpp>
+	<OpenP2P/Thread.hpp>
 

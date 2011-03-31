@@ -15,10 +15,14 @@ namespace OpenP2P{
 		class BucketSet{
 			typedef Id<IdSize> IdType;
 			typedef Node<EndpointType, IdSize> NodeType;
-			typedef NodeGroup<EndpointType, IdSize> GroupType;
+			typedef std::vector<NodeType> GroupType;
 
 			public:
 				BucketSet(const IdType& id) : id_(id){ }
+
+				IdType getId(){
+					return id_;
+				}
 
 				void add(const NodeType& node){
 					if(id_ == node.id){
@@ -58,9 +62,9 @@ namespace OpenP2P{
 					return (IdSize << 3) - 1;
 				}
 
-				GroupType nearest(const IdType& id, std::size_t number){
+				GroupType getNearest(const IdType& id, std::size_t number){
 					std::size_t index = getBucket(id);
-					typename std::list<NodeType>::iterator p;
+					typename GroupType::iterator p;
 					GroupType group;
 
 					for(std::size_t dist = 0; dist < IdSize && group.size() < number; dist++){
@@ -68,7 +72,7 @@ namespace OpenP2P{
 						if(l >= 0){
 							std::list<NodeType>& lbucket = buckets_[l];
 							for(p = lbucket.begin(); p != lbucket.end() && group.size() < number; ++p){
-								group.add(*p);
+								group.push_back(*p);
 							}
 						}
 
@@ -77,7 +81,7 @@ namespace OpenP2P{
 						if(r < IdSize){
 							std::list<NodeType>& rbucket = buckets_[r];
 							for(p = rbucket.begin(); p != rbucket.end() && group.size() < number; ++p){
-								group.add(*p);
+								group.push_back(*p);
 							}
 						}
 					}
@@ -86,7 +90,7 @@ namespace OpenP2P{
 				}
 
 			private:
-				Id<IdSize> id_;
+				IdType id_;
 				std::list<NodeType> buckets_[IdSize << 3];
 
 		};

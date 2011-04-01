@@ -13,13 +13,6 @@ namespace OpenP2P{
 			RPC_GETSUBSCRIBERS = 2,
 			RPC_SUBSCRIBE = 3
 		};
-
-		Buffer makeFindNode(const Id& id){
-			BufferBuilder builder;
-			BinaryStream stream(builder);
-			stream << uint8_t(RPC_FINDNODE) << id;
-			return builder.getBuffer();
-		}
 	
 	}
 	

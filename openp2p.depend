@@ -923,13 +923,14 @@
 
 1301182361 /home/scross/Projects/openp2p/src/OpenP2P/Cancellable.hpp
 
-1301617413 source:/home/scross/Projects/openp2p/src/OpenP2P/IOService.cpp
+1301619954 source:/home/scross/Projects/openp2p/src/OpenP2P/IOService.cpp
 	<boost/asio.hpp>
 	<OpenP2P/IOService.hpp>
 	<OpenP2P/Thread.hpp>
 
-1301617401 /home/scross/Projects/openp2p/src/OpenP2P/IOService.hpp
+1301620195 /home/scross/Projects/openp2p/src/OpenP2P/IOService.hpp
 	<boost/asio.hpp>
+	<boost/scoped_ptr.hpp>
 	<OpenP2P/Runnable.hpp>
 	<OpenP2P/Thread.hpp>
 

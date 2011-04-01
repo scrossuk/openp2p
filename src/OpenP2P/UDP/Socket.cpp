@@ -26,11 +26,11 @@ namespace OpenP2P{
 
 		}
 
-		Socket::Socket() : internalSocket_(service_.getInternal()){
+		Socket::Socket() : internalSocket_(service_){
 			internalSocket_.open(boost::asio::ip::udp::v4());
 		}
 
-		Socket::Socket(unsigned short port) : internalSocket_(service_.getInternal()){
+		Socket::Socket(unsigned short port) : internalSocket_(service_){
 			internalSocket_.open(boost::asio::ip::udp::v4());
 			boost::asio::socket_base::reuse_address option(true);
 			internalSocket_.set_option(option);

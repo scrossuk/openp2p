@@ -17,7 +17,7 @@ namespace OpenP2P{
 
 	}
 
-	Timeout::Timeout(double secs, Cancellable& cancellable) : internalTimer_(service_.getInternal()){
+	Timeout::Timeout(double secs, Cancellable& cancellable) : internalTimer_(service_){
 		internalTimer_.expires_from_now(boost::posix_time::milliseconds(secs * 1000.0));
 		internalTimer_.async_wait(boost::bind(timeoutCallback, boost::ref(cancellable), _1));
 	}

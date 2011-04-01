@@ -5,7 +5,7 @@ namespace OpenP2P{
 
 	class Mutex{
 		public:
-			inline boost::mutex& getInternal(){
+			inline operator boost::mutex&(){
 				return internalMutex_;
 			}
 

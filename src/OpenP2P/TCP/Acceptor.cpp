@@ -23,7 +23,7 @@ namespace OpenP2P{
 
 		}
 
-		Acceptor::Acceptor(unsigned short port) : internalAcceptor_(service_.getInternal()){
+		Acceptor::Acceptor(unsigned short port) : internalAcceptor_(service_){
 			boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
 			boost::system::error_code ec;
 

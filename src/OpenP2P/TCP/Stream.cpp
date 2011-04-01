@@ -34,7 +34,7 @@ namespace OpenP2P{
 
 		}
 
-		Stream::Stream() : internalSocket_(service_.getInternal()){ }
+		Stream::Stream() : internalSocket_(service_){ }
 
 		bool Stream::connect(const Endpoint& endpoint){
 			Condition condition;

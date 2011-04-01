@@ -15,7 +15,7 @@ namespace OpenP2P{
 			}
 
 			inline void wait(Lock& lock){
-				internalCondition_.wait(lock.getInternal());
+				internalCondition_.wait(lock);
 			}
 
 			inline void cancel(){

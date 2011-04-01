@@ -17,8 +17,8 @@ namespace OpenP2P{
 
 	IOService::IOService() : internalIOService_(1), ioThread_(internalIOService_), thread_(ioThread_){ }
 
-	boost::asio::io_service& IOService::getInternal(){
-		return internalIOService_;
-	}
+    IOService::operator boost::asio::io_service&(){
+        return internalIOService_;
+    }
 
 }

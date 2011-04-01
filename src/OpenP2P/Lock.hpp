@@ -9,15 +9,15 @@ namespace OpenP2P{
 
 	class Lock{
 		public:
-			inline Lock(Mutex& mutex) : internalLock_(mutex.getInternal()){ }
+			inline Lock(Mutex& mutex) : internalLock_(mutex){ }
 
-			inline boost::unique_lock<boost::mutex>& getInternal(){
+			inline operator boost::unique_lock<boost::mutex>&(){
 				return internalLock_;
 			}
-			
+
 		private:
 			boost::unique_lock<boost::mutex> internalLock_;
-	
+
 	};
 
 }

@@ -26,7 +26,7 @@ namespace OpenP2P{
 		public:
 			IOService();
 
-			boost::asio::io_service& getInternal();
+            operator boost::asio::io_service&();
 
 		private:
 			boost::asio::io_service internalIOService_;

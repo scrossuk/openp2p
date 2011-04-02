@@ -2,7 +2,7 @@
 #define OPENP2P_KADEMLIA_IDGENERATOR_HPP
 
 #include <stdint.h>
-#include <OpenP2P/Generator.hpp>
+#include <OpenP2P/IdGenerator.hpp>
 #include <OpenP2P/RootNetwork/Id.hpp>
 #include <OpenP2P/RootNetwork/Parameters.hpp>
 
@@ -11,11 +11,11 @@ namespace OpenP2P{
 	namespace RootNetwork{
 
 		//Simple increment ID generator
-		class IdGenerator : public Generator<Id>{
+		class IdGenerator : public OpenP2P::IdGenerator<Id>{
 			public:
-				IdGenerator() : id_(zeroID()){ }
+				inline IdGenerator() : id_(zeroId()){ }
 
-				Id generate(){
+				inline Id generate(){
 					for(unsigned int i = IdSize - 1; i >= 0; i--){
 						if(id_.data[i] == 255){
 							id_.data[i] = 0;

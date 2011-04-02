@@ -3,6 +3,8 @@
 
 #include <cstddef>
 #include <list>
+#include <OpenP2P/Lock.hpp>
+#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Kademlia/Id.hpp>
 #include <OpenP2P/Kademlia/Node.hpp>
 #include <OpenP2P/Kademlia/NodeGroup.hpp>
@@ -16,11 +18,12 @@ namespace OpenP2P{
 			typedef Id<IdSize> IdType;
 			typedef Node<EndpointType, IdSize> NodeType;
 			typedef std::vector<NodeType> GroupType;
+			typedef typename GroupType::iterator GroupIteratorType;
 
 			public:
 				BucketSet(const IdType& id) : id_(id){ }
 
-				IdType getId(){
+				IdType getId() const{
 					return id_;
 				}
 
@@ -29,6 +32,7 @@ namespace OpenP2P{
 						return;
 					}
 
+					Lock lock(mutex_);
 					std::size_t index = getBucket(node.id);
 
 					std::list<NodeType>& bucket = buckets_[index];
@@ -47,7 +51,35 @@ namespace OpenP2P{
 					bucket.push_front(node);
 				}
 
-				std::size_t getBucket(const IdType& id){
+				GroupType getNearest(const IdType& id, std::size_t number){
+					Lock lock(mutex_);
+					std::size_t index = getBucket(id);
+					GroupType group;
+
+					for(std::size_t dist = 0; dist < IdSize && group.size() < number; dist++){
+						std::size_t l = index - dist;
+						if(l >= 0){
+							const std::list<NodeType>& lbucket = buckets_[l];
+							for(typename std::list<NodeType>::const_iterator p = lbucket.begin(); p != lbucket.end() && group.size() < number; ++p){
+								group.push_back(*p);
+							}
+						}
+
+
+						std::size_t r = index + dist + 1;
+						if(r < IdSize){
+							const std::list<NodeType>& rbucket = buckets_[r];
+							for(typename std::list<NodeType>::const_iterator p = rbucket.begin(); p != rbucket.end() && group.size() < number; ++p){
+								group.push_back(*p);
+							}
+						}
+					}
+
+					return group;
+				}
+
+			private:
+				std::size_t getBucket(const IdType& id) const{
 					for(std::size_t i = 0; i < IdSize; ++i){
 						uint8_t distance = id_.data[i] ^ id.data[i];
 						if(distance != 0){
@@ -62,35 +94,8 @@ namespace OpenP2P{
 					return (IdSize << 3) - 1;
 				}
 
-				GroupType getNearest(const IdType& id, std::size_t number){
-					std::size_t index = getBucket(id);
-					typename GroupType::iterator p;
-					GroupType group;
-
-					for(std::size_t dist = 0; dist < IdSize && group.size() < number; dist++){
-						std::size_t l = index - dist;
-						if(l >= 0){
-							std::list<NodeType>& lbucket = buckets_[l];
-							for(p = lbucket.begin(); p != lbucket.end() && group.size() < number; ++p){
-								group.push_back(*p);
-							}
-						}
-
-
-						std::size_t r = index + dist + 1;
-						if(r < IdSize){
-							std::list<NodeType>& rbucket = buckets_[r];
-							for(p = rbucket.begin(); p != rbucket.end() && group.size() < number; ++p){
-								group.push_back(*p);
-							}
-						}
-					}
-
-					return group;
-				}
-
-			private:
-				IdType id_;
+				Mutex mutex_;
+				const IdType id_;
 				std::list<NodeType> buckets_[IdSize << 3];
 
 		};

@@ -8,9 +8,9 @@ namespace OpenP2P{
 
 	namespace RootNetwork{
 
-		typedef typename Kademlia::Id<IdSize> Id;
+		typedef Kademlia::Id<IdSize> Id;
 
-		void zeroId(){
+		inline Id zeroId(){
 			return Kademlia::zeroId<IdSize>();
 		}
 

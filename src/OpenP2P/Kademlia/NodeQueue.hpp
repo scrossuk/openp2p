@@ -41,7 +41,7 @@ namespace OpenP2P {
 				};
 
 			public:
-				NodeQueue(const IdType& targetId) : targetId_(targetId), map_(Compare(id)),
+				NodeQueue(const IdType& targetId) : targetId_(targetId), map_(Compare(targetId_)),
 						// Initial distance of the nearest node is maximum
 						distance_(maxId<IdSize>()) { }
 
@@ -54,7 +54,7 @@ namespace OpenP2P {
 				}
 
 				void add(const GroupType& group) {
-					for (GroupIteratorType i = group.begin(); i != group.end(); ++i) {
+					for (typename GroupType::const_iterator i = group.begin(); i != group.end(); ++i) {
 						map_.insert(std::pair<NodeType, bool>(*i, false));
 					}
 
@@ -70,7 +70,7 @@ namespace OpenP2P {
 				}
 
 				boost::optional<NodeType> getNearest(){
-					
+					return map_.empty() ? boost::optional<NodeType>() : boost::make_optional((map_.begin())->first);
 				}
 
 				//Looks for an unvisited node, and returns one if it is found, setting it as visited
@@ -88,19 +88,20 @@ namespace OpenP2P {
 				}
 
 				template <std::size_t N>
-				void getNearestFixedGroup(boost::array<NodeType, N>& group){
+				std::size_t getNearestFixedGroup(boost::array<NodeType, N>& group){
 					std::size_t c = 0;
 					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && c < N; ++i, ++c) {
 						group[c] = i->first;
 					}
+					return c;
 				}
 
-				GroupType getNearestGroup(){
+				GroupType getNearestGroup(std::size_t maxSize){
 					GroupType group;
-					std::size_t c = 0;
-					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && c < group.size(); ++i, ++c) {
-						group[c] = i->first;
+					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && maxSize > 0; ++i, --maxSize) {
+						group.push_back(i->first);
 					}
+					return group;
 				}
 
 			private:

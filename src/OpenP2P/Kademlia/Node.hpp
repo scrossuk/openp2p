@@ -2,8 +2,7 @@
 #define OPENP2P_KADEMLIA_NODE_HPP
 
 #include <cstddef>
-#include <OpenP2P/IStream.hpp>
-#include <OpenP2P/OStream.hpp>
+#include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/Kademlia/Id.hpp>
 
 namespace OpenP2P{
@@ -21,13 +20,28 @@ namespace OpenP2P{
 
 		};
 
+		template <typename EndpointType, std::size_t IdSize>
+		bool operator==(const Node<EndpointType, IdSize>& a, const Node<EndpointType, IdSize>& b){
+			return a.id == b.id;
+		}
+
+		template <typename EndpointType, std::size_t IdSize>
+		bool operator!=(const Node<EndpointType, IdSize>& a, const Node<EndpointType, IdSize>& b){
+			return !(a == b);
+		}
+
+		template <typename EndpointType, std::size_t IdSize>
+		bool operator<(const Node<EndpointType, IdSize>& a, const Node<EndpointType, IdSize>& b){
+			return a.id < b.id;
+		}
+
 		template <class EndpointType, std::size_t IdSize>
-		IStream& operator>>(IStream& stream, Node<EndpointType, IdSize>& node){
+		BinaryStream& operator>>(BinaryStream& stream, Node<EndpointType, IdSize>& node){
 			return stream >> node.id >> node.endpoint;
 		}
 
 		template <class EndpointType, std::size_t IdSize>
-		OStream& operator<<(OStream& stream, const Node<EndpointType, IdSize>& node){
+		BinaryStream& operator<<(BinaryStream& stream, const Node<EndpointType, IdSize>& node){
 			return stream << node.id << node.endpoint;
 		}
 

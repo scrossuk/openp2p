@@ -17,18 +17,20 @@ namespace OpenP2P{
 			RPCType type;
 			RPC rpc;
 
+			inline RPCWrapper(){ }
+
 			inline RPCWrapper(const Id& i, RPCType t, const RPC& r) : senderId(i), type(t), rpc(r){ }
 		};
 
 		template <typename RPCType>
-		BinaryStream& operator>>(BinaryStream& stream, RPCWrapper<RPCType>& wrapper){
-			return stream >> wrapper.senderId >> wrapper.type >> wrapper.rpc;
-		}
+        BinaryStream& operator>>(BinaryStream& stream, RPCWrapper<RPCType>& wrapper){
+            return stream >> wrapper.senderId >> wrapper.type >> wrapper.rpc;
+        }
 
-		template <typename RPCType>
-		BinaryStream& operator<<(BinaryStream& stream, const RPCWrapper<RPCType>& wrapper){
-			return stream << wrapper.senderId << wrapper.type << wrapper.rpc;
-		}
+        template <typename RPCType>
+        BinaryStream& operator<<(BinaryStream& stream, const RPCWrapper<RPCType>& wrapper){
+            return stream << wrapper.senderId << wrapper.type << wrapper.rpc;
+        }
 
 	}
 

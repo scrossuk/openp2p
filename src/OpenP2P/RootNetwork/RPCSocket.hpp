@@ -1,8 +1,8 @@
-#ifndef OPENP2P_ROOTNETWORK_IDSOCKET_HPP
-#define OPENP2P_ROOTNETWORK_IDSOCKET_HPP
+#ifndef OPENP2P_ROOTNETWORK_RPCSOCKET_HPP
+#define OPENP2P_ROOTNETWORK_RPCSOCKET_HPP
 
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/IdSocket.hpp>
+#include <OpenP2P/RPCSocket.hpp>
 #include <OpenP2P/Socket.hpp>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
@@ -12,15 +12,17 @@ namespace OpenP2P{
 
 	namespace RootNetwork{
 
-		class IdSocket: public OpenP2P::IdSocket<Endpoint, Id>{
+		class RPCSocket: public OpenP2P::RPCSocket<Endpoint, Id>{
 			public:
-				IdSocket(Socket<Endpoint>& socket);
+				RPCSocket(Socket<Endpoint>& socket);
 
-				void send(const Endpoint& endpoint, const Id& id, const Buffer& data);
-				
-				bool receive(Endpoint& endpoint, Id& id, Buffer& data);
+				void send(const Endpoint& endpoint, bool isRequest, const Id& id, const Buffer& data);
+
+				bool receive(Endpoint& endpoint, bool& isRequest, Id& id, Buffer& data);
 
 				void cancel();
+
+                void close();
 
 			private:
 				Socket<Endpoint>& socket_;

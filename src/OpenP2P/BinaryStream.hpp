@@ -1,6 +1,7 @@
 #ifndef OPENP2P_BINARYSTREAM_HPP
 #define OPENP2P_BINARYSTREAM_HPP
 
+#include <vector>
 #include <boost/array.hpp>
 #include <boost/optional.hpp>
 #include <OpenP2P/Buffer.hpp>
@@ -63,6 +64,14 @@ namespace OpenP2P{
 		return stream;
 	}
 
+	template <typename T>
+	BinaryStream& operator<<(BinaryStream& stream, const std::vector<T>& array){
+		for(std::size_t i = 0; i < array.size(); i++){
+			stream << array[i];
+		}
+		return stream;
+	}
+
 	template <class T>
 	BinaryStream& operator<<(BinaryStream& stream, const boost::optional<T>& optional){
 		if(optional){
@@ -88,6 +97,14 @@ namespace OpenP2P{
 	template <typename T, std::size_t N>
 	BinaryStream& operator>>(BinaryStream& stream, boost::array<T, N>& array){
 		for(std::size_t i = 0; i < N; i++){
+			stream >> array[i];
+		}
+		return stream;
+	}
+
+	template <typename T>
+	BinaryStream& operator>>(BinaryStream& stream, std::vector<T>& array){
+		for(std::size_t i = 0; i < array.size(); i++){
 			stream >> array[i];
 		}
 		return stream;

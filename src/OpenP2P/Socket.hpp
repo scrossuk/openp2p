@@ -11,6 +11,9 @@ namespace OpenP2P{
 		public:
 			virtual bool send(const EndpointType&, const Buffer&) = 0;
 
+			virtual bool receive(EndpointType&, Buffer&) = 0;
+
+			virtual void close() = 0;
 
 	};
 

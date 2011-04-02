@@ -10,7 +10,7 @@ namespace OpenP2P{
 
 	namespace RootNetwork{
 
-		typedef typename Kademlia::Node<Endpoint, IdSize> Node;
+		typedef Kademlia::Node<Endpoint, IdSize> Node;
 
 	}
 

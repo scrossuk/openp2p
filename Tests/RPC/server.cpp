@@ -12,7 +12,7 @@ int main(){
 	TestRPCSocket rpcSocket(socket);
 	TestIdGenerator idGenerator;
 
-	RPCProtocol<UDP::Endpoint, uint32_t> rpcProtocol(rpcSocket, idGenerator);
+	RPC::Protocol<UDP::Endpoint, uint32_t> protocol(rpcSocket, idGenerator);
 
 	uint32_t rpcId;
 	UDP::Endpoint endpoint;
@@ -20,7 +20,7 @@ int main(){
 
 	unsigned int count = 0;
 
-	while(rpcProtocol.receiveRequest(rpcId, endpoint, buffer)){
+	while(protocol.receiveRequest(endpoint, rpcId, buffer)){
 		BufferIterator iterator(buffer);
 		BinaryStream stream(iterator);
 		std::string string(17, 0);
@@ -34,7 +34,7 @@ int main(){
 		std::string message("Hello from server");
 		buildStream << message;
 
-		rpcProtocol.sendReply(rpcId, endpoint, builder.getBuffer());
+		protocol.sendReply(endpoint, rpcId, builder.getBuffer());
 	}
 
 	return 0;

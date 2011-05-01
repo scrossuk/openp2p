@@ -5,9 +5,11 @@
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferBuilder.hpp>
 #include <OpenP2P/BufferIterator.hpp>
-#include <OpenP2P/RPCGroup.hpp>
-#include <OpenP2P/RPCProtocol.hpp>
 #include <OpenP2P/Socket.hpp>
+
+#include <OpenP2P/RPC/Call.hpp>
+#include <OpenP2P/RPC/Group.hpp>
+#include <OpenP2P/RPC/Protocol.hpp>
 
 #include <OpenP2P/RootNetwork/DHT.hpp>
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
@@ -45,13 +47,14 @@ namespace OpenP2P {
 		DHT::InternalThread::InternalThread(DHT& dht) : dht_(dht){ }
 
 		void DHT::InternalThread::run(){
-			Id rpcId;
 			Id senderId;
 			RPCType type;
-			Endpoint endpoint;
-			Buffer buffer;
 			std::map<Id, std::set<Node> > subscribers;
-			while(dht_.protocol_.receiveRequest(rpcId, endpoint, buffer)){
+			UDP::Endpoint endpoint;
+			Id rpcId;
+			Buffer buffer;
+
+			while(dht_.protocol_.receiveRequest(endpoint, rpcId, buffer)){
 				BufferIterator iterator(buffer);
 				BinaryStream stream(iterator);
 				if(!(stream >> senderId >> type)) continue;
@@ -70,14 +73,14 @@ namespace OpenP2P {
 							reply.nearestGroup = dht_.bucketSet_.getNearest(request.nodeId, MaxGroupSize);
 							RPCWrapper<FindNode::Reply> replyWrapper(dht_.id_, RPC_FINDNODE, reply);
 
-							dht_.protocol_.sendReply(rpcId, endpoint, toBuffer(replyWrapper));
+							dht_.protocol_.sendReply(endpoint, rpcId, toBuffer(replyWrapper));
 						}
 						break;
 					case RPC_PING:
 						{
 							RPCWrapper<Ping::Reply> replyWrapper(dht_.id_, RPC_PING, Ping::Reply());
 
-							dht_.protocol_.sendReply(rpcId, endpoint, toBuffer(replyWrapper));
+							dht_.protocol_.sendReply(endpoint, rpcId, toBuffer(replyWrapper));
 						}
 						break;
 					case RPC_GETSUBSCRIBERS:
@@ -90,7 +93,7 @@ namespace OpenP2P {
 							reply.subscribersGroup = std::vector<Node>(subscribersSet.begin(), subscribersSet.end());
 							RPCWrapper<GetSubscribers::Reply> replyWrapper(dht_.id_, RPC_GETSUBSCRIBERS, reply);
 
-							dht_.protocol_.sendReply(rpcId, endpoint, toBuffer(replyWrapper));
+							dht_.protocol_.sendReply(endpoint, rpcId, toBuffer(replyWrapper));
 						}
 						break;
 					case RPC_SUBSCRIBE:
@@ -118,7 +121,9 @@ namespace OpenP2P {
 		boost::optional<Node> DHT::addEndpoint(const Endpoint& endpoint) {
 			RPCWrapper<Ping::Request> request(id_, RPC_PING, Ping::Request());
 
-			boost::optional<Buffer> replyBuffer = protocol_.execute(endpoint, toBuffer(request));
+			RPC::Call<Endpoint, Id> call(protocol_, endpoint, toBuffer(request));
+
+			boost::optional<Buffer> replyBuffer = call.execute();
 
 			if(replyBuffer) {
 				RPCWrapper<Ping::Reply> replyWrapper;
@@ -133,7 +138,7 @@ namespace OpenP2P {
 			return boost::optional<Node>();
 		}
 
-		std::vector<Node> DHT::findNearest(const Id& nodeId) {
+		std::vector<Node> DHT::findNearest(const Id& nodeId, std::size_t numNodes) {
 			Kademlia::NodeQueue<Endpoint, IdSize> queue(nodeId);
 			queue.add(bucketSet_.getNearest(nodeId, MaxGroupSize));
 
@@ -141,29 +146,31 @@ namespace OpenP2P {
 				FindNode::Request request;
 				request.nodeId = nodeId;
 				RPCWrapper<FindNode::Request> requestWrapper(id_, RPC_FINDNODE, request);
-				RPCProbeGroup group(protocol_, queue, toBuffer(requestWrapper));
 
-				group.execute();
+				RPCProbeGroup probeGroup(protocol_, queue, toBuffer(requestWrapper));
 
-				for(std::size_t i = 0; i < group.size(); i++){
-					if(!group.hasReply(i)) continue;
+				probeGroup.execute();
+
+				for(std::size_t i = 0; i < probeGroup.size(); i++){
+					if(!probeGroup.hasReply(i)) continue;
 
 					RPCWrapper<FindNode::Reply> replyWrapper;
 
-					if(fromBuffer(replyWrapper, group.getReply(i))){
+					if(fromBuffer(replyWrapper, probeGroup.getReply(i))){
 						queue.add(replyWrapper.rpc.nearestGroup);
 					}
 				}
 			}
 
-			return queue.getNearestGroup(MaxGroupSize);
+			return queue.getNearest(numNodes);
 		}
 
 		boost::optional<Node> DHT::findNode(const Id& nodeId) {
-			std::vector<Node> nearestGroup = findNearest(nodeId);
-			if(!nearestGroup.empty()){
-				if(nearestGroup[0].id == nodeId){
-					return boost::make_optional(nearestGroup[0]);
+			const std::size_t numNodes = 1;
+			std::vector<Node> nodeArray = findNearest(nodeId, numNodes);
+			if(!nodeArray.empty()){
+				if(nodeArray[0].id == nodeId){
+					return boost::make_optional(nodeArray[0]);
 				}
 			}
 
@@ -171,17 +178,16 @@ namespace OpenP2P {
 		}
 
 		bool DHT::subscribe(const Id& subscriptionId) {
-			std::vector<Node> nearestGroup = findNearest(subscriptionId);
+			std::vector<Node> nodeArray = findNearest(subscriptionId);
 
-			RPCGroup<Endpoint, Id> rpcGroup(protocol_);
+			Subscribe::Request request;
+			request.subscriptionId = subscriptionId;
+			RPCWrapper<Subscribe::Request> requestWrapper(id_, RPC_SUBSCRIBE, request);
 
-			for(std::vector<Node>::iterator i = nearestGroup.begin(); i != nearestGroup.end(); ++i) {
-				Subscribe::Request request;
-				request.subscriptionId = subscriptionId;
+			RPC::Group<Endpoint, Id> rpcGroup(protocol_);
 
-				RPCWrapper<Subscribe::Request> requestWrapper(id_, RPC_SUBSCRIBE, request);
-
-				rpcGroup.add((*i).endpoint, toBuffer(requestWrapper));
+			for(std::size_t i = 0; i < nodeArray.size(); i++) {
+				rpcGroup.add(nodeArray[i].endpoint, toBuffer(requestWrapper));
 			}
 
 			rpcGroup.execute();
@@ -189,18 +195,18 @@ namespace OpenP2P {
 			return true;
 		}
 
-		std::vector<Node> DHT::getSubscribers(const Id& subscriptionId) {
-			std::vector<Node> nearestGroup = findNearest(subscriptionId);
+		std::vector<Node> DHT::getSubscribers(const Id& subscriptionId, std::size_t numSubscribers) {
+			std::vector<Node> nodeArray = findNearest(subscriptionId);
 
-			RPCGroup<Endpoint, Id> rpcGroup(protocol_);
+			GetSubscribers::Request request;
+			request.subscriptionId = subscriptionId;
 
-			for(std::vector<Node>::iterator i = nearestGroup.begin(); i != nearestGroup.end(); ++i) {
-				GetSubscribers::Request request;
-				request.subscriptionId = subscriptionId;
+			RPCWrapper<GetSubscribers::Request> requestWrapper(id_, RPC_GETSUBSCRIBERS, request);
 
-				RPCWrapper<GetSubscribers::Request> requestWrapper(id_, RPC_GETSUBSCRIBERS, request);
+			RPC::Group<Endpoint, Id> rpcGroup(protocol_);
 
-				rpcGroup.add((*i).endpoint, toBuffer(requestWrapper));
+			for(std::size_t i = 0; i < nodeArray.size(); i++){
+				rpcGroup.add(nodeArray[i].endpoint, toBuffer(requestWrapper));
 			}
 
 			rpcGroup.execute();
@@ -218,13 +224,17 @@ namespace OpenP2P {
 				}
 			}
 
-			std::vector<Node> subscribers(subscribersSet.begin(), subscribersSet.end());
+			std::vector<Node> subscribersArray;
 
-			return subscribers;
+			for(std::set<Node>::iterator i = subscribersSet.begin(); i != subscribersSet.end() && subscribersArray.size() < numSubscribers; ++i){
+				subscribersArray.push_back(*i);
+			}
+
+			return subscribersArray;
 		}
 
 		void DHT::cancel(){
-			protocol_.cancel();
+			//TODO
 		}
 
 	}

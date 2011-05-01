@@ -23,14 +23,14 @@ namespace OpenP2P{
 		};
 
 		template <typename RPCType>
-        BinaryStream& operator>>(BinaryStream& stream, RPCWrapper<RPCType>& wrapper){
-            return stream >> wrapper.senderId >> wrapper.type >> wrapper.rpc;
-        }
+		BinaryStream& operator>>(BinaryStream& stream, RPCWrapper<RPCType>& wrapper){
+			return stream >> wrapper.senderId >> wrapper.type >> wrapper.rpc;
+		}
 
-        template <typename RPCType>
-        BinaryStream& operator<<(BinaryStream& stream, const RPCWrapper<RPCType>& wrapper){
-            return stream << wrapper.senderId << wrapper.type << wrapper.rpc;
-        }
+		template <typename RPCType>
+		BinaryStream& operator<<(BinaryStream& stream, const RPCWrapper<RPCType>& wrapper){
+			return stream << wrapper.senderId << wrapper.type << wrapper.rpc;
+		}
 
 	}
 

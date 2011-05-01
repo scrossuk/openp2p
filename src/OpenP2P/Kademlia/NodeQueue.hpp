@@ -53,7 +53,7 @@ namespace OpenP2P {
 					return map_.size();
 				}
 
-				void add(const GroupType& group) {
+				void add(const std::vector<NodeType>& group) {
 					for (typename GroupType::const_iterator i = group.begin(); i != group.end(); ++i) {
 						map_.insert(std::pair<NodeType, bool>(*i, false));
 					}
@@ -65,43 +65,27 @@ namespace OpenP2P {
 				}
 
 				bool isNearestVisited(){
-					if(map_.empty()) return true;
-					return (map_.begin())->second;
+					return map_.empty() ? true : (map_.begin())->second;
 				}
 
-				boost::optional<NodeType> getNearest(){
-					return map_.empty() ? boost::optional<NodeType>() : boost::make_optional((map_.begin())->first);
+				std::vector<NodeType> getNearest(std::size_t maxSize){
+					std::vector<NodeType> nearestUnvisited;
+					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && nearestUnvisited.size() < maxSize; ++i) {
+						nearestUnvisited.push_back(i->first);
+					}
+					return nearestUnvisited;
 				}
 
-				//Looks for an unvisited node, and returns one if it is found, setting it as visited
-				boost::optional<NodeType> getNearestUnvisited() {
-					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end(); ++i) {
+				std::vector<NodeType> getNearestUnvisited(std::size_t maxSize) {
+					std::vector<NodeType> nearestUnvisited;
+					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && nearestUnvisited.size() < maxSize; ++i) {
 						if (!i->second){
 							//Set to visited
 							i->second = true;
-							return boost::make_optional(i->first);
+							 nearestUnvisited.push_back(i->first);
 						}
 					}
-
-					//All nodes have been visited
-					return boost::optional<NodeType>();
-				}
-
-				template <std::size_t N>
-				std::size_t getNearestFixedGroup(boost::array<NodeType, N>& group){
-					std::size_t c = 0;
-					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && c < N; ++i, ++c) {
-						group[c] = i->first;
-					}
-					return c;
-				}
-
-				GroupType getNearestGroup(std::size_t maxSize){
-					GroupType group;
-					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && maxSize > 0; ++i, --maxSize) {
-						group.push_back(i->first);
-					}
-					return group;
+					return nearestUnvisited;
 				}
 
 			private:

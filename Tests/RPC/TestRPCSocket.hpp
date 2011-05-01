@@ -1,9 +1,10 @@
 #include <OpenP2P.hpp>
+#include <OpenP2P/RPC.hpp>
 #include <OpenP2P/UDP.hpp>
 
 using namespace OpenP2P;
 
-class TestRPCSocket: public RPCSocket<UDP::Endpoint, uint32_t>{
+class TestRPCSocket: public RPC::Socket<UDP::Endpoint, uint32_t>{
 	public:
 		TestRPCSocket(UDP::Socket& socket) : socket_(socket){ }
 

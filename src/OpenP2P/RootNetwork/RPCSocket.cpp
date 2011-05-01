@@ -12,9 +12,7 @@ namespace OpenP2P{
 
 	namespace RootNetwork{
 
-		RPCSocket::RPCSocket(Socket<Endpoint>& socket) : socket_(socket){
-
-		}
+		RPCSocket::RPCSocket(Socket<Endpoint>& socket) : socket_(socket){ }
 
 		void RPCSocket::send(const Endpoint& endpoint, bool isRequest, const Id& id, const Buffer& data){
 			BufferBuilder builder;

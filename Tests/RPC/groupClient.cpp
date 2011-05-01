@@ -14,9 +14,9 @@ int main(){
 	TestRPCSocket rpcSocket(socket);
 	TestIdGenerator idGenerator;
 
-	RPCProtocol<UDP::Endpoint, uint32_t> rpcProtocol(rpcSocket, idGenerator);
+	RPC::Protocol<UDP::Endpoint, uint32_t> rpcProtocol(rpcSocket, idGenerator);
 
-	RPCGroup<UDP::Endpoint, uint32_t> rpcGroup(rpcProtocol);
+	RPC::Group<UDP::Endpoint, uint32_t> rpcGroup(rpcProtocol);
 
 	for(unsigned int i = 0; i < num; i++){
 		BufferBuilder builder;

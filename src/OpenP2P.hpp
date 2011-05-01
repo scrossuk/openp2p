@@ -13,9 +13,6 @@
 #include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Lock.hpp>
 #include <OpenP2P/Mutex.hpp>
-#include <OpenP2P/RPCGroup.hpp>
-#include <OpenP2P/RPCProtocol.hpp>
-#include <OpenP2P/RPCSocket.hpp>
 #include <OpenP2P/SafeMap.hpp>
 #include <OpenP2P/Signal.hpp>
 #include <OpenP2P/Socket.hpp>

@@ -12,14 +12,16 @@ int main(){
 	TestRPCSocket rpcSocket(socket);
 	TestIdGenerator idGenerator;
 
-	RPCProtocol<UDP::Endpoint, uint32_t> rpcProtocol(rpcSocket, idGenerator);
+	RPC::Protocol<UDP::Endpoint, uint32_t> rpcProtocol(rpcSocket, idGenerator);
 
 	BufferBuilder builder;
 	BinaryStream buildStream(builder);
 	std::string message("Hello from client");
 	buildStream << message;
 
-	boost::optional<Buffer> reply = rpcProtocol.execute(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 45557), builder.getBuffer());
+	RPC::Call<UDP::Endpoint, uint32_t> call(rpcProtocol, UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 45557), builder.getBuffer());
+
+	boost::optional<Buffer> reply = call.execute();
 
 	if(reply){
 		BufferIterator iterator(*reply);

@@ -1,8 +1,11 @@
 #ifndef OPENP2P_ROOTNETWORK_RPCPROBEGROUP_HPP
 #define OPENP2P_ROOTNETWORK_RPCPROBEGROUP_HPP
 
+#include <vector>
+
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/RPCGroup.hpp>
+
+#include <OpenP2P/RPC/Group.hpp>
 
 #include <OpenP2P/Kademlia/NodeQueue.hpp>
 
@@ -19,18 +22,14 @@ namespace OpenP2P{
 			typedef Kademlia::NodeQueue<Endpoint, IdSize> QueueType;
 
 			public:
-				inline RPCProbeGroup(RPCProtocol<Endpoint, Id>& protocol, QueueType& queue, const Buffer& request) : rpcGroup_(protocol), queue_(queue), request_(request){ }
+				inline RPCProbeGroup(RPC::Protocol<Endpoint, Id>& protocol, QueueType& queue, const Buffer& request) : rpcGroup_(protocol){
+					std::vector<Node> nearestUnvisited = queue.getNearestUnvisited(NumProbes);
+					for(std::vector<Node>::iterator i = nearestUnvisited.begin(); i != nearestUnvisited.end(); ++i){
+						rpcGroup_.add(i->endpoint, request);
+					}
+				}
 
 				inline void execute(){
-					for(std::size_t i = 0; i < NumProbes; i++){
-						boost::optional<Node> node = queue_.getNearestUnvisited();
-						if(node){
-							rpcGroup_.add((*node).endpoint, request_);
-						}else{
-							break;
-						}
-					}
-
 					rpcGroup_.execute();
 				}
 
@@ -47,9 +46,7 @@ namespace OpenP2P{
 				}
 
 			private:
-				RPCGroup<Endpoint, Id> rpcGroup_;
-				QueueType queue_;
-				Buffer request_;
+				RPC::Group<Endpoint, Id> rpcGroup_;
 
 		};
 

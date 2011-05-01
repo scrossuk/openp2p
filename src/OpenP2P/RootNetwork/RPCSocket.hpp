@@ -2,8 +2,9 @@
 #define OPENP2P_ROOTNETWORK_RPCSOCKET_HPP
 
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/RPCSocket.hpp>
 #include <OpenP2P/Socket.hpp>
+
+#include <OpenP2P/RPC/Socket.hpp>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
 #include <OpenP2P/RootNetwork/Id.hpp>
@@ -12,7 +13,7 @@ namespace OpenP2P{
 
 	namespace RootNetwork{
 
-		class RPCSocket: public OpenP2P::RPCSocket<Endpoint, Id>{
+		class RPCSocket: public OpenP2P::RPC::Socket<Endpoint, Id>{
 			public:
 				RPCSocket(Socket<Endpoint>& socket);
 
@@ -22,7 +23,7 @@ namespace OpenP2P{
 
 				void cancel();
 
-                void close();
+				void close();
 
 			private:
 				Socket<Endpoint>& socket_;

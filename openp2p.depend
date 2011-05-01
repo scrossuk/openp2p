@@ -924,12 +924,12 @@
 
 1301182361 /home/scross/Projects/openp2p/src/OpenP2P/Cancellable.hpp
 
-1301619954 source:/home/scross/Projects/openp2p/src/OpenP2P/IOService.cpp
+1301984632 source:/home/scross/Projects/openp2p/src/OpenP2P/IOService.cpp
 	<boost/asio.hpp>
 	<OpenP2P/IOService.hpp>
 	<OpenP2P/Thread.hpp>
 
-1301620195 /home/scross/Projects/openp2p/src/OpenP2P/IOService.hpp
+1301984634 /home/scross/Projects/openp2p/src/OpenP2P/IOService.hpp
 	<boost/asio.hpp>
 	<boost/scoped_ptr.hpp>
 	<OpenP2P/Runnable.hpp>
@@ -998,16 +998,17 @@
 	<OpenP2P/Runnable.hpp>
 	<OpenP2P/Thread.hpp>
 
-1301709962 source:/home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/DHT.cpp
+1304190658 source:/home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/DHT.cpp
 	<set>
 	<vector>
 	<OpenP2P/BinaryStream.hpp>
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/BufferBuilder.hpp>
 	<OpenP2P/BufferIterator.hpp>
-	<OpenP2P/RPCGroup.hpp>
-	<OpenP2P/RPCProtocol.hpp>
 	<OpenP2P/Socket.hpp>
+	<OpenP2P/RPC/Call.hpp>
+	<OpenP2P/RPC/Group.hpp>
+	<OpenP2P/RPC/Protocol.hpp>
 	<OpenP2P/RootNetwork/DHT.hpp>
 	<OpenP2P/RootNetwork/Endpoint.hpp>
 	<OpenP2P/RootNetwork/Id.hpp>
@@ -1057,13 +1058,13 @@
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/Cancellable.hpp>
 
-1301708649 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/DHT.hpp
+1303495803 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/DHT.hpp
 	<vector>
 	<boost/utility.hpp>
-	<OpenP2P/RPCProtocol.hpp>
 	<OpenP2P/Runnable.hpp>
 	<OpenP2P/Socket.hpp>
 	<OpenP2P/Thread.hpp>
+	<OpenP2P/RPC/Protocol.hpp>
 	<OpenP2P/Kademlia/BucketSet.hpp>
 	<OpenP2P/Kademlia/NodeQueue.hpp>
 	<OpenP2P/RootNetwork/Endpoint.hpp>
@@ -1101,7 +1102,7 @@
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/Kademlia/Id.hpp>
 
-1301703343 /home/scross/Projects/openp2p/src/OpenP2P/Kademlia/NodeQueue.hpp
+1304190514 /home/scross/Projects/openp2p/src/OpenP2P/Kademlia/NodeQueue.hpp
 	<cstddef>
 	<queue>
 	<map>
@@ -1130,16 +1131,17 @@
 	<OpenP2P/RootNetwork/Endpoint.hpp>
 	<OpenP2P/RootNetwork/Parameters.hpp>
 
-1301701968 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCSocket.hpp
+1301983354 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCSocket.hpp
 	<OpenP2P/Buffer.hpp>
-	<OpenP2P/RPCSocket.hpp>
 	<OpenP2P/Socket.hpp>
+	<OpenP2P/RPC/Socket.hpp>
 	<OpenP2P/RootNetwork/Endpoint.hpp>
 	<OpenP2P/RootNetwork/Id.hpp>
 
-1301702874 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCProbeGroup.hpp
+1304190158 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCProbeGroup.hpp
+	<vector>
 	<OpenP2P/Buffer.hpp>
-	<OpenP2P/RPCGroup.hpp>
+	<OpenP2P/RPC/Group.hpp>
 	<OpenP2P/Kademlia/NodeQueue.hpp>
 	<OpenP2P/RootNetwork/Endpoint.hpp>
 	<OpenP2P/RootNetwork/Id.hpp>
@@ -1154,12 +1156,12 @@
 	<OpenP2P/BinaryStream.hpp>
 	<OpenP2P/RootNetwork/Id.hpp>
 
-1301704578 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCWrapper.hpp
+1301982721 /home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCWrapper.hpp
 	<OpenP2P/BinaryStream.hpp>
 	<OpenP2P/RootNetwork/Id.hpp>
 	<OpenP2P/RootNetwork/RPCType.hpp>
 
-1301704814 source:/home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCSocket.cpp
+1301983379 source:/home/scross/Projects/openp2p/src/OpenP2P/RootNetwork/RPCSocket.cpp
 	<OpenP2P/BinaryStream.hpp>
 	<OpenP2P/Buffer.hpp>
 	<OpenP2P/BufferBuilder.hpp>
@@ -1168,4 +1170,39 @@
 	<OpenP2P/RootNetwork/Endpoint.hpp>
 	<OpenP2P/RootNetwork/Id.hpp>
 	<OpenP2P/RootNetwork/RPCSocket.hpp>
+
+1304191482 /home/scross/Projects/openp2p/src/OpenP2P/RPC/Call.hpp
+	<stdint.h>
+	<vector>
+	<boost/optional.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/Buffer.hpp>
+	<OpenP2P/RPC/Protocol.hpp>
+
+1304191467 /home/scross/Projects/openp2p/src/OpenP2P/RPC/Protocol.hpp
+	<stdint.h>
+	<queue>
+	<boost/array.hpp>
+	<boost/bind.hpp>
+	<boost/ref.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/Buffer.hpp>
+	<OpenP2P/Condition.hpp>
+	<OpenP2P/IdGenerator.hpp>
+	<OpenP2P/Lock.hpp>
+	<OpenP2P/Mutex.hpp>
+	<OpenP2P/Signal.hpp>
+	<OpenP2P/RPC/Socket.hpp>
+
+1301983293 /home/scross/Projects/openp2p/src/OpenP2P/RPC/Socket.hpp
+	<OpenP2P/Buffer.hpp>
+
+1304192768 /home/scross/Projects/openp2p/src/OpenP2P/RPC/Group.hpp
+	<stdint.h>
+	<vector>
+	<boost/optional.hpp>
+	<boost/utility.hpp>
+	<OpenP2P/Buffer.hpp>
+	<OpenP2P/Signal.hpp>
+	<OpenP2P/RPC/Protocol.hpp>
 

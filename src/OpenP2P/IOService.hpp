@@ -7,37 +7,37 @@
 #include <OpenP2P/Runnable.hpp>
 #include <OpenP2P/Thread.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	class IOServiceThread: public Runnable{
+	class IOServiceThread: public Runnable {
 		public:
 			IOServiceThread(boost::asio::io_service& io, bool wait = true);
-
+			
 			void run();
-
+			
 			void cancel();
-
+			
 		private:
 			boost::asio::io_service& internalIOService_;
 			boost::scoped_ptr<boost::asio::io_service::work> work_;
 			bool wait_;
-
+			
 	};
-
-	class IOService{
+	
+	class IOService {
 		public:
-            //wait = true allows operations using the io_service to be terminated gracefully
+			//wait = true allows operations using the io_service to be terminated gracefully
 			IOService(bool wait = true);
-
-            operator boost::asio::io_service&();
-
+			
+			operator boost::asio::io_service&();
+			
 		private:
 			boost::asio::io_service internalIOService_;
 			IOServiceThread ioThread_;
 			Thread thread_;
-
+			
 	};
-
+	
 }
 
 #endif

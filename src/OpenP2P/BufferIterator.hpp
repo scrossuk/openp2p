@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 #include <cstddef>
-#include <stack>
-#include <boost/shared_ptr.hpp>
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
 
@@ -12,8 +10,6 @@ namespace OpenP2P {
 
 	class BufferIterator: public Stream {
 		public:
-			BufferIterator();
-
 			BufferIterator(const Buffer&, std::size_t = 0);
 
 			std::size_t position();
@@ -29,13 +25,9 @@ namespace OpenP2P {
 			void cancel();
 
 		private:
-			bool moveSuccessor();
+			const Buffer * buffer_;
 
-			Buffer buffer_;
-
-			std::size_t position_, offset_;
-
-			std::stack< boost::shared_ptr<BufferTree> > stack_;
+			std::size_t position_;
 
 	};
 

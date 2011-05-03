@@ -9,11 +9,12 @@ class TestRPCSocket: public RPC::Socket<UDP::Endpoint, uint32_t>{
 		TestRPCSocket(UDP::Socket& socket) : socket_(socket){ }
 
 		void send(const UDP::Endpoint& endpoint, bool isRequest, const uint32_t& id, const Buffer& data){
-			BufferBuilder builder;
+			Buffer buffer;
+			BufferBuilder builder(buffer);
 			BinaryStream stream(builder);
 			stream << isRequest << id << data;
 
-			socket_.send(endpoint, builder.getBuffer());
+			socket_.send(endpoint, buffer);
 		}
 			
 		bool receive(UDP::Endpoint& endpoint, bool& isRequest, uint32_t& id, Buffer& data){

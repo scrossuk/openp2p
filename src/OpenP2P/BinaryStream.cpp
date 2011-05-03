@@ -142,7 +142,7 @@ namespace OpenP2P {
 	}
 
 	BinaryStream& operator>>(BinaryStream& stream, Buffer& buffer){
-		BufferBuilder builder;
+		BufferBuilder builder(buffer);
 		BinaryStream writeStream(builder);
 
 		uint64_t bufferSize;
@@ -155,7 +155,6 @@ namespace OpenP2P {
 			bufferSize -= size;
 		}
 
-		buffer = builder.getBuffer();
 		return stream;
 	}
 

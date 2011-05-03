@@ -68,7 +68,7 @@ namespace OpenP2P {
 				Group(Protocol<EndpointType, IdType>& protocol) : protocol_(protocol) { }
 
 				void add(const EndpointType& endpoint, const Buffer& buffer) {
-					requestArray_.push_back(std::make_pair(endpoint, buffer));
+					requestArray_.push_back(std::make_pair(endpoint, &buffer));
 					replyArray_.push_back(boost::optional<Buffer>());
 				}
 
@@ -82,7 +82,7 @@ namespace OpenP2P {
 					for(std::size_t i = 0; i < requestArray_.size(); i++) {
 						IdType id = idArray.listen(replyArray_[i]);
 
-						protocol_.sendRequest(requestArray_[i].first, id, requestArray_[i].second);
+						protocol_.sendRequest(requestArray_[i].first, id, *(requestArray_[i].second));
 					}
 
 					signal_.wait();
@@ -92,7 +92,7 @@ namespace OpenP2P {
 					return replyArray_[i];
 				}
 
-				Buffer getReply(std::size_t i) {
+				const Buffer& getReply(std::size_t i) {
 					return *(replyArray_[i]);
 				}
 
@@ -103,7 +103,7 @@ namespace OpenP2P {
 			private:
 				Protocol<EndpointType, IdType>& protocol_;
 				Signal signal_;
-				std::vector< std::pair<EndpointType, Buffer> > requestArray_;
+				std::vector< std::pair<EndpointType, const Buffer *> > requestArray_;
 				std::vector< boost::optional<Buffer> > replyArray_;
 
 		};

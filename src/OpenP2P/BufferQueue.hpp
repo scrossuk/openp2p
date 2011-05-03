@@ -1,7 +1,7 @@
 #ifndef OPENP2P_BUFFERQUEUE_HPP
 #define OPENP2P_BUFFERQUEUE_HPP
 
-#include <cstddef>
+/*#include <cstddef>
 #include <stdint.h>
 #include <queue>
 #include <OpenP2P/Buffer.hpp>
@@ -23,10 +23,10 @@ namespace OpenP2P {
 		private:
 			BufferIterator iterator_;
 
-			std::queue<Buffer> queue_;
+			std::queue<const Buffer *> queue_;
 
 	};
 
-}
+}*/
 
 #endif

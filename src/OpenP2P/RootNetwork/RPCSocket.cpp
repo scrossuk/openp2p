@@ -15,10 +15,11 @@ namespace OpenP2P{
 		RPCSocket::RPCSocket(Socket<Endpoint>& socket) : socket_(socket){ }
 
 		void RPCSocket::send(const Endpoint& endpoint, bool isRequest, const Id& id, const Buffer& data){
-			BufferBuilder builder;
+			Buffer buffer;
+			BufferBuilder builder(buffer);
 			BinaryStream stream(builder);
 			stream << isRequest << id << data;
-			socket_.send(endpoint, builder.getBuffer());
+			socket_.send(endpoint, buffer);
 		}
 
 		bool RPCSocket::receive(Endpoint& endpoint, bool& isRequest, Id& id, Buffer& data){

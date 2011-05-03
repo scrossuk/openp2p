@@ -18,12 +18,14 @@ int main(){
 
 	RPC::Group<UDP::Endpoint, uint32_t> rpcGroup(rpcProtocol);
 
+	Buffer buffer;
+	BufferBuilder builder(buffer);
+	BinaryStream buildStream(builder);
+	std::string message("Hello from group!");
+	buildStream << message;
+
 	for(unsigned int i = 0; i < num; i++){
-		BufferBuilder builder;
-		BinaryStream buildStream(builder);
-		std::string message("Hello from group!");
-		buildStream << message;
-		rpcGroup.add(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 45557), builder.getBuffer());
+		rpcGroup.add(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 45557), buffer);
 	}
 
 	rpcGroup.execute();

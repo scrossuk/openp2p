@@ -1,18 +1,12 @@
 #include <stdint.h>
 #include <cstddef>
-#include <stack>
-#include <boost/shared_ptr.hpp>
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferIterator.hpp>
 
 namespace OpenP2P {
 
-	BufferIterator::BufferIterator() {
-		seek(0);
-	}
-
-	BufferIterator::BufferIterator(const Buffer& buffer, std::size_t offset) : buffer_(buffer) {
-		seek(offset);
+	BufferIterator::BufferIterator(const Buffer& buffer, std::size_t position) : buffer_(&buffer) {
+		seek(position);
 	}
 
 	std::size_t BufferIterator::position() {
@@ -20,107 +14,34 @@ namespace OpenP2P {
 	}
 
 	std::size_t BufferIterator::remaining() {
-		return buffer_.size() - position_;
+		return buffer_->size() - position_;
 	}
 
-	void BufferIterator::set(const Buffer& buffer) {
-		buffer_ = buffer;
-		seek(0);
+	void BufferIterator::set(const Buffer& buffer){
+		buffer_ = &buffer;
 	}
 
-	bool BufferIterator::seek(std::size_t offset) {
-		if (offset > buffer_.size()) {
+	bool BufferIterator::seek(std::size_t position) {
+		if (position > buffer_->size()) {
 			return false;
 		}
 
-		position_ = offset;
-
-		while(!stack_.empty()){
-			stack_.pop();
-		}
-
-		boost::shared_ptr<BufferTree> node = buffer_.tree();
-		boost::shared_ptr<BufferTree> left = node->left();
-
-		while (node != left) {
-			std::size_t midpoint = left->size();
-			stack_.push(node);
-			if (offset < midpoint) {
-				node = left;
-			}
-			else {
-				node = node->right();
-				offset -= midpoint;
-			}
-			left = node->left();
-		}
-
-		stack_.push(node);
-
-		offset_ = offset;
+		position_ = position;
 		return true;
 	}
 
 	std::size_t BufferIterator::readSome(uint8_t * data, std::size_t dataSize) {
-		const uint8_t * readData = stack_.top()->data() + offset_;
-		std::size_t maxReadSize = stack_.top()->size() - offset_;
+		std::size_t maxReadSize = buffer_->size() - position_;
+		std::size_t readSize = std::min(dataSize, maxReadSize);
 
-		std::size_t readSize = (dataSize < maxReadSize) ? dataSize : maxReadSize;
-
-		for (std::size_t i = 0; i < readSize; ++i) {
-			data[i] = readData[i];
-		}
-
-		position_ += readSize;
-		offset_ += readSize;
-
-		if (readSize == maxReadSize) {
-			moveSuccessor();
+		for(std::size_t i = 0; i < readSize; i++){
+			data[i] = (*buffer_)[position_++];
 		}
 
 		return readSize;
 	}
 
 	void BufferIterator::cancel(){ }
-
-	bool BufferIterator::moveSuccessor() {
-		if (stack_.size() < 2) {
-			seek(buffer_.size());
-			return false;
-		}
-
-		boost::shared_ptr<BufferTree> child = stack_.top();
-
-		stack_.pop();
-
-		boost::shared_ptr<BufferTree> node = stack_.top();
-
-		while (child == node->right()) {
-			stack_.pop();
-
-			if (stack_.empty()) {
-				seek(buffer_.size());
-				return false;
-			}
-
-			child = node;
-			node = stack_.top();
-		}
-
-		node = node->right();
-		child = node->left();
-
-		while (node != child) {
-			stack_.push(node);
-			node = child;
-			child = node->left();
-		}
-
-		offset_ = 0;
-
-		stack_.push(node);
-		return true;
-	}
 
 }
 

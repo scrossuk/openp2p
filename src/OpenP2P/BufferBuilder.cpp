@@ -1,27 +1,20 @@
 #include <stdint.h>
-#include <algorithm>
 #include <cstddef>
+#include <vector>
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferBuilder.hpp>
 
 namespace OpenP2P{
 
-	BufferBuilder::BufferBuilder(){ }
-
-	std::size_t BufferBuilder::size(){
-		return buffer_.size();
-	}
+	BufferBuilder::BufferBuilder(Buffer& buffer) : buffer_(buffer){ }
 
 	std::size_t BufferBuilder::writeSome(const uint8_t * data, std::size_t length){
-		buffer_ = buffer_ + Buffer(data, length);
+		buffer_.reserve(buffer_.size() + length);
+		buffer_.insert(buffer_.end(), data, data + length);
 		return length;
 	}
 
 	void BufferBuilder::cancel(){ }
-
-	Buffer BufferBuilder::getBuffer() const{
-		return buffer_;
-	}
 
 }
 

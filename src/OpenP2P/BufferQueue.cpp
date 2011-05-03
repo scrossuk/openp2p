@@ -7,7 +7,7 @@
 
 namespace OpenP2P{
 
-	BufferQueue::BufferQueue(){ }
+/*	BufferQueue::BufferQueue(){ }
 
 	void BufferQueue::add(const Buffer& buffer){
 		if(buffer.size() == 0){
@@ -16,19 +16,19 @@ namespace OpenP2P{
 		if(iterator_.remaining() == 0){
 			iterator_.set(buffer);
 		}else{
-			queue_.push(buffer);
+			queue_.push(&buffer);
 		}
 	}
 
 	std::size_t BufferQueue::readSome(uint8_t * data, std::size_t dataSize){
 		std::size_t readSize = iterator_.readSome(data, dataSize);
 		if(iterator_.remaining() == 0 && !queue_.empty()){
-			iterator_.set(queue_.front());
+			iterator_.set(*queue_.front());
 			queue_.pop();
 		}
 		return readSize;
 	}
 
-	void BufferQueue::cancel(){ }
+	void BufferQueue::cancel(){ }*/
 
 }

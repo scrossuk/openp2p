@@ -11,6 +11,10 @@ namespace OpenP2P{
 	class Condition: public Cancellable{
 		public:
 			inline void notify(){
+				internalCondition_.notify_one();
+			}
+
+			inline void notifyAll(){
 				internalCondition_.notify_all();
 			}
 

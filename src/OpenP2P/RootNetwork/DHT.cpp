@@ -29,10 +29,11 @@ namespace OpenP2P {
 
 			template <typename T>
 			Buffer toBuffer(const T& t){
-				BufferBuilder builder;
+				Buffer buffer;
+				BufferBuilder builder(buffer);
 				BinaryStream stream(builder);
 				stream << t;
-				return builder.getBuffer();
+				return buffer;
 			}
 
 			template <typename T>

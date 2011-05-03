@@ -28,7 +28,7 @@ class Container{
 
 class ClientThread: public Runnable{
 	public:
-		ClientThread() : binaryStream_(tcpStream_){ }
+		ClientThread(){ }
 
 		TCP::Stream& getTCPStream(){
 			return tcpStream_;
@@ -36,10 +36,12 @@ class ClientThread: public Runnable{
 
 		void run(){
 			std::cout << "---Started transfer" << std::endl;
+
+			BinaryStream stream(tcpStream_);
 	
 			for(unsigned int i = 0; i < 1000; i += 2){
 				uint32_t v;
-				binaryStream_ >> v;
+				stream >> v;
 
 				if(v != i){
 					std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << " - Terminating connection" << std::endl;
@@ -48,7 +50,7 @@ class ClientThread: public Runnable{
 
 				std::cout << "Received: " << i << std::endl;
 
-				binaryStream_ << uint32_t(i + 1);
+				stream << uint32_t(i + 1);
 			}
 
 			std::cout << "---Successfully completed transfer" << std::endl;
@@ -60,7 +62,6 @@ class ClientThread: public Runnable{
 
 	private:
 		TCP::Stream tcpStream_;
-		BinaryStream binaryStream_;
 
 };
 

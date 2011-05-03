@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <cstddef>
+#include <vector>
 
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
@@ -11,18 +12,14 @@ namespace OpenP2P{
 
 	class BufferBuilder: public Stream{
 		public:
-			BufferBuilder();
-
-			std::size_t size();
+			BufferBuilder(Buffer&);
 
 			std::size_t writeSome(const uint8_t *, std::size_t);
 
 			void cancel();
 
-			Buffer getBuffer() const;
-
 		private:
-			Buffer buffer_;
+			Buffer& buffer_;
 
 	};
 

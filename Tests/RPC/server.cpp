@@ -29,12 +29,13 @@ int main(){
 		std::cout << "Message(" << count << ") " << rpcId << ": " << string << std::endl;
 		count++;
 
-		BufferBuilder builder;
+		Buffer buffer;
+		BufferBuilder builder(buffer);
 		BinaryStream buildStream(builder);
 		std::string message("Hello from server");
 		buildStream << message;
 
-		protocol.sendReply(endpoint, rpcId, builder.getBuffer());
+		protocol.sendReply(endpoint, rpcId, buffer);
 	}
 
 	return 0;

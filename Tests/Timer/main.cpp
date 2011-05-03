@@ -11,8 +11,8 @@ int main(){
 	boost::asio::deadline_timer asyncTimer(ioService);
 	boost::asio::deadline_timer timer(ioService);
 
-	asyncTimer.expires_from_now(boost::posix_time::seconds(10));
-	timer.expires_from_now(boost::posix_time::seconds(5));
+	asyncTimer.expires_from_now(boost::posix_time::seconds(5));
+	timer.expires_from_now(boost::posix_time::seconds(10));
 
 	asyncTimer.async_wait(callback);
 	timer.wait();

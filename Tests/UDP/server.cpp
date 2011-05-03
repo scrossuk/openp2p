@@ -1,34 +1,27 @@
 #include <OpenP2P.hpp>
 #include <OpenP2P/UDP.hpp>
 #include <iostream>
+#include <map>
 
 using namespace OpenP2P;
 
 int main(){
-	std::cout << "Start client" << std::endl;
-
-	UDP::Socket socket;
-
-	{
-		BufferBuilder builder;
-		BinaryStream binaryStream(builder);
-		binaryStream << uint16_t(0);
-
-		socket.send(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 45557), builder.getBuffer());
-	}
+	UDP::Socket socket(45557);
 	
-	std::cout << "Sent: 0" << std::endl;
+	std::map<UDP::Endpoint, uint16_t> v_map;
 	
-	uint16_t v = 1;
+	std::cout << "Start server" << std::endl;
 	
 	while(true){
 		UDP::Endpoint endpoint;
 		Buffer data;
 		
 		if(!socket.receive(endpoint, data)){
-			std::cout << "Server failed to respond in time" << std::endl;
-			break;
+			std::cout << "receive failed" << std::endl;
+			continue;
 		}
+		
+		uint16_t& v = v_map[endpoint];
 		
 		uint16_t i;
 		
@@ -41,22 +34,24 @@ int main(){
 		std::cout << "Received: " << i << " from " << endpoint << std::endl;
 		
 		if(i != v){
-			std::cout << "Incorrect data received: " << i << std::endl;
-			break;
+			std::cout << "Incorrect data received: " << i << " for endpoint " << endpoint << std::endl;
+			v = 0;
+			continue;
 		}
 		
 		if(i < 10000){
 			v += 2;
 			std::cout << "Sent: " << (i + 1) << std::endl;
-			BufferBuilder builder;
+			Buffer buffer;
+			BufferBuilder builder(buffer);
 			BinaryStream binaryStream(builder);
 			binaryStream << uint16_t(i + 1);
-			socket.send(endpoint, builder.getBuffer());
+			socket.send(endpoint, buffer);
 		}
 		
 		if(i >= 9999){
-			std::cout << "Completed Successfully" << std::endl;
-			break;
+			std::cout << "Completed Successfully for endpoint " << endpoint << std::endl;
+			v = 0;
 		}
 	}
 

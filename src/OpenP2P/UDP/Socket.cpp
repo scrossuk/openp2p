@@ -3,6 +3,7 @@
 
 #include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/Buffer.hpp>
+#include <OpenP2P/BufferBuilder.hpp>
 #include <OpenP2P/BufferIterator.hpp>
 #include <OpenP2P/Condition.hpp>
 #include <OpenP2P/Lock.hpp>
@@ -68,7 +69,9 @@ namespace OpenP2P{
 
 			condition.wait(lock);
 
-			buffer = Buffer(ptr.get(), length);
+			BufferBuilder builder(buffer);
+			BinaryStream stream(builder);
+			stream.write(ptr.get(), length);
 
 			return length > 0;
 		}

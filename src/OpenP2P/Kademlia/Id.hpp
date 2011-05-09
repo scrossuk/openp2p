@@ -10,24 +10,23 @@ namespace OpenP2P{
 
 	namespace Kademlia{
 
-		template <std::size_t SizeInBytes>
+		//Size given in bytes
+		template <std::size_t IdSize>
 		struct Id{
-			boost::array<uint8_t, SizeInBytes> data;
-		};
+			boost::array<uint8_t, IdSize> data;
 
-		template <std::size_t IdSize>
-		Id<IdSize> zeroId(){
-			Id<IdSize> id;
-			for(std::size_t i = 0; i < IdSize; ++i){
-				id.data[i] = 0;
+			static Id<IdSize> Zero(){
+				Id<IdSize> id;
+				for(std::size_t i = 0; i < IdSize; ++i){
+					id.data[i] = 0;
+				}
+				return id;
 			}
-			return id;
-		}
 
-		template <std::size_t IdSize>
-		Id<IdSize> maxId(){
-			return ~(zeroId<IdSize>());
-		}
+			static Id<IdSize> Max(){
+				return ~(Zero());
+			}
+		};
 
 		template <std::size_t IdSize>
 		bool operator==(const Id<IdSize>& a, const Id<IdSize>& b){

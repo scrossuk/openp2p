@@ -13,7 +13,7 @@ namespace OpenP2P{
 		//Simple increment ID generator
 		class IdGenerator : public OpenP2P::IdGenerator<Id>{
 			public:
-				inline IdGenerator() : id_(zeroId()){ }
+				inline IdGenerator() : id_(Id::Zero()){ }
 
 				inline Id generate(){
 					for(unsigned int i = IdSize - 1; i >= 0; i--){

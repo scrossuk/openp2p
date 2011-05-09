@@ -10,10 +10,6 @@ namespace OpenP2P{
 
 		typedef Kademlia::Id<IdSize> Id;
 
-		inline Id zeroId(){
-			return Kademlia::zeroId<IdSize>();
-		}
-
 	}
 
 }

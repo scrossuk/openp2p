@@ -7,7 +7,6 @@
 #include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Kademlia/Id.hpp>
 #include <OpenP2P/Kademlia/Node.hpp>
-#include <OpenP2P/Kademlia/NodeGroup.hpp>
 
 namespace OpenP2P{
 

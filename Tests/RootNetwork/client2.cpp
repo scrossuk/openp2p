@@ -12,7 +12,7 @@ using namespace OpenP2P;
 int main(){
 	UDP::Socket socket(46668);
 	
-	RootNetwork::Id id = OpenP2P::Kademlia::maxId<RootNetwork::IdSize>();
+	RootNetwork::Id id = RootNetwork::Id::Max();
 	
 	RootNetwork::DHT dht(socket, id);
 

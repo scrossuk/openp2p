@@ -17,8 +17,6 @@ namespace OpenP2P {
 		class NodeQueue {
 				typedef Id<IdSize> IdType;
 				typedef Node<EndpointType, IdSize> NodeType;
-				typedef std::vector<NodeType> GroupType;
-				typedef typename GroupType::iterator GroupIteratorType;
 
 				struct Compare {
 					const IdType& id_;
@@ -43,7 +41,7 @@ namespace OpenP2P {
 			public:
 				NodeQueue(const IdType& targetId) : targetId_(targetId), map_(Compare(targetId_)),
 						// Initial distance of the nearest node is maximum
-						distance_(maxId<IdSize>()) { }
+						distance_(IdType::Max()) { }
 
 				IdType distance() const {
 					return distance_;
@@ -54,7 +52,7 @@ namespace OpenP2P {
 				}
 
 				void add(const std::vector<NodeType>& group) {
-					for (typename GroupType::const_iterator i = group.begin(); i != group.end(); ++i) {
+					for (typename std::vector<NodeType>::const_iterator i = group.begin(); i != group.end(); ++i) {
 						map_.insert(std::pair<NodeType, bool>(*i, false));
 					}
 

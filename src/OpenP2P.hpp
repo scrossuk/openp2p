@@ -5,7 +5,6 @@
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferBuilder.hpp>
 #include <OpenP2P/BufferIterator.hpp>
-#include <OpenP2P/BufferQueue.hpp>
 #include <OpenP2P/Cancellable.hpp>
 #include <OpenP2P/Condition.hpp>
 #include <OpenP2P/IdGenerator.hpp>

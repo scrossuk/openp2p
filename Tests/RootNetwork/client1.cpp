@@ -11,7 +11,7 @@ using namespace OpenP2P;
 int main(){
 	UDP::Socket socket(46667);
 	
-	RootNetwork::DHT dht(socket, OpenP2P::RootNetwork::zeroId());
+	RootNetwork::DHT dht(socket, RootNetwork::Id::Zero());
 	
 	boost::optional<RootNetwork::Node> r1 = dht.addEndpoint(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 46668));
 	if(r1){

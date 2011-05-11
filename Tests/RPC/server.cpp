@@ -22,7 +22,7 @@ int main(){
 
 	while(protocol.receiveRequest(endpoint, rpcId, buffer)){
 		BufferIterator iterator(buffer);
-		BinaryStream stream(iterator);
+		BinaryIStream stream(iterator);
 		std::string string(17, 0);
 		stream >> string;
 
@@ -31,7 +31,7 @@ int main(){
 
 		Buffer buffer;
 		BufferBuilder builder(buffer);
-		BinaryStream buildStream(builder);
+		BinaryOStream buildStream(builder);
 		std::string message("Hello from server");
 		buildStream << message;
 

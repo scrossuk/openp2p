@@ -16,7 +16,7 @@ int main(){
 
 	Buffer buffer;
 	BufferBuilder builder(buffer);
-	BinaryStream buildStream(builder);
+	BinaryOStream buildStream(builder);
 	std::string message("Hello from client");
 	buildStream << message;
 
@@ -26,7 +26,7 @@ int main(){
 
 	if(reply){
 		BufferIterator iterator(*reply);
-		BinaryStream stream(iterator);
+		BinaryIStream stream(iterator);
 		std::string string(17, 0);
 		stream >> string;
 

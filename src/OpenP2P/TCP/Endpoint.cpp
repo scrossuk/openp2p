@@ -14,7 +14,7 @@ namespace OpenP2P {
 
 	}
 
-	BinaryStream& operator>>(BinaryStream& stream, TCP::Endpoint& endpoint) {
+	BinaryIStream& operator>>(BinaryIStream& stream, TCP::Endpoint& endpoint) {
 		uint8_t ipVersion;
 		uint8_t addressData[16];
 		uint16_t port;
@@ -42,7 +42,7 @@ namespace OpenP2P {
 		return stream;
 	}
 
-	BinaryStream& operator<<(BinaryStream& stream, const TCP::Endpoint& endpoint) {
+	BinaryOStream& operator<<(BinaryOStream& stream, const TCP::Endpoint& endpoint) {
 		uint8_t ipVersion;
 		const uint8_t * addressData;
 		std::size_t addressSize;

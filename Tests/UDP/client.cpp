@@ -12,7 +12,7 @@ int main(){
 	{
 		Buffer buffer;
 		BufferBuilder builder(buffer);
-		BinaryStream binaryStream(builder);
+		BinaryOStream binaryStream(builder);
 		binaryStream << uint16_t(0);
 
 		socket.send(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 45557), buffer);
@@ -35,7 +35,7 @@ int main(){
 		
 		{
 			BufferIterator iterator(data);
-			BinaryStream binaryStream(iterator);
+			BinaryIStream binaryStream(iterator);
 			binaryStream >> i;
 		}
 		
@@ -51,7 +51,7 @@ int main(){
 			std::cout << "Sent: " << (i + 1) << std::endl;
 			Buffer buffer;
 			BufferBuilder builder(buffer);
-			BinaryStream binaryStream(builder);
+			BinaryOStream binaryStream(builder);
 			binaryStream << uint16_t(i + 1);
 			socket.send(endpoint, buffer);
 		}

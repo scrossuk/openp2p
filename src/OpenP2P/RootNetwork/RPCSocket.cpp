@@ -17,7 +17,7 @@ namespace OpenP2P{
 		void RPCSocket::send(const Endpoint& endpoint, bool isRequest, const Id& id, const Buffer& data){
 			Buffer buffer;
 			BufferBuilder builder(buffer);
-			BinaryStream stream(builder);
+			BinaryOStream stream(builder);
 			stream << isRequest << id << data;
 			socket_.send(endpoint, buffer);
 		}
@@ -26,7 +26,7 @@ namespace OpenP2P{
 			Buffer buffer;
 			while(socket_.receive(endpoint, buffer)){
 				BufferIterator iterator(buffer);
-				BinaryStream stream(iterator);
+				BinaryIStream stream(iterator);
 
 				if(stream >> isRequest >> id >> data){
 					return true;

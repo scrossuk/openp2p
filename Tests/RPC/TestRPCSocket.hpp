@@ -11,7 +11,7 @@ class TestRPCSocket: public RPC::Socket<UDP::Endpoint, uint32_t>{
 		void send(const UDP::Endpoint& endpoint, bool isRequest, const uint32_t& id, const Buffer& data){
 			Buffer buffer;
 			BufferBuilder builder(buffer);
-			BinaryStream stream(builder);
+			BinaryOStream stream(builder);
 			stream << isRequest << id << data;
 
 			socket_.send(endpoint, buffer);
@@ -21,7 +21,7 @@ class TestRPCSocket: public RPC::Socket<UDP::Endpoint, uint32_t>{
 			Buffer buff;
 			if(socket_.receive(endpoint, buff)){
 				BufferIterator iterator(buff);
-				BinaryStream stream(iterator);
+				BinaryIStream stream(iterator);
 				return (stream >> isRequest >> id >> data);
 			}else{
 				return false;

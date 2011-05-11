@@ -37,7 +37,7 @@ class ClientThread: public Runnable{
 		void run(){
 			std::cout << "---Started transfer" << std::endl;
 
-			BinaryStream stream(tcpStream_);
+			BinaryIOStream stream(tcpStream_);
 	
 			for(unsigned int i = 0; i < 1000; i += 2){
 				uint32_t v;

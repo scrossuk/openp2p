@@ -8,7 +8,7 @@
 
 namespace OpenP2P {
 
-	class BufferIterator: public Stream {
+	class BufferIterator: public IStream {
 		public:
 			BufferIterator(const Buffer&, std::size_t = 0);
 

@@ -10,7 +10,7 @@
 
 namespace OpenP2P{
 
-	class BufferBuilder: public Stream{
+	class BufferBuilder: public OStream{
 		public:
 			BufferBuilder(Buffer&);
 

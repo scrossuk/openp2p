@@ -15,14 +15,14 @@ namespace OpenP2P{
 			RPC_SUBSCRIBE = 3
 		};
 
-		inline BinaryStream& operator>>(BinaryStream& stream, RPCType& type){
+		inline BinaryIStream& operator>>(BinaryIStream& stream, RPCType& type){
 			uint8_t t;
 			stream >> t;
 			type = (RPCType) t;
 			return stream;
 		}
 
-		inline BinaryStream& operator<<(BinaryStream& stream, const RPCType& type){
+		inline BinaryOStream& operator<<(BinaryOStream& stream, const RPCType& type){
 			return stream << uint8_t(type);
 		}
 	

@@ -12,8 +12,8 @@ namespace OpenP2P{
 
 	}
 
-	BinaryStream& operator>>(BinaryStream&, TCP::Endpoint&);
-	BinaryStream& operator<<(BinaryStream&, const TCP::Endpoint&);
+	BinaryIStream& operator>>(BinaryIStream&, TCP::Endpoint&);
+	BinaryOStream& operator<<(BinaryOStream&, const TCP::Endpoint&);
 
 }
 #endif

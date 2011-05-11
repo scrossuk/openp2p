@@ -46,7 +46,7 @@ namespace OpenP2P{
 
 			boost::scoped_array<uint8_t> ptr(new uint8_t[65536]);
 			BufferIterator iterator(buffer);
-			BinaryStream binaryStream(iterator);
+			BinaryIStream binaryStream(iterator);
 			binaryStream.read(ptr.get(), buffer.size());
 
 			{
@@ -70,7 +70,7 @@ namespace OpenP2P{
 			condition.wait(lock);
 
 			BufferBuilder builder(buffer);
-			BinaryStream stream(builder);
+			BinaryOStream stream(builder);
 			stream.write(ptr.get(), length);
 
 			return length > 0;

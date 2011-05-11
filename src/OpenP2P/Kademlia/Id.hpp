@@ -68,12 +68,12 @@ namespace OpenP2P{
 		}
 
 		template <std::size_t IdSize>
-		BinaryStream& operator>>(BinaryStream& stream, Id<IdSize>& id){
+		BinaryIStream& operator>>(BinaryIStream& stream, Id<IdSize>& id){
 			return stream >> id.data;
 		}
 
 		template <std::size_t IdSize>
-		BinaryStream& operator<<(BinaryStream& stream, const Id<IdSize>& id){
+		BinaryOStream& operator<<(BinaryOStream& stream, const Id<IdSize>& id){
 			return stream << id.data;
 		}
 

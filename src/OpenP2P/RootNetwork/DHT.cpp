@@ -31,7 +31,7 @@ namespace OpenP2P {
 			Buffer toBuffer(const T& t){
 				Buffer buffer;
 				BufferBuilder builder(buffer);
-				BinaryStream stream(builder);
+				BinaryOStream stream(builder);
 				stream << t;
 				return buffer;
 			}
@@ -39,7 +39,7 @@ namespace OpenP2P {
 			template <typename T>
 			bool fromBuffer(T& t, const Buffer& buffer){
 				BufferIterator iterator(buffer);
-				BinaryStream stream(iterator);
+				BinaryIStream stream(iterator);
 				return stream >> t;
 			}
 
@@ -57,7 +57,7 @@ namespace OpenP2P {
 
 			while(dht_.protocol_.receiveRequest(endpoint, rpcId, buffer)){
 				BufferIterator iterator(buffer);
-				BinaryStream stream(iterator);
+				BinaryIStream stream(iterator);
 				if(!(stream >> senderId >> type)) continue;
 
 				Node senderNode(senderId, endpoint);

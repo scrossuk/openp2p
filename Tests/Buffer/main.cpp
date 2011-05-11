@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 		
 		Buffer buffer;
 		BufferBuilder builder(buffer);
-		BinaryStream stream(builder);
+		BinaryOStream stream(builder);
 		
 		if(!(stream << a << b << c)) {
 			std::cout << "Test failed (" << __LINE__ << ") - Failed to build buffer" << std::endl;
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
 		uint8_t f;
 		
 		BufferIterator iterator(buffer);
-		BinaryStream readStream(iterator);
+		BinaryIStream readStream(iterator);
 		readStream >> d >> e >> f;
 		
 		if(a != d || b != e || c != f) {
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 	{
 		Buffer buffer;
 		BufferBuilder builder(buffer);
-		BinaryStream writeStream(builder);
+		BinaryOStream writeStream(builder);
 		
 		boost::array<TCP::Endpoint, 4> array;
 		
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 		}
 		
 		BufferIterator iterator(buffer);
-		BinaryStream readStream(iterator);
+		BinaryIStream readStream(iterator);
 		
 		boost::array<TCP::Endpoint, 4> array2;
 		

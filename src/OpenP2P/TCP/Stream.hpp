@@ -18,7 +18,7 @@ namespace OpenP2P{
 
 	namespace TCP{
 
-		class Stream: public OpenP2P::Stream, boost::noncopyable{
+		class Stream: public OpenP2P::IOStream, boost::noncopyable{
 			public:
 				Stream();
 

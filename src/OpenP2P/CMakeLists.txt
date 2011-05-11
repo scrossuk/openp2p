@@ -1,4 +1,5 @@
-add_library(openp2p STATIC BinaryStream.cpp Buffer.cpp BufferBuilder.cpp BufferIterator.cpp IOService.cpp Signal.cpp Thread.cpp Timeout.cpp)
+add_library(openp2p STATIC BinaryStream.cpp Buffer.cpp BufferBuilder.cpp BufferIterator.cpp CacheStream.cpp IOService.cpp Signal.cpp Thread.cpp Timeout.cpp)
+add_subdirectory(OFTorrent)
 add_subdirectory(RootNetwork)
 add_subdirectory(TCP)
 add_subdirectory(UDP)

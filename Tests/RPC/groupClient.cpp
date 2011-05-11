@@ -20,7 +20,7 @@ int main(){
 
 	Buffer buffer;
 	BufferBuilder builder(buffer);
-	BinaryStream buildStream(builder);
+	BinaryOStream buildStream(builder);
 	std::string message("Hello from group!");
 	buildStream << message;
 
@@ -33,7 +33,7 @@ int main(){
 	for(unsigned int i = 0; i < num; i++){
 		if(rpcGroup.hasReply(i)){
 			BufferIterator iterator(rpcGroup.getReply(i));
-			BinaryStream stream(iterator);
+			BinaryIStream stream(iterator);
 			std::string string(17, 0);
 			stream >> string;
 

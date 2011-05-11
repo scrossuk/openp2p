@@ -13,7 +13,7 @@ int main(){
 	if(success){
 		std::cout << "---Successfully connected" << std::endl;
 
-		OpenP2P::BinaryStream stream(tcpStream);
+		OpenP2P::BinaryIOStream stream(tcpStream);
 		for(unsigned int i = 0; i < 1000; i += 2){
 			stream << uint32_t(i);
 

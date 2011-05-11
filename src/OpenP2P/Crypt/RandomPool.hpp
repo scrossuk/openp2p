@@ -1,0 +1,21 @@
+#ifndef OPENP2P_CRYPT_RANDOMPOOL_HPP
+#define OPENP2P_CRYPT_RANDOMPOOL_HPP
+
+#include <stdint.h>
+#include <cstddef>
+
+namespace OpenP2P{
+
+	namespace Crypt{
+
+		class RandomPool{
+			public:
+				virtual void generateBlock(uint8_t * data, std::size_t size) = 0;
+
+		};
+
+	}
+
+}
+
+#endif

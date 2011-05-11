@@ -10,9 +10,9 @@
 
 namespace OpenP2P{
 
-	class BinaryStream: public Cancellable{
+	class BinaryIStream: public Cancellable{
 		public:
-			BinaryStream(Stream&);
+			inline BinaryIStream(IStream& stream) : stream_(stream), isValid_(true){ }
 
 			inline operator bool(){
 				return isValid_;
@@ -28,74 +28,82 @@ namespace OpenP2P{
 
 			bool read(uint8_t *, std::size_t);
 
-			bool write(const uint8_t *, std::size_t);
-
 			std::size_t tryRead(uint8_t *, std::size_t);
+
+			void cancel();
+
+			inline IStream& getIStream(){
+				return stream_;
+			}
+
+		private:
+			IStream& stream_;
+			bool isValid_;
+
+	};
+
+	class BinaryOStream: public Cancellable{
+		public:
+			inline BinaryOStream(OStream& stream) : stream_(stream), isValid_(true){ }
+
+			inline operator bool(){
+				return isValid_;
+			}
+
+			inline void setValid(){
+				isValid_ = true;
+			}
+
+			inline void setInvalid(){
+				isValid_ = false;
+			}
+
+			bool write(const uint8_t *, std::size_t);
 
 			std::size_t tryWrite(const uint8_t *, std::size_t);
 
 			void cancel();
 
+			inline OStream& getOStream(){
+				return stream_;
+			}
+
 		private:
-			Stream& stream_;
+			OStream& stream_;
 			bool isValid_;
 
 	};
 
-	BinaryStream& operator<<(BinaryStream&, bool);
-	BinaryStream& operator<<(BinaryStream&, uint8_t);
-	BinaryStream& operator<<(BinaryStream&, int8_t);
-	BinaryStream& operator<<(BinaryStream&, uint16_t);
-	BinaryStream& operator<<(BinaryStream&, int16_t);
-	BinaryStream& operator<<(BinaryStream&, uint32_t);
-	BinaryStream& operator<<(BinaryStream&, int32_t);
-	BinaryStream& operator<<(BinaryStream&, uint64_t);
-	BinaryStream& operator<<(BinaryStream&, int64_t);
-	BinaryStream& operator<<(BinaryStream&, const char *);
-	BinaryStream& operator<<(BinaryStream&, const std::string&);
-	BinaryStream& operator<<(BinaryStream&, const Buffer&);
+	class BinaryIOStream: public BinaryIStream, public BinaryOStream{
+		public:
+			inline BinaryIOStream(IOStream& stream) : BinaryIStream(stream), BinaryOStream(stream){ }
 
+			inline operator bool(){
+				return BinaryIStream::operator bool() && BinaryOStream::operator bool();
+			}
 
-	template <typename T, std::size_t N>
-	BinaryStream& operator<<(BinaryStream& stream, const boost::array<T, N>& array){
-		for(std::size_t i = 0; i < N; i++){
-			stream << array[i];
-		}
-		return stream;
-	}
+			void cancel(){
+				BinaryIStream::cancel();
+				BinaryOStream::cancel();
+			}
 
-	template <typename T>
-	BinaryStream& operator<<(BinaryStream& stream, const std::vector<T>& array){
-		for(std::size_t i = 0; i < array.size(); i++){
-			stream << array[i];
-		}
-		return stream;
-	}
+	};
 
-	template <class T>
-	BinaryStream& operator<<(BinaryStream& stream, const boost::optional<T>& optional){
-		if(optional){
-			stream << true << *optional;
-		}else{
-			stream << false;
-		}
-		return stream;
-	}
-
-	BinaryStream& operator>>(BinaryStream&, bool&);
-	BinaryStream& operator>>(BinaryStream&, uint8_t&);
-	BinaryStream& operator>>(BinaryStream&, int8_t&);
-	BinaryStream& operator>>(BinaryStream&, uint16_t&);
-	BinaryStream& operator>>(BinaryStream&, int16_t&);
-	BinaryStream& operator>>(BinaryStream&, uint32_t&);
-	BinaryStream& operator>>(BinaryStream&, int32_t&);
-	BinaryStream& operator>>(BinaryStream&, uint64_t&);
-	BinaryStream& operator>>(BinaryStream&, int64_t&);
-	BinaryStream& operator>>(BinaryStream&, std::string&);
-	BinaryStream& operator>>(BinaryStream&, Buffer&);
+	BinaryIStream& operator>>(BinaryIStream&, bool&);
+	BinaryIStream& operator>>(BinaryIStream&, uint8_t&);
+	BinaryIStream& operator>>(BinaryIStream&, int8_t&);
+	BinaryIStream& operator>>(BinaryIStream&, uint16_t&);
+	BinaryIStream& operator>>(BinaryIStream&, int16_t&);
+	BinaryIStream& operator>>(BinaryIStream&, uint32_t&);
+	BinaryIStream& operator>>(BinaryIStream&, int32_t&);
+	BinaryIStream& operator>>(BinaryIStream&, uint64_t&);
+	BinaryIStream& operator>>(BinaryIStream&, int64_t&);
+	BinaryIStream& operator>>(BinaryIStream&, std::string&);
+	BinaryIStream& operator>>(BinaryIStream&, Buffer&);
+	BinaryIStream& operator>>(BinaryIStream&, OStream&);
 
 	template <typename T, std::size_t N>
-	BinaryStream& operator>>(BinaryStream& stream, boost::array<T, N>& array){
+	BinaryIStream& operator>>(BinaryIStream& stream, boost::array<T, N>& array){
 		for(std::size_t i = 0; i < N; i++){
 			stream >> array[i];
 		}
@@ -103,7 +111,7 @@ namespace OpenP2P{
 	}
 
 	template <typename T>
-	BinaryStream& operator>>(BinaryStream& stream, std::vector<T>& array){
+	BinaryIStream& operator>>(BinaryIStream& stream, std::vector<T>& array){
 		for(std::size_t i = 0; i < array.size(); i++){
 			stream >> array[i];
 		}
@@ -111,7 +119,7 @@ namespace OpenP2P{
 	}
 
 	template <typename T>
-	BinaryStream& operator>>(BinaryStream& stream, boost::optional<T>& optional){
+	BinaryIStream& operator>>(BinaryIStream& stream, boost::optional<T>& optional){
 		bool b;
 		stream >> b;
 		if(b){
@@ -120,6 +128,46 @@ namespace OpenP2P{
 			optional = boost::make_optional(v);
 		}else{
 			optional = boost::optional<T>();
+		}
+		return stream;
+	}
+
+	BinaryOStream& operator<<(BinaryOStream&, bool);
+	BinaryOStream& operator<<(BinaryOStream&, uint8_t);
+	BinaryOStream& operator<<(BinaryOStream&, int8_t);
+	BinaryOStream& operator<<(BinaryOStream&, uint16_t);
+	BinaryOStream& operator<<(BinaryOStream&, int16_t);
+	BinaryOStream& operator<<(BinaryOStream&, uint32_t);
+	BinaryOStream& operator<<(BinaryOStream&, int32_t);
+	BinaryOStream& operator<<(BinaryOStream&, uint64_t);
+	BinaryOStream& operator<<(BinaryOStream&, int64_t);
+	BinaryOStream& operator<<(BinaryOStream&, const char *);
+	BinaryOStream& operator<<(BinaryOStream&, const std::string&);
+	BinaryOStream& operator<<(BinaryOStream&, const Buffer&);
+
+
+	template <typename T, std::size_t N>
+	BinaryOStream& operator<<(BinaryOStream& stream, const boost::array<T, N>& array){
+		for(std::size_t i = 0; i < N; i++){
+			stream << array[i];
+		}
+		return stream;
+	}
+
+	template <typename T>
+	BinaryOStream& operator<<(BinaryOStream& stream, const std::vector<T>& array){
+		for(std::size_t i = 0; i < array.size(); i++){
+			stream << array[i];
+		}
+		return stream;
+	}
+
+	template <class T>
+	BinaryOStream& operator<<(BinaryOStream& stream, const boost::optional<T>& optional){
+		if(optional){
+			stream << true << *optional;
+		}else{
+			stream << false;
 		}
 		return stream;
 	}

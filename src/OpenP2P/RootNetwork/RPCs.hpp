@@ -12,21 +12,21 @@ namespace OpenP2P{
 
 			struct Request{ };
 
-			inline BinaryStream& operator>>(BinaryStream& stream, Request&){
+			inline BinaryIStream& operator>>(BinaryIStream& stream, Request&){
 				return stream;
 			}
 
-			inline BinaryStream& operator<<(BinaryStream& stream, const Request&){
+			inline BinaryOStream& operator<<(BinaryOStream& stream, const Request&){
 				return stream;
 			}
 
 			struct Reply{ };
 
-			inline BinaryStream& operator>>(BinaryStream& stream, Reply&){
+			inline BinaryIStream& operator>>(BinaryIStream& stream, Reply&){
 				return stream;
 			}
 
-			inline BinaryStream& operator<<(BinaryStream& stream, const Reply&){
+			inline BinaryOStream& operator<<(BinaryOStream& stream, const Reply&){
 				return stream;
 			}
 
@@ -38,11 +38,11 @@ namespace OpenP2P{
 				Id nodeId;
 			};
 
-			inline BinaryStream& operator>>(BinaryStream& stream, Request& request){
+			inline BinaryIStream& operator>>(BinaryIStream& stream, Request& request){
 				return stream >> request.nodeId;
 			}
 
-			inline BinaryStream& operator<<(BinaryStream& stream, const Request& request){
+			inline BinaryOStream& operator<<(BinaryOStream& stream, const Request& request){
 				return stream << request.nodeId;
 			}
 
@@ -50,14 +50,14 @@ namespace OpenP2P{
 				std::vector<Node> nearestGroup;
 			};
 
-			inline BinaryStream& operator>>(BinaryStream& stream, Reply& reply){
+			inline BinaryIStream& operator>>(BinaryIStream& stream, Reply& reply){
 				uint8_t length;
 				stream >> length;
 				reply.nearestGroup.resize(length);
 				return stream >> reply.nearestGroup;
 			}
 
-			inline BinaryStream& operator<<(BinaryStream& stream, const Reply& reply){
+			inline BinaryOStream& operator<<(BinaryOStream& stream, const Reply& reply){
 				return stream << uint8_t(reply.nearestGroup.size()) << reply.nearestGroup;
 			}
 
@@ -69,11 +69,11 @@ namespace OpenP2P{
 				Id subscriptionId;
 			};
 
-			inline BinaryStream& operator>>(BinaryStream& stream, Request& request){
+			inline BinaryIStream& operator>>(BinaryIStream& stream, Request& request){
 				return stream >> request.subscriptionId;
 			}
 
-			inline BinaryStream& operator<<(BinaryStream& stream, const Request& request){
+			inline BinaryOStream& operator<<(BinaryOStream& stream, const Request& request){
 				return stream << request.subscriptionId;
 			}
 
@@ -85,11 +85,11 @@ namespace OpenP2P{
 				Id subscriptionId;
 			};
 
-			inline BinaryStream& operator>>(BinaryStream& stream, Request& request){
+			inline BinaryIStream& operator>>(BinaryIStream& stream, Request& request){
 				return stream >> request.subscriptionId;
 			}
 
-			inline BinaryStream& operator<<(BinaryStream& stream, const Request& request){
+			inline BinaryOStream& operator<<(BinaryOStream& stream, const Request& request){
 				return stream << request.subscriptionId;
 			}
 
@@ -97,14 +97,14 @@ namespace OpenP2P{
 				std::vector<Node> subscribersGroup;
 			};
 
-			inline BinaryStream& operator>>(BinaryStream& stream, Reply& reply){
+			inline BinaryIStream& operator>>(BinaryIStream& stream, Reply& reply){
 				uint8_t length;
 				stream >> length;
 				reply.subscribersGroup.resize(length);
 				return stream >> reply.subscribersGroup;
 			}
 
-			inline BinaryStream& operator<<(BinaryStream& stream, const Reply& reply){
+			inline BinaryOStream& operator<<(BinaryOStream& stream, const Reply& reply){
 				return stream << uint8_t(reply.subscribersGroup.size()) << reply.subscribersGroup;
 			}
 

@@ -251,7 +251,7 @@ namespace OpenP2P {
 		BufferIterator iterator(buffer);
 		BinaryIStream readStream(iterator);
 
-		uint64_t bufferSize = buffer.size();
+		uint16_t bufferSize = buffer.size();
 		stream << bufferSize;
 
 		uint8_t data[1024];

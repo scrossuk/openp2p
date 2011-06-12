@@ -10,7 +10,7 @@ namespace OpenP2P {
 
 	class BufferIterator: public IStream {
 		public:
-			BufferIterator(const Buffer&, std::size_t = 0);
+			BufferIterator(const Buffer& buffer, std::size_t position = 0);
 
 			std::size_t position();
 
@@ -18,9 +18,9 @@ namespace OpenP2P {
 
 			void set(const Buffer&);
 
-			bool seek(std::size_t);
+			bool seek(std::size_t position);
 
-			std::size_t readSome(uint8_t *, std::size_t);
+			std::size_t readSome(uint8_t * data, std::size_t dataSize);
 
 			void cancel();
 

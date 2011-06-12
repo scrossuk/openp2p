@@ -13,16 +13,26 @@ void output(const uint8_t * data, std::size_t size){
 	}
 }
 
-class TestStream: public OpenP2P::Stream{
+class OutputStream: public OStream{
 	public:
+		OutputStream() : size_(0){ }
+
+		std::size_t size(){
+			return size_;
+		}
+
 		std::size_t writeSome(const uint8_t * data, std::size_t size){
 			std::cout << "Write of size " << size << ": ";
 			output(data, size);
 			std::cout << std::endl;
+			size_ += size;
 			return size;
 		}
 
 		void cancel(){ }
+
+	private:
+		std::size_t size_;
 
 };
 
@@ -51,7 +61,7 @@ int main(int argc, char *argv[]){
 	tcpStream.connect(endpointList);
 
 	if(tcpStream.isConnected()){
-		TextStream stream(tcpStream);
+		TextIOStream stream(tcpStream);
 
 		std::cout << "Connected" << std::endl;
 
@@ -63,16 +73,11 @@ int main(int argc, char *argv[]){
 
 		std::cout << "Receiving data..." << std::endl << std::endl;
 
-		std::size_t size = 0;
+		OutputStream outputStream;
 
-		uint8_t data[2048];
-		std::size_t s = 0;
-		while((s = stream.readSome(data, 2048)) != 0){
-			size += s;
-			output(data, s);
-		}
+		stream >> outputStream;
 
-		std::cout << std::endl << std::endl << "Received: " << size << std::endl;
+		std::cout << std::endl << std::endl << "Received: " << outputStream.size() << std::endl;
 		std::cout << "Socket closed" << std::endl;
 	}else{
 		std::cout << "Failed to connect" << std::endl;

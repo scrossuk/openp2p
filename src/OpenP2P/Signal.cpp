@@ -13,7 +13,7 @@ namespace OpenP2P{
 
 	void Signal::activate(){
 		Lock lock(mutex_);
-		cond_.notify();
+		cond_.notifyAll();
 		isActivated_ = true;
 	}
 

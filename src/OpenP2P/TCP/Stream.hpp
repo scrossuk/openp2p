@@ -22,17 +22,15 @@ namespace OpenP2P{
 			public:
 				Stream();
 
-				bool connect(const Endpoint& endpoint);
+				Future<bool> connect(const Endpoint& endpoint);
 
 				bool connect(const std::vector<Endpoint>& endpointList);
 
 				boost::asio::ip::tcp::socket& getInternal();
 
-				std::size_t writeSome(const uint8_t *, std::size_t);
+				Future<std::size_t> writeSome(const uint8_t *, std::size_t);
 
-				std::size_t readSome(uint8_t *, std::size_t);
-
-				void cancel();
+				Future<std::size_t> readSome(uint8_t *, std::size_t);
 
 				void close();
 

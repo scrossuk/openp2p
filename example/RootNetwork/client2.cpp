@@ -10,14 +10,18 @@
 using namespace OpenP2P;
 
 int main(){
-	UDP::Socket socket(46668);
+	/*UDP::Socket socket(46668);
 	
-	RootNetwork::Id id = RootNetwork::Id::Max();
+	Crypt::AutoSeededRandomPool rand;
 	
-	RootNetwork::DHT dht(socket, id);
+	Crypt::ECDSA::PrivateKey privateKey(rand);
+	
+	RootNetwork::PrivateIdentity privateIdentity(privateKey);
+	
+	RootNetwork::Service service(socket, privateIdentity);
 
 	std::string str;
-	std::getline(std::cin, str);
+	std::getline(std::cin, str);*/
 
 	return 0;
 }

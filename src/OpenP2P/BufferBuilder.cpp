@@ -8,13 +8,11 @@ namespace OpenP2P{
 
 	BufferBuilder::BufferBuilder(Buffer& buffer) : buffer_(buffer){ }
 
-	std::size_t BufferBuilder::writeSome(const uint8_t * data, std::size_t length){
+	Future<std::size_t> BufferBuilder::writeSome(const uint8_t * data, std::size_t length){
 		buffer_.reserve(buffer_.size() + length);
 		buffer_.insert(buffer_.end(), data, data + length);
 		return length;
 	}
-
-	void BufferBuilder::cancel(){ }
 
 }
 

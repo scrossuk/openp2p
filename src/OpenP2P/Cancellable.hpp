@@ -5,7 +5,7 @@ namespace OpenP2P{
 
 	class Cancellable{
 		public:
-			virtual void cancel() = 0;
+			inline virtual void cancel(){ }
 
 	};
 

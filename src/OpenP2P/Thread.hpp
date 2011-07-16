@@ -14,7 +14,7 @@ namespace OpenP2P{
 			~Thread();
 
 		private:
-            Runnable& runnable_;
+            		Runnable& runnable_;
 			boost::thread internalThread_;
 
 	};

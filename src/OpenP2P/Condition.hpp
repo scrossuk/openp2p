@@ -21,6 +21,10 @@ namespace OpenP2P{
 			inline void wait(Lock& lock){
 				internalCondition_.wait(lock);
 			}
+			
+			inline void timedWait(Lock& lock, double secs){
+				internalCondition_.timed_wait(lock, boost::posix_time::milliseconds(secs * 1000));
+			}
 
 			inline void cancel(){
 				notify();

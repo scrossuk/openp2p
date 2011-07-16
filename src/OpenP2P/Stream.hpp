@@ -4,19 +4,19 @@
 #include <stdint.h>
 #include <cstddef>
 
-#include <OpenP2P/Cancellable.hpp>
+#include <OpenP2P/Future.hpp>
 
 namespace OpenP2P{
 
-	class IStream: public virtual Cancellable{
+	class IStream{
 		public:
-			virtual std::size_t readSome(uint8_t *, std::size_t) = 0;
+			virtual Future<std::size_t> readSome(uint8_t *, std::size_t) = 0;
 
 	};
 
-	class OStream: public virtual Cancellable{
+	class OStream{
 		public:
-			virtual std::size_t writeSome(const uint8_t *, std::size_t) = 0;
+			virtual Future<std::size_t> writeSome(const uint8_t *, std::size_t) = 0;
 
 	};
 

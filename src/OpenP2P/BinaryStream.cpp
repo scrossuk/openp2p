@@ -5,15 +5,15 @@
 
 #include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/BufferBuilder.hpp>
+#include <OpenP2P/BufferedStream.hpp>
 #include <OpenP2P/BufferIterator.hpp>
-#include <OpenP2P/CacheStream.hpp>
 
 namespace OpenP2P {
 
 	bool BinaryIStream::read(uint8_t * data, std::size_t length) {
 		std::size_t p = 0;
 		while (p < length) {
-			std::size_t readSize = stream_.readSome(data + p, length - p);
+			std::size_t readSize = stream_.readSome(data + p, length - p).get();
 			if (readSize == 0) {
 				//Zero out data if the read fails
 				memset(data, 0, length);
@@ -31,7 +31,7 @@ namespace OpenP2P {
 	std::size_t BinaryIStream::tryRead(uint8_t * data, std::size_t length) {
 		std::size_t p = 0;
 		while (p < length) {
-			std::size_t readSize = stream_.readSome(data + p, length - p);
+			std::size_t readSize = stream_.readSome(data + p, length - p).get();
 			p += readSize;
 			if (readSize == 0) break;
 		}
@@ -39,13 +39,13 @@ namespace OpenP2P {
 	}
 
 	void BinaryIStream::cancel(){
-		stream_.cancel();
+		//
 	}
 
 	bool BinaryOStream::write(const uint8_t * data, std::size_t length) {
 		std::size_t p = 0;
 		while (p < length) {
-			std::size_t writeSize = stream_.writeSome(data + p, length - p);
+			std::size_t writeSize = stream_.writeSome(data + p, length - p).get();
 			if (writeSize == 0) {
 				isValid_ = false;
 				return false;
@@ -62,7 +62,7 @@ namespace OpenP2P {
 	std::size_t BinaryOStream::tryWrite(const uint8_t * data, std::size_t length) {
 		std::size_t p = 0;
 		while (p < length) {
-			std::size_t writeSize = stream_.writeSome(data + p, length - p);
+			std::size_t writeSize = stream_.writeSome(data + p, length - p).get();
 			p += writeSize;
 			if (writeSize == 0) break;
 		}
@@ -70,7 +70,7 @@ namespace OpenP2P {
 	}
 
 	void BinaryOStream::cancel(){
-		stream_.cancel();
+		//
 	}
 
 	BinaryIStream& operator>>(BinaryIStream& stream, bool& b) {
@@ -161,11 +161,11 @@ namespace OpenP2P {
 	}
 
 	BinaryIStream& operator>>(BinaryIStream& stream, OStream& outStream){
-		CacheStream cacheStream(stream.getIStream());
-		while(cacheStream.readSome() != 0){
-			std::size_t size = outStream.writeSome(cacheStream.get(), cacheStream.size());
+		BufferedStream bufferedStream(stream.getIStream());
+		while(bufferedStream.readSome().get() != 0){
+			std::size_t size = outStream.writeSome(bufferedStream.get(), bufferedStream.size()).get();
 			if(size == 0) break;
-			cacheStream.consume(size);
+			bufferedStream.consume(size);
 		}
 
 		return stream;

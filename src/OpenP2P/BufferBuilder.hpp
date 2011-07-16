@@ -14,9 +14,7 @@ namespace OpenP2P{
 		public:
 			BufferBuilder(Buffer&);
 
-			std::size_t writeSome(const uint8_t *, std::size_t);
-
-			void cancel();
+			Future<std::size_t> writeSome(const uint8_t *, std::size_t);
 
 		private:
 			Buffer& buffer_;

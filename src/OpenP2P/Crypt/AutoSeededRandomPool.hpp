@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <cstddef>
 
+#include <cryptopp/osrng.h>
+
 #include <OpenP2P/Crypt/RandomPool.hpp>
 
 namespace OpenP2P{
@@ -13,6 +15,11 @@ namespace OpenP2P{
 		class AutoSeededRandomPool: public RandomPool{
 			public:
 				void generateBlock(uint8_t * data, std::size_t size);
+
+				operator CryptoPP::RandomPool&();
+
+			private:
+				CryptoPP::AutoSeededRandomPool randPool_;
 
 		};
 

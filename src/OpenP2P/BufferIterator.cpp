@@ -30,7 +30,7 @@ namespace OpenP2P {
 		return true;
 	}
 
-	std::size_t BufferIterator::readSome(uint8_t * data, std::size_t dataSize) {
+	Future<std::size_t> BufferIterator::readSome(uint8_t * data, std::size_t dataSize) {
 		std::size_t maxReadSize = buffer_->size() - position_;
 		std::size_t readSize = std::min(dataSize, maxReadSize);
 
@@ -40,8 +40,6 @@ namespace OpenP2P {
 
 		return readSize;
 	}
-
-	void BufferIterator::cancel(){ }
 
 }
 

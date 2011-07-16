@@ -20,9 +20,7 @@ namespace OpenP2P {
 
 			bool seek(std::size_t position);
 
-			std::size_t readSome(uint8_t * data, std::size_t dataSize);
-
-			void cancel();
+			Future<std::size_t> readSome(uint8_t * data, std::size_t dataSize);
 
 		private:
 			const Buffer * buffer_;

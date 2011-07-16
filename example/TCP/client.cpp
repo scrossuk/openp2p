@@ -5,12 +5,16 @@
 
 int main(){
 	OpenP2P::TCP::Stream tcpStream;
-	OpenP2P::Timeout timeout(5.0, tcpStream);
 	std::cout << "---Connecting" << std::endl;
 
-	bool success = tcpStream.connect(OpenP2P::TCP::Endpoint(boost::asio::ip::address_v4::loopback(), 45556));
+	OpenP2P::Future<bool> connect = tcpStream.connect(OpenP2P::TCP::Endpoint(boost::asio::ip::address_v4::loopback(), 45556));
+	
+	if(!connect.timedWait(5.0)){
+		std::cout << "---Timed out" << std::endl;
+		return 0;
+	}
 
-	if(success){
+	if(connect.get()){
 		std::cout << "---Successfully connected" << std::endl;
 
 		OpenP2P::BinaryIOStream stream(tcpStream);

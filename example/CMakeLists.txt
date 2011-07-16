@@ -1,4 +1,7 @@
 add_subdirectory(Buffer)
+add_subdirectory(Crypt)
+add_subdirectory(Futures)
+add_subdirectory(HTTP)
 add_subdirectory(OFTorrent)
 add_subdirectory(RootNetwork)
 add_subdirectory(RPC)

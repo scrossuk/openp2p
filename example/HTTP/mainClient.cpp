@@ -21,7 +21,7 @@ class OutputStream: public OStream{
 			return size_;
 		}
 
-		std::size_t writeSome(const uint8_t * data, std::size_t size){
+		Future<std::size_t> writeSome(const uint8_t * data, std::size_t size){
 			std::cout << "Write of size " << size << ": ";
 			output(data, size);
 			std::cout << std::endl;
@@ -36,6 +36,25 @@ class OutputStream: public OStream{
 
 };
 
+class TextIOStream {
+	public:
+		TextIOStream(IOStream& stream) : binaryStream_(stream){ }
+	
+		TextIOStream& operator<<(const std::string& string){
+			binaryStream_.write((const uint8_t *) string.c_str(), string.size());
+			return *this;
+		}
+		
+		TextIOStream& operator>>(OStream& stream){
+			binaryStream_ >> stream;
+			return *this;
+		}
+		
+	private:
+		BinaryIOStream binaryStream_;
+	
+};
+
 int main(int argc, char *argv[]){
 	if(argc < 2 || argc > 3){
 		std::cout << "client <domain name> <optional path>" << std::endl;
@@ -46,21 +65,24 @@ int main(int argc, char *argv[]){
 
 	std::string domain = argv[1];
 	
-	//Timeout timeout(5.0);
-
 	std::cout << "Resolving..." << std::endl;
 	
 	TCP::Resolver resolver;
 
-	std::list<TCP::Endpoint> endpointList = resolver.resolve(domain, "http");
+	std::vector<TCP::Endpoint> endpointList = resolver.resolve(domain, "http").get();
 
 	std::cout << "Connecting..." << std::endl;
 
 	TCP::Stream tcpStream;
 	
-	tcpStream.connect(endpointList);
+	Future<bool> connect = tcpStream.connect(endpointList);
+	
+	if(!connect.timedWait(5.0)){
+		std::cout << "Timed out" << std::endl;
+		return 0;
+	}
 
-	if(tcpStream.isConnected()){
+	if(connect.get()){
 		TextIOStream stream(tcpStream);
 
 		std::cout << "Connected" << std::endl;

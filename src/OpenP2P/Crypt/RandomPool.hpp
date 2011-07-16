@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <cstddef>
 
+#include <cryptopp/osrng.h>
+
 namespace OpenP2P{
 
 	namespace Crypt{
@@ -11,6 +13,8 @@ namespace OpenP2P{
 		class RandomPool{
 			public:
 				virtual void generateBlock(uint8_t * data, std::size_t size) = 0;
+
+				virtual operator CryptoPP::RandomPool&() = 0;
 
 		};
 

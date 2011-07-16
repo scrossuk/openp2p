@@ -9,7 +9,6 @@ namespace OpenP2P{
 		: stream_(stream), data_(new uint8_t[bufferSize]), bufferSize_(bufferSize), readPos_(0), writePos_(0){ }
 		
 	Future<std::size_t> BufferedStream::readSome(std::size_t requestedSize){
-		Lock lock(mutex_);
 		if(requestedSize <= size_()) return Future<std::size_t>(requestedSize);
 		std::size_t availableSpace = bufferSize_ - writePos_;
 		std::size_t maxReadSize = std::min(availableSpace, requestedSize - size_());

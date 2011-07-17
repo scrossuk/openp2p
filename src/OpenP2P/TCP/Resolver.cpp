@@ -5,8 +5,6 @@
 
 #include <OpenP2P/Future.hpp>
 #include <OpenP2P/IOService.hpp>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Promise.hpp>
 
 #include <OpenP2P/TCP/Endpoint.hpp>
@@ -32,16 +30,14 @@ namespace OpenP2P{
 
 		}
 		
-		Resolver::Resolver() : internalResolver_(service_){ }
+		Resolver::Resolver() : internalResolver_(GetIOService()){ }
 
 		Future< std::vector<Endpoint> > Resolver::resolve(const std::string& host, const std::string& service){
-			Condition condition;
 			std::vector<Endpoint> endpointList;
 			boost::asio::ip::tcp::resolver::query query(host, service);
 			
 			Promise< std::vector<Endpoint> > resolveResult;
 
-			Lock lock(mutex_);
 			internalResolver_.async_resolve(query,
 				boost::bind(resolveCallback, resolveResult, _1, _2));
 
@@ -49,7 +45,6 @@ namespace OpenP2P{
 		}
 
 		void Resolver::cancel(){
-			Lock lock(mutex_);
 			internalResolver_.cancel();
 		}
 

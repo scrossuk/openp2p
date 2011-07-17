@@ -1,10 +1,7 @@
 #include <boost/asio.hpp>
 #include <boost/ref.hpp>
 
-#include <OpenP2P/Condition.hpp>
 #include <OpenP2P/IOService.hpp>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
 
 #include <OpenP2P/TCP/Acceptor.hpp>
 #include <OpenP2P/TCP/Stream.hpp>
@@ -15,15 +12,13 @@ namespace OpenP2P{
 
 		namespace{
 
-			void acceptCallback(Mutex& mutex, Condition& condition, bool& success, const boost::system::error_code& ec){
-				Lock lock(mutex);
-				success = !bool(ec);
-				condition.notify();
+			void acceptCallback(Promise<bool> acceptResult, const boost::system::error_code& ec){
+				acceptResult.setValue(!bool(ec));
 			}
 
 		}
 
-		Acceptor::Acceptor(unsigned short port) : internalAcceptor_(service_){
+		Acceptor::Acceptor(unsigned short port) : internalAcceptor_(GetIOService()){
 			boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), port);
 			boost::system::error_code ec;
 
@@ -37,20 +32,15 @@ namespace OpenP2P{
 			internalAcceptor_.listen(boost::asio::ip::tcp::socket::max_connections, ec);
 		}
 
-		bool Acceptor::accept(Stream& stream){
-			Condition condition;
-			Lock lock(mutex_);
+		Future<bool> Acceptor::accept(Stream& stream){
+			Promise<bool> acceptResult;
+			
+			internalAcceptor_.async_accept(stream.getInternal(), boost::bind(acceptCallback, acceptResult, _1));
 
-			bool success = false;
-			internalAcceptor_.async_accept(stream.getInternal(), boost::bind(acceptCallback, boost::ref(mutex_), boost::ref(condition), boost::ref(success), _1));
-
-			condition.wait(lock);
-
-			return success;
+			return acceptResult;
 		}
-
+		
 		void Acceptor::cancel(){
-			Lock lock(mutex_);
 			internalAcceptor_.cancel();
 		}
 

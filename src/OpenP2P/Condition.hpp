@@ -3,12 +3,11 @@
 
 #include <boost/thread.hpp>
 
-#include <OpenP2P/Cancellable.hpp>
 #include <OpenP2P/Lock.hpp>
 
 namespace OpenP2P{
 
-	class Condition: public Cancellable{
+	class Condition{
 		public:
 			inline void notify(){
 				internalCondition_.notify_one();
@@ -24,10 +23,6 @@ namespace OpenP2P{
 			
 			inline void timedWait(Lock& lock, double secs){
 				internalCondition_.timed_wait(lock, boost::posix_time::milliseconds(secs * 1000));
-			}
-
-			inline void cancel(){
-				notify();
 			}
 
 		private:

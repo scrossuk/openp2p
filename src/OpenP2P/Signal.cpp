@@ -35,7 +35,7 @@ namespace OpenP2P{
 	}
 
 	void Signal::cancel(){
-		cond_.cancel();
+		cond_.notifyAll();
 	}
 
 }

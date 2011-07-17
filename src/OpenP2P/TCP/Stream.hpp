@@ -8,8 +8,6 @@
 #include <boost/asio.hpp>
 #include <boost/utility.hpp>
 
-#include <OpenP2P/IOService.hpp>
-#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Stream.hpp>
 
 #include <OpenP2P/TCP/Endpoint.hpp>
@@ -31,12 +29,12 @@ namespace OpenP2P{
 				Future<std::size_t> writeSome(const uint8_t *, std::size_t);
 
 				Future<std::size_t> readSome(uint8_t *, std::size_t);
+				
+				void cancel();
 
 				void close();
 
 			private:
-				IOService service_;
-				Mutex mutex_;
 				boost::asio::ip::tcp::socket internalSocket_;
 				
 

@@ -7,10 +7,8 @@
 #include <boost/ref.hpp>
 #include <boost/utility.hpp>
 
-#include <OpenP2P/Condition.hpp>
 #include <OpenP2P/Future.hpp>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
+#include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Promise.hpp>
 
 #include <OpenP2P/TCP/Endpoint.hpp>
@@ -31,15 +29,18 @@ namespace OpenP2P{
 			void readCallback(Promise<std::size_t> readResult, const boost::system::error_code& ec, std::size_t len){
 				readResult.setValue(ec ? 0 : len);
 			}
+			
+			void writeCallback(Promise<std::size_t> writeResult, const boost::system::error_code& ec, std::size_t len){
+				writeResult.setValue(ec ? 0 : len);
+			}
 
 		}
 
-		Stream::Stream() : internalSocket_(service_){ }
+		Stream::Stream() : internalSocket_(GetIOService()){ }
 
 		Future<bool> Stream::connect(const Endpoint& endpoint){
-			Promise<bool> connectResult(false);
+			Promise<bool> connectResult;
 
-			Lock lock(mutex_);
 			internalSocket_.close();
 			internalSocket_.async_connect(endpoint, boost::bind(connectCallback, connectResult, _1));
 
@@ -60,23 +61,28 @@ namespace OpenP2P{
 		}
 
 		Future<std::size_t> Stream::writeSome(const uint8_t * data, std::size_t length){
-			Lock lock(mutex_);
-			boost::system::error_code ec;
-			return internalSocket_.write_some(boost::asio::buffer(data, length), ec);
+			Promise<std::size_t> writeResult;
+
+			internalSocket_.async_write_some(boost::asio::buffer(data, length),
+						boost::bind(writeCallback, writeResult, _1, _2));
+
+			return writeResult;
 		}
 
 		Future<std::size_t> Stream::readSome(uint8_t * data, std::size_t length){
-			Promise<std::size_t> readResult(0);
+			Promise<std::size_t> readResult;
 
-			Lock lock(mutex_);
 			internalSocket_.async_read_some(boost::asio::buffer(data, length),
 						boost::bind(readCallback, readResult, _1, _2));
 
 			return readResult;
 		}
+		
+		void Stream::cancel(){
+			internalSocket_.cancel();
+		}
 
 		void Stream::close(){
-			Lock lock(mutex_);
 			internalSocket_.close();
 		}
 

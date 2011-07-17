@@ -6,21 +6,34 @@
 #include <boost/utility.hpp>
 
 #include <OpenP2P/Condition.hpp>
+#include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Lock.hpp>
 #include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Promise.hpp>
+#include <OpenP2P/Signal.hpp>
 
 namespace OpenP2P{
 
 	namespace FutureDetail{
 	
 		template <typename T>
-		void * valueAdd(T value, boost::function<void (T)> handler){
+		void valueHandler(T value, boost::function<void (T)> handler, Signal * signal){
 			handler(value);
-			return 0;
+			signal->activate();
+		}
+	
+		template <typename T>
+		void * valueAdd(T value, boost::function<void (T)> handler){
+			Signal * signal = new Signal();
+			GetIOService().post(boost::bind(valueHandler<T>, value, handler, signal));
+			return signal;
 		}
 		
-		inline void valueRemove(void * ptr){ }
+		inline void valueRemove(void * ptr){
+			Signal * signal = (Signal *) ptr;
+			signal->wait();
+			delete signal;
+		}
 
 		template <typename T>
 		void * promiseAdd(Promise<T> promise, boost::function<void (T)> handler){
@@ -125,8 +138,16 @@ namespace OpenP2P{
 	template <typename T>
 	class Future{
 		public:
+			Future()
+				: isReady_(false),
+				add_(boost::bind(FutureDetail::valueAdd<T>, value_, _1)),
+				remove_(boost::bind(FutureDetail::valueRemove, _1))
+				{
+					ptr_ = add_(boost::bind(&Future<T>::activate, this, _1));
+				}
+			
 			Future(const T& value)
-				: isReady_(true),
+				: isReady_(false),
 				add_(boost::bind(FutureDetail::valueAdd<T>, value, _1)),
 				remove_(boost::bind(FutureDetail::valueRemove, _1))
 				{
@@ -153,6 +174,16 @@ namespace OpenP2P{
 				{
 					ptr_ = add_(boost::bind(&Future<T>::activate, this, _1));
 				}
+				
+			Future<T>& operator=(const Future<T>& future){
+				remove_(ptr_);
+				
+				add_ = future.add_;
+				remove_ = future.remove_;
+				isReady_ = false;
+				
+				ptr_ = add_(boost::bind(&Future<T>::activate, this, _1));
+			}
 				
 			~Future(){
 				remove_(ptr_);
@@ -198,10 +229,7 @@ namespace OpenP2P{
 				return isReady_;
 			}
 		
-		private:
-			// Don't allow access to operator=.
-			Future<T>& operator=(const Future<T>& future);
-		
+		private:		
 			void activate(T value){
 				Lock lock(mutex_);
 				value_ = value;

@@ -8,8 +8,6 @@
 #include <boost/utility.hpp>
 
 #include <OpenP2P/Future.hpp>
-#include <OpenP2P/IOService.hpp>
-#include <OpenP2P/Mutex.hpp>
 
 #include <OpenP2P/TCP/Endpoint.hpp>
 
@@ -26,8 +24,6 @@ namespace OpenP2P{
 				void cancel();
 
 			private:
-				Mutex mutex_;
-				IOService service_;
 				boost::asio::ip::tcp::resolver internalResolver_;
 
 		};

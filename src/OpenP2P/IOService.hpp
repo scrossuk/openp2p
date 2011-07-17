@@ -2,6 +2,7 @@
 #define OPENP2P_IOSERVICE_HPP
 
 #include <boost/asio.hpp>
+#include <boost/function.hpp>
 #include <boost/scoped_ptr.hpp>
 
 #include <OpenP2P/Runnable.hpp>
@@ -29,6 +30,8 @@ namespace OpenP2P {
 			//wait = true allows operations using the io_service to be terminated gracefully
 			IOService(bool wait = true);
 			
+			void post(boost::function<void ()> function);
+			
 			operator boost::asio::io_service&();
 			
 		private:
@@ -37,6 +40,8 @@ namespace OpenP2P {
 			Thread thread_;
 			
 	};
+	
+	IOService& GetIOService();
 	
 }
 

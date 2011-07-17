@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/utility.hpp>
 
-#include <OpenP2P/Cancellable.hpp>
+#include <OpenP2P/Future.hpp>
 #include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Mutex.hpp>
 
@@ -14,17 +14,15 @@ namespace OpenP2P{
 
 	namespace TCP{
 
-		class Acceptor: public Cancellable, boost::noncopyable{
+		class Acceptor: boost::noncopyable{
 			public:
 				Acceptor(unsigned short port);
 
-				bool accept(Stream& stream);
+				Future<bool> accept(Stream& stream);
 
 				void cancel();
 
 			private:
-				IOService service_;
-				Mutex mutex_;
 				boost::asio::ip::tcp::acceptor internalAcceptor_;
 
 		};

@@ -63,7 +63,12 @@ int main(){
 	std::cout << "Is promise1 ready: " << (interFuture->isReady() ? "Yes" : "No") << std::endl;
 	std::cout << "Is promise2 ready: " << (future.isReady() ? "Yes" : "No") << std::endl;
 	
-	Future<std::string> copyFuture(*interFuture);
+	Future<std::string> copyFuture;
+	
+	copyFuture = *interFuture;
+	(*interFuture) = copyFuture;
+	
+	std::cout << "Ready: " << (interFuture->isReady() ? "Yes" : "No") << std::endl;
 	
 	std::cout << "3" << std::endl;
 	Future<std::string> joinFuture = Future<std::string>(promiseThread.promise2_).lateJoin(*interFuture).compose<std::string>(joinTransform).lateJoin(future).compose<std::string>(joinTransform);

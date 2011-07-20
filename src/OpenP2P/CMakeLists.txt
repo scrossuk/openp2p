@@ -1,4 +1,4 @@
-add_library(openp2p STATIC BinaryStream.cpp Buffer.cpp BufferBuilder.cpp BufferedStream.cpp BufferIterator.cpp IOService.cpp Signal.cpp StringStream.cpp Thread.cpp Timeout.cpp)
+add_library(openp2p STATIC BinaryStream.cpp Buffer.cpp BufferBuilder.cpp BufferedStream.cpp BufferIterator.cpp IOService.cpp Signal.cpp StringStream.cpp Thread.cpp Notification/Notifier.cpp)
 add_subdirectory(Crypt)
 add_subdirectory(OFTorrent)
 add_subdirectory(RootNetwork)

@@ -21,6 +21,8 @@ namespace OpenP2P{
 
 			void wait();
 			
+			bool timedWait(double secs);
+			
 			void cancel();
 
 		private:

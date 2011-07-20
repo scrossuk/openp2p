@@ -33,6 +33,14 @@ namespace OpenP2P{
 			cond_.wait(lock);
 		}
 	}
+	
+	bool Signal::timedWait(double secs){
+		Lock lock(mutex_);
+		if(!isActivated_){
+			cond_.timedWait(lock, secs);
+		}
+		return isActivated_;
+	}
 
 	void Signal::cancel(){
 		cond_.notifyAll();

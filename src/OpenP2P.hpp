@@ -17,4 +17,3 @@
 #include <OpenP2P/Socket.hpp>
 #include <OpenP2P/Stream.hpp>
 #include <OpenP2P/Thread.hpp>
-#include <OpenP2P/Timeout.hpp>

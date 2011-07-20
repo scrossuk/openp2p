@@ -1,11 +1,11 @@
 #ifndef OPENP2P_BUFFEREDSTREAM_HPP
 #define OPENP2P_BUFFEREDSTREAM_HPP
 
+#include <stdint.h>
+#include <cstddef>
 #include <boost/scoped_array.hpp>
 
 #include <OpenP2P/Future.hpp>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P{
@@ -16,6 +16,7 @@ namespace OpenP2P{
 	 * This class provides a way to read data from a stream without consuming it immediately.
 	 * It can be useful when reading from two streams: since one stream could produce a
 	 * smaller read than the other it is necessary to keep the data from the larger read.
+	 * Note that, as with all streams, instances of this class are NOT thread safe.
 	 */
 	class BufferedStream{
 		public:
@@ -52,7 +53,6 @@ namespace OpenP2P{
 			 * @return A pointer to the data in the stream.
 			 */
 			inline const uint8_t * get(){
-				Lock lock(mutex_);
 				return data_.get() + readPos_;
 			}
 
@@ -62,8 +62,13 @@ namespace OpenP2P{
 			 * @return The data size.
 			 */
 			inline std::size_t size(){
-				Lock lock(mutex_);
-				return size_();
+				// Update the total size.
+				if(future_.isReady() && activeRead_){
+					size_ = future_.get();
+					activeRead_ = false;
+				}
+				
+				return size_;
 			}
 
 			/**
@@ -71,8 +76,7 @@ namespace OpenP2P{
 			 *
 			 * @return The buffer size.
 			 */
-			inline std::size_t bufferSize(){
-				Lock lock(mutex_);
+			inline std::size_t bufferSize() const{
 				return bufferSize_;
 			}
 
@@ -85,18 +89,13 @@ namespace OpenP2P{
 			 */
 			void consume(std::size_t consumeSize);
 
-		private:
-			inline std::size_t size_() const{
-				return writePos_ - readPos_;
-			}
-			
-			std::size_t onRead(std::size_t requestedSize, std::size_t readSize);
-		
-			Mutex mutex_;
+		private:		
 			IStream& stream_;
 			boost::scoped_array<uint8_t> data_;
 			const std::size_t bufferSize_;
-			std::size_t readPos_, writePos_;
+			std::size_t readPos_, size_;
+			Future<std::size_t> future_;
+			bool activeRead_;
 
 	};
 

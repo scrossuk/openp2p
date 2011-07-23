@@ -1,7 +1,9 @@
 #include <stdint.h>
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <iostream>
 
 #include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/BufferBuilder.hpp>
@@ -10,31 +12,30 @@
 
 namespace OpenP2P {
 
-	bool BinaryIStream::read(uint8_t * data, std::size_t length) {
-		std::size_t p = 0;
-		while (p < length) {
-			std::size_t readSize = stream_.readSome(data + p, length - p).get();
-			if (readSize == 0) {
-				//Zero out data if the read fails
-				memset(data, 0, length);
-				isValid_ = false;
-				return false;
-			}
-			else {
-				p += readSize;
-			}
+	bool BinaryIStream::read(uint8_t * data, std::size_t size) {
+		isValid_ = (tryRead(data, size) == size);
+		if(!isValid_){
+			memset((void *) data, 0, size);
 		}
-		isValid_ = true;
-		return true;
+		return isValid_;
 	}
 
-	std::size_t BinaryIStream::tryRead(uint8_t * data, std::size_t length) {
+	std::size_t BinaryIStream::tryRead(uint8_t * data, std::size_t size) {
 		std::size_t p = 0;
-		while (p < length) {
-			std::size_t readSize = stream_.readSome(data + p, length - p).get();
+		
+		while (p < size) {
+			Block block = bufferedStream_.readSome().get();
+			std::size_t readSize = std::min(block.size(), size - p);
+			
+			if(readSize == 0){
+				return p;
+			}
+			
+			memcpy((void *) (data + p), (const void *) block.get(), readSize);
 			p += readSize;
-			if (readSize == 0) break;
+			bufferedStream_.consume(readSize);
 		}
+		
 		return p;
 	}
 
@@ -42,29 +43,28 @@ namespace OpenP2P {
 		//
 	}
 
-	bool BinaryOStream::write(const uint8_t * data, std::size_t length) {
-		std::size_t p = 0;
-		while (p < length) {
-			std::size_t writeSize = stream_.writeSome(data + p, length - p).get();
-			if (writeSize == 0) {
-				isValid_ = false;
-				return false;
-			}
-			else {
-				p += writeSize;
-			}
-		}
-		isValid_ = true;
-		return true;
+	bool BinaryOStream::write(const uint8_t * data, std::size_t size) {
+		return isValid_ = (tryWrite(data, size) == size);
 	}
 
 
-	std::size_t BinaryOStream::tryWrite(const uint8_t * data, std::size_t length) {
+	std::size_t BinaryOStream::tryWrite(const uint8_t * data, std::size_t size) {
 		std::size_t p = 0;
-		while (p < length) {
-			std::size_t writeSize = stream_.writeSome(data + p, length - p).get();
+		Block block;
+		while (p < size) {
+			if(block.size() == 0){
+				std::size_t blockSize = std::min(BlockSize, size - p);
+				block = Block(data + p, blockSize);
+			}
+			
+			std::size_t writeSize = stream_.writeSome(block).get();
+			
+			if(writeSize == 0){
+				return p;
+			}
+			
 			p += writeSize;
-			if (writeSize == 0) break;
+			block = block.substr(writeSize);
 		}
 		return p;
 	}
@@ -161,9 +161,10 @@ namespace OpenP2P {
 	}
 
 	BinaryIStream& operator>>(BinaryIStream& stream, OStream& outStream){
-		BufferedStream bufferedStream(stream.getIStream());
-		while(bufferedStream.readSome().get() != 0){
-			std::size_t size = outStream.writeSome(bufferedStream.get(), bufferedStream.size()).get();
+		BufferedStream& bufferedStream = stream.getBufferedStream();
+		while(true){
+			Block block = bufferedStream.readSome().get();
+			std::size_t size = outStream.writeSome(block).get();
 			if(size == 0) break;
 			bufferedStream.consume(size);
 		}

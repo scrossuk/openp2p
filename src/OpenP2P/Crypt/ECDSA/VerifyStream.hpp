@@ -3,6 +3,8 @@
 
 #include <cstddef>
 
+#include <boost/utility.hpp>
+
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferIterator.hpp>
 #include <OpenP2P/Stream.hpp>
@@ -15,7 +17,7 @@ namespace OpenP2P{
 
 		namespace ECDSA{
 
-			class VerifyStream: public OpenP2P::OStream{
+			class VerifyStream: boost::noncopyable, public OpenP2P::OStream{
 				public:
 					inline VerifyStream(const PublicKey& publicKey, const Buffer& signature)
 						: verifier_(publicKey), isValid_(false){
@@ -25,10 +27,9 @@ namespace OpenP2P{
 								new CryptoPP::ArraySink((byte *) &isValid_, sizeof(isValid_))
 							);
 						BufferIterator iterator(signature);
-						byte data[1024];
-						std::size_t size;
-						while(size = iterator.readSome((uint8_t *) data, 1024).get()){
-							filter_->Put(data, size);
+						Block block;
+						while((block = iterator.readSome().get()).size() != 0){
+							filter_->Put(block.get(), block.size());
 						}
 					}
 
@@ -36,8 +37,8 @@ namespace OpenP2P{
 						delete filter_;
 					}
 
-					inline Future<std::size_t> writeSome(const uint8_t * data, std::size_t size){
-						return filter_->Put((byte *) data, size);
+					inline Future<std::size_t> writeSome(const Block& block){
+						return filter_->Put((byte *) block.get(), block.size());
 					}
 
 					inline bool isValid(){
@@ -50,7 +51,6 @@ namespace OpenP2P{
 					CryptoPP::Filter * filter_;
 					bool isValid_;
 					
-
 			};
 
 		}

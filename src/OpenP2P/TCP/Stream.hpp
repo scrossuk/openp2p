@@ -26,9 +26,9 @@ namespace OpenP2P{
 
 				boost::asio::ip::tcp::socket& getInternal();
 
-				Future<std::size_t> writeSome(const uint8_t *, std::size_t);
+				Future<std::size_t> writeSome(const Block& block);
 
-				Future<std::size_t> readSome(uint8_t *, std::size_t);
+				Future<Block> readSome();
 				
 				void cancel();
 

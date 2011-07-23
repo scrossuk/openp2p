@@ -4,6 +4,8 @@
 #include <cstddef>
 #include <string>
 
+#include <boost/utility.hpp>
+
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/ecp.h>
 #include <cryptopp/filters.h>
@@ -24,7 +26,7 @@ namespace OpenP2P{
 
 		namespace ECDSA{
 
-			class SignStream: public OpenP2P::OStream{
+			class SignStream: boost::noncopyable, public OpenP2P::OStream{
 				public:
 					inline SignStream(RandomPool& pool, const PrivateKey& privateKey)
 						: signer_(privateKey){
@@ -39,8 +41,8 @@ namespace OpenP2P{
 						delete filter_;
 					}
 
-					inline Future<std::size_t> writeSome(const uint8_t * data, std::size_t size){
-						return filter_->Put((byte *) data, size);
+					inline Future<std::size_t> writeSome(const Block& block){
+						return filter_->Put((byte *) block.get(), block.size());
 					}
 
 					inline Buffer signature(){
@@ -62,7 +64,6 @@ namespace OpenP2P{
 					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer_;
 					CryptoPP::Filter * filter_;
 					
-
 			};
 
 		}

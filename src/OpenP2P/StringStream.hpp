@@ -13,7 +13,7 @@ namespace OpenP2P{
 		public:
 			StringIStream(const std::string&);
 
-			Future<std::size_t> readSome(uint8_t *, std::size_t);
+			Future<Block> readSome();
 
 		private:
 			const std::string& string_;

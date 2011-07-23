@@ -26,11 +26,17 @@ namespace OpenP2P{
 			
 			//void multiConnectCallback(Promise<bool> connectResult, std::vector<Endpoint> 
 
-			void readCallback(Promise<std::size_t> readResult, const boost::system::error_code& ec, std::size_t len){
-				readResult.setValue(ec ? 0 : len);
+			void readCallback(Promise<Block> readResult, MemBlock * memBlock, const boost::system::error_code& ec, std::size_t len){
+				if(ec){
+					delete memBlock;
+					readResult.setValue(Block());
+				}else{
+					memBlock->expand(0, len);
+					readResult.setValue(Block(memBlock, 0, len));
+				}
 			}
 			
-			void writeCallback(Promise<std::size_t> writeResult, const boost::system::error_code& ec, std::size_t len){
+			void writeCallback(Promise<std::size_t> writeResult, Block block, const boost::system::error_code& ec, std::size_t len){
 				writeResult.setValue(ec ? 0 : len);
 			}
 
@@ -60,20 +66,22 @@ namespace OpenP2P{
 			return internalSocket_;
 		}
 
-		Future<std::size_t> Stream::writeSome(const uint8_t * data, std::size_t length){
+		Future<std::size_t> Stream::writeSome(const Block& block){
 			Promise<std::size_t> writeResult;
 
-			internalSocket_.async_write_some(boost::asio::buffer(data, length),
-						boost::bind(writeCallback, writeResult, _1, _2));
+			internalSocket_.async_write_some(boost::asio::buffer(block.get(), block.size()),
+						boost::bind(writeCallback, writeResult, block, _1, _2));
 
 			return writeResult;
 		}
 
-		Future<std::size_t> Stream::readSome(uint8_t * data, std::size_t length){
-			Promise<std::size_t> readResult;
+		Future<Block> Stream::readSome(){
+			Promise<Block> readResult;
+			
+			MemBlock * memBlock = new MemBlock();
 
-			internalSocket_.async_read_some(boost::asio::buffer(data, length),
-						boost::bind(readCallback, readResult, _1, _2));
+			internalSocket_.async_read_some(boost::asio::buffer(memBlock->get(), BlockSize),
+						boost::bind(readCallback, readResult, memBlock, _1, _2));
 
 			return readResult;
 		}

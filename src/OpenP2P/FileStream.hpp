@@ -29,9 +29,12 @@ namespace OpenP2P{
 				return handle_ != 0;
 			}
 
-			inline Future<std::size_t> readSome(uint8_t * data, std::size_t requestedSize){
-				if(!isOpen()) return 0;
-				return fread((void *) data, 1, requestedSize, handle_);
+			inline Future<Block> readSome(){
+				if(!isOpen()) return Block();
+				MemBlock * memBlock = new MemBlock();
+				std::size_t readSize = fread((void *) memBlock->get(), 1, BlockSize, handle_);
+				memBlock->expand(0, readSize);
+				return Block(memBlock);
 			}
 
 			inline void close(){
@@ -68,9 +71,9 @@ namespace OpenP2P{
 				return handle_ != 0;
 			}
 
-			inline Future<std::size_t> writeSome(const uint8_t * data, std::size_t requestedSize){
+			inline Future<std::size_t> writeSome(const Block& block){
 				if(!isOpen()) return 0;
-				return fwrite((const void *) data, 1, requestedSize, handle_);
+				return fwrite((const void *) block.get(), 1, block.size(), handle_);
 			}
 
 			inline void cancel(){ }

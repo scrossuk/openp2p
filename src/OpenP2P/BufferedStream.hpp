@@ -1,16 +1,13 @@
 #ifndef OPENP2P_BUFFEREDSTREAM_HPP
 #define OPENP2P_BUFFEREDSTREAM_HPP
 
-#include <stdint.h>
 #include <cstddef>
-#include <boost/scoped_array.hpp>
 
+#include <OpenP2P/Block.hpp>
 #include <OpenP2P/Future.hpp>
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P{
-
-	const std::size_t DefaultBufferSize = 4096;
 
 	/**
 	 * This class provides a way to read data from a stream without consuming it immediately.
@@ -24,66 +21,19 @@ namespace OpenP2P{
 			 * Constructs a buffered stream on top of an input stream.
 			 *
 			 * @param stream The stream from which data is to be read.
-			 * @param bufferSize An optional parameter giving the size of the underlying buffer.
 			 */
-			BufferedStream(IStream& stream, std::size_t bufferSize = DefaultBufferSize);
+			BufferedStream(IStream& stream);
 
 			/**
-			 * Reads as much data as possible into the buffer.
+			 * Read the block in the stream buffer.
 			 *
-			 * @return The actual amount of data that was read. If this returns zero,
-			 *         there is no data remaining in the underlying stream.
+			 * @return A future that resolves to the buffered block.
 			 */
-			inline Future<std::size_t> readSome(){
-				return readSome(bufferSize_);
-			}
-
-			/**
-			 * Reads some data from the stream into the buffer.
-			 *
-			 * @param requestedSize The amount of data to be read.
-			 * @return The actual amount of data that was read. If this returns zero,
-			 *         there is no data remaining in the underlying stream.
-			 */
-			Future<std::size_t> readSome(std::size_t requestedSize);
-			
-			/**
-			 * Gets a pointer to data that has been read from the stream.
-			 *
-			 * @return A pointer to the data in the stream.
-			 */
-			inline const uint8_t * get(){
-				return data_.get() + readPos_;
-			}
-
-			/**
-			 * Gets the amount of data that has been read, but has not yet been consumed.
-			 *
-			 * @return The data size.
-			 */
-			inline std::size_t size(){
-				// Update the total size.
-				if(future_.isReady() && activeRead_){
-					size_ = future_.get();
-					activeRead_ = false;
-				}
-				
-				return size_;
-			}
-
-			/**
-			 * Gets the size of the buffer underlying the stream.
-			 *
-			 * @return The buffer size.
-			 */
-			inline std::size_t bufferSize() const{
-				return bufferSize_;
-			}
+			Future<Block> readSome();
 
 			/**
 			 * Consume a certain amount of data that has been read, indicating it is
-			 * no longer needed. Note that calling this invalidates the return value
-			 * from any previous calls to getData().
+			 * no longer needed.
 			 *
 			 * @param consumeSize The amount of data to be consumed.
 			 */
@@ -91,11 +41,9 @@ namespace OpenP2P{
 
 		private:		
 			IStream& stream_;
-			boost::scoped_array<uint8_t> data_;
-			const std::size_t bufferSize_;
-			std::size_t readPos_, size_;
-			Future<std::size_t> future_;
+			Block block_;
 			bool activeRead_;
+			Future<Block> future_;
 
 	};
 

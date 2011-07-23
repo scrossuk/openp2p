@@ -16,7 +16,7 @@ namespace OpenP2P{
 			public:
 				BlockOStream(OStreamGenerator&, BlockSize);
 
-				Future<std::size_t> writeSome(const uint8_t *, std::size_t);
+				Future<std::size_t> writeSome(const Block& block);
 
 			private:
 				OStreamGenerator& generator_;

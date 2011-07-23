@@ -21,12 +21,12 @@ class OutputStream: public OStream{
 			return size_;
 		}
 
-		Future<std::size_t> writeSome(const uint8_t * data, std::size_t size){
-			std::cout << "Write of size " << size << ": ";
-			output(data, size);
+		Future<std::size_t> writeSome(const Block& block){
+			std::cout << "Write of size " << block.size() << ": ";
+			output(block.get(), block.size());
 			std::cout << std::endl;
-			size_ += size;
-			return size;
+			size_ += block.size();
+			return block.size();
 		}
 
 		void cancel(){ }

@@ -3,7 +3,6 @@
 
 #include <OpenP2P/Block.hpp>
 #include <OpenP2P/BufferedStream.hpp>
-#include <OpenP2P/Future.hpp>
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P{
@@ -16,13 +15,14 @@ namespace OpenP2P{
 		class XORIStream: public IStream{
 			public:
 				XORIStream(IStream& source0, IStream& source1);
+				
+				EventHandle readEvent();
 
-				Future<Block> readSome();
+				std::size_t readSome(uint8_t * data, std::size_t dataSize);
 
 			private:
-				BufferedStream buffered0_;
-				BufferedStream buffered1_;
-				Future<Block> future_;
+				BufferedStream bufferedStream_;
+				IStream& stream_;
 
 		};
 

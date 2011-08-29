@@ -66,6 +66,22 @@ namespace OpenP2P{
 				layer_->removeHandler(this);
 			}
 			
+			template <typename Out>
+			Future<Out> compose(boost::function<Out (T)> transform){
+				return Future<Out>(Notification::LayerPtr<Out>(new Notification::ComposeLayer<T, Out>(layer_, transform)));
+			}
+			
+			template <typename S>
+			Future< std::pair<T, S> > lateJoin(const Future<S>& future){
+				typedef std::pair<T, S> OutType;
+				return Future<OutType>(Notification::LayerPtr<OutType>(new Notification::LateJoinLayer<T, S>(layer_, future.getLayer())));
+			}
+			
+			template <typename A, typename B>
+			static Future< std::pair<A, B> > LateJoin(const Future<A>& future0, const Future<B>& future1){
+				return future0.lateJoin(future1);
+			}
+			
 			Notification::LayerPtr<T> getLayer() const{
 				return layer_;
 			}
@@ -77,17 +93,6 @@ namespace OpenP2P{
 			T get(){
 				signal_.wait();
 				return layer_->getValue();
-			}
-			
-			template <typename Out>
-			Future<Out> compose(boost::function<Out (T)> transform){
-				return Future<Out>(Notification::LayerPtr<Out>(new Notification::ComposeLayer<T, Out>(layer_, transform)));
-			}
-			
-			template <typename S>
-			Future< std::pair<T, S> > lateJoin(const Future<S>& future){
-				typedef std::pair<T, S> OutType;
-				return Future<OutType>(Notification::LayerPtr<OutType>(new Notification::LateJoinLayer<T, S>(layer_, future.getLayer())));
 			}
 			
 			void wait(){

@@ -13,8 +13,10 @@ namespace OpenP2P{
 	class BufferBuilder: public OStream{
 		public:
 			BufferBuilder(Buffer&);
+			
+			EventHandle writeEvent();
 
-			Future<std::size_t> writeSome(const Block& block);
+			std::size_t writeSome(const uint8_t * data, std::size_t dataSize);
 
 		private:
 			Buffer& buffer_;

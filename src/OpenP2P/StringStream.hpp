@@ -12,8 +12,10 @@ namespace OpenP2P{
 	class StringIStream: public IStream{
 		public:
 			StringIStream(const std::string&);
+			
+			EventHandle readEvent();
 
-			Future<Block> readSome();
+			std::size_t readSome(uint8_t * data, std::size_t dataSize);
 
 		private:
 			const std::string& string_;

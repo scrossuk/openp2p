@@ -3,9 +3,9 @@
 
 #include <boost/shared_ptr.hpp>
 
+#include <OpenP2P/Notification/AssignLayer.hpp>
 #include <OpenP2P/Notification/LayerPtr.hpp>
 #include <OpenP2P/Notification/LayerWrapper.hpp>
-#include <OpenP2P/Notification/PromiseLayer.hpp>
 
 namespace OpenP2P{
 	
@@ -13,10 +13,13 @@ namespace OpenP2P{
 	template <typename T>
 	class Promise: public Notification::LayerWrapper<T>{
 		public:
-			Promise() : layer_(new Notification::PromiseLayer<T>()){ }
+			Promise() : layer_(new Notification::AssignLayer<T>()){ }
 		
 			void setValue(const T& value){
-				layer_->setValue(value);
+				// Promise value cannot be set twice.
+				if(!layer_->hasValue()){
+					layer_->setValue(value);
+				}
 			}
 			
 			Notification::LayerPtr<T> getLayer() const{
@@ -24,7 +27,7 @@ namespace OpenP2P{
 			}
 			
 		private:
-			boost::shared_ptr< Notification::PromiseLayer<T> > layer_;
+			boost::shared_ptr< Notification::AssignLayer<T> > layer_;
 			
 	};
 

@@ -40,9 +40,13 @@ namespace OpenP2P{
 					inline ~SignStream(){
 						delete filter_;
 					}
+					
+					inline EventHandle writeEvent(){
+						return EventHandle::True;
+					}
 
-					inline Future<std::size_t> writeSome(const Block& block){
-						return filter_->Put((byte *) block.get(), block.size());
+					inline std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
+						return filter_->Put((byte *) data, dataSize);
 					}
 
 					inline Buffer signature(){

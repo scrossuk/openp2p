@@ -27,18 +27,24 @@ namespace OpenP2P{
 								new CryptoPP::ArraySink((byte *) &isValid_, sizeof(isValid_))
 							);
 						BufferIterator iterator(signature);
-						Block block;
-						while((block = iterator.readSome().get()).size() != 0){
-							filter_->Put(block.get(), block.size());
+						const std::size_t dataSize = 1024;
+						uint8_t data[dataSize];
+						std::size_t readSize;
+						while((readSize = iterator.readSome(data, dataSize)) != 0){
+							filter_->Put(data, readSize);
 						}
 					}
 
 					inline ~VerifyStream(){
 						delete filter_;
 					}
+					
+					inline EventHandle writeEvent(){
+						return EventHandle::True;
+					}
 
-					inline Future<std::size_t> writeSome(const Block& block){
-						return filter_->Put((byte *) block.get(), block.size());
+					inline std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
+						return filter_->Put((byte *) data, dataSize);
 					}
 
 					inline bool isValid(){

@@ -22,55 +22,34 @@ namespace OpenP2P {
 
 	std::size_t BinaryIStream::tryRead(uint8_t * data, std::size_t size) {
 		std::size_t p = 0;
-		
 		while (p < size) {
-			Block block = bufferedStream_.readSome().get();
-			std::size_t readSize = std::min(block.size(), size - p);
+			const std::size_t readSize = stream_.readSome(data + p, size - p);
 			
 			if(readSize == 0){
 				return p;
 			}
 			
-			memcpy((void *) (data + p), (const void *) block.get(), readSize);
 			p += readSize;
-			bufferedStream_.consume(readSize);
 		}
-		
 		return p;
-	}
-
-	void BinaryIStream::cancel(){
-		//
 	}
 
 	bool BinaryOStream::write(const uint8_t * data, std::size_t size) {
 		return isValid_ = (tryWrite(data, size) == size);
 	}
 
-
 	std::size_t BinaryOStream::tryWrite(const uint8_t * data, std::size_t size) {
 		std::size_t p = 0;
-		Block block;
 		while (p < size) {
-			if(block.size() == 0){
-				std::size_t blockSize = std::min(BlockSize, size - p);
-				block = Block(data + p, blockSize);
-			}
-			
-			std::size_t writeSize = stream_.writeSome(block).get();
+			const std::size_t writeSize = stream_.writeSome(data + p, size - p);
 			
 			if(writeSize == 0){
 				return p;
 			}
 			
 			p += writeSize;
-			block = block.substr(writeSize);
 		}
 		return p;
-	}
-
-	void BinaryOStream::cancel(){
-		//
 	}
 
 	BinaryIStream& operator>>(BinaryIStream& stream, bool& b) {
@@ -161,12 +140,17 @@ namespace OpenP2P {
 	}
 
 	BinaryIStream& operator>>(BinaryIStream& stream, OStream& outStream){
-		BufferedStream& bufferedStream = stream.getBufferedStream();
+		BufferedStream bufferedStream(stream.getIStream());
 		while(true){
-			Block block = bufferedStream.readSome().get();
-			std::size_t size = outStream.writeSome(block).get();
-			if(size == 0) break;
-			bufferedStream.consume(size);
+			bufferedStream.read();
+			
+			const std::size_t writeSize = outStream.writeSome(bufferedStream.get(), bufferedStream.size());
+			
+			if(writeSize == 0){
+				break;
+			}
+			
+			bufferedStream.consume(writeSize);
 		}
 
 		return stream;

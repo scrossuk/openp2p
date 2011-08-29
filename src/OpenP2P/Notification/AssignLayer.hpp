@@ -1,5 +1,5 @@
-#ifndef OPENP2P_NOTIFICATION_PROMISELAYER_HPP
-#define OPENP2P_NOTIFICATION_PROMISELAYER_HPP
+#ifndef OPENP2P_NOTIFICATION_ASSIGNLAYER_HPP
+#define OPENP2P_NOTIFICATION_ASSIGNLAYER_HPP
 
 #include <boost/utility.hpp>
 
@@ -12,14 +12,21 @@ namespace OpenP2P{
 	namespace Notification{
 
 		template <typename T>
-		class PromiseLayer: public Notification::Layer<T>, public boost::noncopyable{
+		class AssignLayer: public Notification::Layer<T>, public boost::noncopyable{
 			public:
+				AssignLayer()
+					: value_(){ }
+				
+				AssignLayer(const T& initialValue)
+					: value_(initialValue){ }
+				
+				bool hasValue(){
+					return notifier_.isComplete();
+				}
+				
 				void setValue(const T& value){
-					// Promise value cannot be set twice.
-					if(!notifier_.isComplete()){
-						value_ = value;
-						notifier_.notify();
-					}
+					value_ = value;
+					notifier_.notify();
 				}
 			
 				T getValue(){

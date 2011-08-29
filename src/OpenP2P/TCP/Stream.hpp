@@ -25,13 +25,15 @@ namespace OpenP2P{
 				bool connect(const std::vector<Endpoint>& endpointList);
 
 				boost::asio::ip::tcp::socket& getInternal();
-
-				Future<std::size_t> writeSome(const Block& block);
-
-				Future<Block> readSome();
 				
-				void cancel();
+				EventHandle readEvent();
+				
+				std::size_t readSome(uint8_t * data, std::size_t dataSize);
+				
+				EventHandle writeEvent();
 
+				std::size_t writeSome(const uint8_t * data, std::size_t dataSize);
+				
 				void close();
 
 			private:

@@ -20,16 +20,18 @@ class OutputStream: public OStream{
 		std::size_t size(){
 			return size_;
 		}
-
-		Future<std::size_t> writeSome(const Block& block){
-			std::cout << "Write of size " << block.size() << ": ";
-			output(block.get(), block.size());
-			std::cout << std::endl;
-			size_ += block.size();
-			return block.size();
+		
+		EventHandle writeEvent(){
+			return EventHandle::True;
 		}
 
-		void cancel(){ }
+		std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
+			std::cout << "Write of size " << dataSize << ": ";
+			output(data, dataSize);
+			std::cout << std::endl;
+			size_ += dataSize;
+			return dataSize;
+		}
 
 	private:
 		std::size_t size_;

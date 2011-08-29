@@ -9,19 +9,26 @@ namespace OpenP2P{
 
 	class NullIStream: public IStream{
 		public:
-			inline Future<Block> readSome(){
-				// Return a block of zeroes.
-				MemBlock * memBlock = new MemBlock(BlockSize);
-				memset((void *) memBlock->get(), 0, BlockSize);
-				return Block(memBlock);
+			inline EventHandle readEvent(){
+				return EventHandle::True;
+			}
+			
+			inline std::size_t readSome(uint8_t * data, std::size_t dataSize){
+				// Return zeroes.
+				memset(data, 0, dataSize);
+				return dataSize;
 			}
 
 	};
 
 	class NullOStream: public OStream{
 		public:
-			inline Future<std::size_t> writeSome(const Block& block){
-				return block.size();
+			inline EventHandle writeEvent(){
+				return EventHandle::True;
+			}
+			
+			inline std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
+				return dataSize;
 			}
 
 	};

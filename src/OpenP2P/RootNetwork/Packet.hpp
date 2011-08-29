@@ -21,9 +21,9 @@ namespace OpenP2P{
 		};
 
 		struct PacketHeader{
-			uint8_t version; //4 bits
+			Version version; //4 bits
 			bool isRequest; //1 bit
-			uint8_t type; //3 bits
+			PacketType type; //3 bits
 			uint8_t packetData; //8 bits
 			uint16_t rpcNumber; //16 bits
 			Id destinationId; //256 bits

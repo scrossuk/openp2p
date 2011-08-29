@@ -5,15 +5,13 @@
 #include <boost/array.hpp>
 #include <boost/optional.hpp>
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/BufferedStream.hpp>
-#include <OpenP2P/Cancellable.hpp>
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P{
 
-	class BinaryIStream: public Cancellable{
+	class BinaryIStream{
 		public:
-			inline BinaryIStream(IStream& stream) : bufferedStream_(stream), isValid_(true){ }
+			inline BinaryIStream(IStream& stream) : stream_(stream), isValid_(true){ }
 
 			inline operator bool(){
 				return isValid_;
@@ -30,15 +28,13 @@ namespace OpenP2P{
 			bool read(uint8_t *, std::size_t);
 
 			std::size_t tryRead(uint8_t *, std::size_t);
-
-			void cancel();
-
-			inline BufferedStream& getBufferedStream(){
-				return bufferedStream_;
+			
+			inline IStream& getIStream(){
+				return stream_;
 			}
 
 		private:
-			BufferedStream bufferedStream_;
+			IStream& stream_;
 			bool isValid_;
 
 	};
@@ -63,8 +59,6 @@ namespace OpenP2P{
 
 			std::size_t tryWrite(const uint8_t *, std::size_t);
 
-			void cancel();
-
 			inline OStream& getOStream(){
 				return stream_;
 			}
@@ -81,11 +75,6 @@ namespace OpenP2P{
 
 			inline operator bool(){
 				return BinaryIStream::operator bool() && BinaryOStream::operator bool();
-			}
-
-			void cancel(){
-				BinaryIStream::cancel();
-				BinaryOStream::cancel();
 			}
 
 	};

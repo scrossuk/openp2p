@@ -23,22 +23,6 @@ namespace OpenP2P{
 			void connectCallback(Promise<bool> connectResult, const boost::system::error_code& ec){
 				connectResult.setValue(!bool(ec));
 			}
-			
-			//void multiConnectCallback(Promise<bool> connectResult, std::vector<Endpoint> 
-
-			void readCallback(Promise<Block> readResult, MemBlock * memBlock, const boost::system::error_code& ec, std::size_t len){
-				if(ec){
-					delete memBlock;
-					readResult.setValue(Block());
-				}else{
-					memBlock->expand(0, len);
-					readResult.setValue(Block(memBlock, 0, len));
-				}
-			}
-			
-			void writeCallback(Promise<std::size_t> writeResult, Block block, const boost::system::error_code& ec, std::size_t len){
-				writeResult.setValue(ec ? 0 : len);
-			}
 
 		}
 
@@ -65,29 +49,24 @@ namespace OpenP2P{
 		boost::asio::ip::tcp::socket& Stream::getInternal(){
 			return internalSocket_;
 		}
-
-		Future<std::size_t> Stream::writeSome(const Block& block){
-			Promise<std::size_t> writeResult;
-
-			internalSocket_.async_write_some(boost::asio::buffer(block.get(), block.size()),
-						boost::bind(writeCallback, writeResult, block, _1, _2));
-
-			return writeResult;
-		}
-
-		Future<Block> Stream::readSome(){
-			Promise<Block> readResult;
-			
-			MemBlock * memBlock = new MemBlock();
-
-			internalSocket_.async_read_some(boost::asio::buffer(memBlock->get(), BlockSize),
-						boost::bind(readCallback, readResult, memBlock, _1, _2));
-
-			return readResult;
+		
+		EventHandle Stream::readEvent(){
+			// TODO: return an event handle that is only active when data is available.
+			return EventHandle::True;
 		}
 		
-		void Stream::cancel(){
-			internalSocket_.cancel();
+		std::size_t Stream::readSome(uint8_t * data, std::size_t dataSize){
+			boost::system::error_code ec;
+			return internalSocket_.read_some(boost::asio::buffer(data, dataSize), ec);
+		}
+		
+		EventHandle Stream::writeEvent(){
+			return EventHandle::True;
+		}
+		
+		std::size_t Stream::writeSome(const uint8_t * data, std::size_t dataSize){
+			boost::system::error_code ec;
+			return internalSocket_.write_some(boost::asio::buffer(data, dataSize), ec);
 		}
 
 		void Stream::close(){

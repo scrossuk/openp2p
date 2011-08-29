@@ -29,17 +29,21 @@ namespace OpenP2P {
 		position_ = position;
 		return true;
 	}
+	
+	EventHandle BufferIterator::readEvent(){
+		return EventHandle::True;
+	}
 
-	Future<Block> BufferIterator::readSome() {
-		std::size_t maxReadSize = buffer_.size() - position_;
-		std::size_t readSize = std::min(BlockSize, buffer_.size() - position_);
+	std::size_t BufferIterator::readSome(uint8_t * data, std::size_t dataSize){
+		const std::size_t readSize = std::min(dataSize, buffer_.size() - position_);
 
-		MemBlock * memBlock = new MemBlock(readSize);
-		for(std::size_t i = 0; i < readSize; i++, position_++){
-			(*memBlock)[i] = buffer_[position_];
+		for(std::size_t i = 0; i < readSize; i++){
+			data[i] = buffer_[position_ + i];
 		}
+		
+		position_ += readSize;
 
-		return Block(memBlock);
+		return dataSize;
 	}
 
 }

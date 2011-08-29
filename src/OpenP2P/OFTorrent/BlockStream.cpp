@@ -11,9 +11,13 @@ namespace OpenP2P{
 			: generator_(generator), blockPos_(0), blockSize_(size){
 			stream_ = &(generator_.getOStream());
 		}
+		
+		EventHandle BlockOStream::writeEvent(){
+			return stream_->writeEvent();
+		}
 
-		Future<std::size_t> BlockOStream::writeSome(const Block& block){
-			std::size_t writeSize = (stream_->writeSome(block.substr(0, blockSize_ - blockPos_))).get();
+		std::size_t BlockOStream::writeSome(const uint8_t * data, std::size_t dataSize){
+			const std::size_t writeSize = stream_->writeSome(data, std::min(dataSize, blockSize_ - blockPos_));
 			blockPos_ += writeSize;
 			if(blockPos_ == blockSize_){
 				stream_ = &(generator_.getOStream());

@@ -1,22 +1,26 @@
 #ifndef OPENP2P_STREAM_HPP
 #define OPENP2P_STREAM_HPP
 
+#include <stdint.h>
 #include <cstddef>
 
-#include <OpenP2P/Block.hpp>
-#include <OpenP2P/Future.hpp>
+#include <OpenP2P/EventHandle.hpp>
 
 namespace OpenP2P{
 
 	class IStream{
 		public:
-			virtual Future<Block> readSome() = 0;
+			virtual EventHandle readEvent() = 0;
+			
+			virtual std::size_t readSome(uint8_t * data, std::size_t dataSize) = 0;
 
 	};
 
 	class OStream{
 		public:
-			virtual Future<std::size_t> writeSome(const Block& block) = 0;
+			virtual EventHandle writeEvent() = 0;
+		
+			virtual std::size_t writeSome(const uint8_t * data, std::size_t dataSize) = 0;
 
 	};
 

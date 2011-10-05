@@ -1,19 +1,19 @@
 #ifndef OPENP2P_BINARYSTREAM_HPP
 #define OPENP2P_BINARYSTREAM_HPP
 
-#include <vector>
-#include <boost/array.hpp>
-#include <boost/optional.hpp>
-#include <OpenP2P/Buffer.hpp>
+#include <stdint.h>
+#include <cstddef>
+
 #include <OpenP2P/Stream.hpp>
+#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P{
 
 	class BinaryIStream{
 		public:
-			inline BinaryIStream(IStream& stream) : stream_(stream), isValid_(true){ }
+			inline BinaryIStream(InputStream& stream) : stream_(stream), isValid_(true){ }
 
-			inline operator bool(){
+			inline bool isValid(){
 				return isValid_;
 			}
 
@@ -24,26 +24,28 @@ namespace OpenP2P{
 			inline void setInvalid(){
 				isValid_ = false;
 			}
-
-			bool read(uint8_t *, std::size_t);
-
-			std::size_t tryRead(uint8_t *, std::size_t);
 			
-			inline IStream& getIStream(){
-				return stream_;
+			// Read as much as possible - failing to read all the data is NOT an error.
+			std::size_t tryRead(uint8_t * data, std::size_t size, Timeout timeout = Timeout::Infinite());
+
+			// Read as much as possible - failing to read all the data is an error.
+			bool read(uint8_t * data, std::size_t size, Timeout timeout = Timeout::Infinite());
+			
+			inline std::size_t waitForData(Timeout timeout = Timeout::Infinite()){
+				return stream_.waitForData(timeout);
 			}
 
 		private:
-			IStream& stream_;
+			InputStream& stream_;
 			bool isValid_;
 
 	};
 
-	class BinaryOStream: public Cancellable{
+	class BinaryOStream{
 		public:
-			inline BinaryOStream(OStream& stream) : stream_(stream), isValid_(true){ }
+			inline BinaryOStream(OutputStream& stream) : stream_(stream), isValid_(true){ }
 
-			inline operator bool(){
+			inline bool isValid(){
 				return isValid_;
 			}
 
@@ -55,111 +57,83 @@ namespace OpenP2P{
 				isValid_ = false;
 			}
 
-			bool write(const uint8_t *, std::size_t);
-
-			std::size_t tryWrite(const uint8_t *, std::size_t);
-
-			inline OStream& getOStream(){
-				return stream_;
+			// Write as much as possible - failing to write all the data is NOT an error.
+			std::size_t tryWrite(const uint8_t * data, std::size_t size, Timeout timeout = Timeout::Infinite());
+			
+			// Write as much as possible - failing to write all the data is an error.
+			bool write(const uint8_t * data, std::size_t size, Timeout timeout = Timeout::Infinite());
+			
+			inline std::size_t waitForSpace(Timeout timeout = Timeout::Infinite()){
+				return stream_.waitForSpace(timeout);
 			}
 
 		private:
-			OStream& stream_;
+			OutputStream& stream_;
 			bool isValid_;
 
 	};
 
-	class BinaryIOStream: public BinaryIStream, public BinaryOStream{
+	class BinaryIOStream{
 		public:
-			inline BinaryIOStream(IOStream& stream) : BinaryIStream(stream), BinaryOStream(stream){ }
+			inline BinaryIOStream(IOStream& stream)
+				: inputStream_(stream), outputStream_(stream){ }
 
-			inline operator bool(){
-				return BinaryIStream::operator bool() && BinaryOStream::operator bool();
+			inline bool isValid(){
+				return inputStream_.isValid() && outputStream_.isValid();
 			}
+			
+			inline BinaryIStream& getInputStream(){
+				return inputStream_;
+			}
+			
+			inline BinaryOStream& getOutputStream(){
+				return outputStream_;
+			}
+			
+		private:
+			BinaryIStream inputStream_;
+			BinaryOStream outputStream_;
 
 	};
-
-	BinaryIStream& operator>>(BinaryIStream&, bool&);
-	BinaryIStream& operator>>(BinaryIStream&, uint8_t&);
-	BinaryIStream& operator>>(BinaryIStream&, int8_t&);
-	BinaryIStream& operator>>(BinaryIStream&, uint16_t&);
-	BinaryIStream& operator>>(BinaryIStream&, int16_t&);
-	BinaryIStream& operator>>(BinaryIStream&, uint32_t&);
-	BinaryIStream& operator>>(BinaryIStream&, int32_t&);
-	BinaryIStream& operator>>(BinaryIStream&, uint64_t&);
-	BinaryIStream& operator>>(BinaryIStream&, int64_t&);
-	BinaryIStream& operator>>(BinaryIStream&, std::string&);
-	BinaryIStream& operator>>(BinaryIStream&, Buffer&);
-	BinaryIStream& operator>>(BinaryIStream&, OStream&);
-
-	template <typename T, std::size_t N>
-	BinaryIStream& operator>>(BinaryIStream& stream, boost::array<T, N>& array){
-		for(std::size_t i = 0; i < N; i++){
-			stream >> array[i];
-		}
-		return stream;
-	}
-
-	template <typename T>
-	BinaryIStream& operator>>(BinaryIStream& stream, std::vector<T>& array){
-		for(std::size_t i = 0; i < array.size(); i++){
-			stream >> array[i];
-		}
-		return stream;
-	}
-
-	template <typename T>
-	BinaryIStream& operator>>(BinaryIStream& stream, boost::optional<T>& optional){
-		bool b;
-		stream >> b;
-		if(b){
-			T v;
-			stream >> v;
-			optional = boost::make_optional(v);
-		}else{
-			optional = boost::optional<T>();
-		}
-		return stream;
-	}
-
-	BinaryOStream& operator<<(BinaryOStream&, bool);
-	BinaryOStream& operator<<(BinaryOStream&, uint8_t);
-	BinaryOStream& operator<<(BinaryOStream&, int8_t);
-	BinaryOStream& operator<<(BinaryOStream&, uint16_t);
-	BinaryOStream& operator<<(BinaryOStream&, int16_t);
-	BinaryOStream& operator<<(BinaryOStream&, uint32_t);
-	BinaryOStream& operator<<(BinaryOStream&, int32_t);
-	BinaryOStream& operator<<(BinaryOStream&, uint64_t);
-	BinaryOStream& operator<<(BinaryOStream&, int64_t);
-	BinaryOStream& operator<<(BinaryOStream&, const char *);
-	BinaryOStream& operator<<(BinaryOStream&, const std::string&);
-	BinaryOStream& operator<<(BinaryOStream&, const Buffer&);
-
-
-	template <typename T, std::size_t N>
-	BinaryOStream& operator<<(BinaryOStream& stream, const boost::array<T, N>& array){
-		for(std::size_t i = 0; i < N; i++){
-			stream << array[i];
-		}
-		return stream;
-	}
-
-	template <typename T>
-	BinaryOStream& operator<<(BinaryOStream& stream, const std::vector<T>& array){
-		for(std::size_t i = 0; i < array.size(); i++){
-			stream << array[i];
-		}
-		return stream;
-	}
-
-	template <class T>
-	BinaryOStream& operator<<(BinaryOStream& stream, const boost::optional<T>& optional){
-		if(optional){
-			stream << true << *optional;
-		}else{
-			stream << false;
-		}
-		return stream;
+	
+	namespace Binary{
+	
+		bool ReadUint8(BinaryIStream& stream, uint8_t * value, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadInt8(BinaryIStream& stream, int8_t * value, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadUint16(BinaryIStream& stream, uint16_t * value, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadInt16(BinaryIStream& stream, int16_t * value, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadUint32(BinaryIStream& stream, uint32_t * value, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadInt32(BinaryIStream& stream, int32_t * value, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadUint64(BinaryIStream& stream, uint64_t * value, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadInt64(BinaryIStream& stream, int64_t * value, Timeout timeout = Timeout::Infinite());
+		
+		
+		bool WriteUint8(BinaryOStream& stream, uint8_t value, Timeout timeout = Timeout::Infinite());
+		
+		bool WriteInt8(BinaryOStream& stream, int8_t value, Timeout timeout = Timeout::Infinite());
+		
+		bool WriteUint16(BinaryOStream& stream, uint16_t value, Timeout timeout = Timeout::Infinite());
+		
+		bool WriteInt16(BinaryOStream& stream, int16_t value, Timeout timeout = Timeout::Infinite());
+		
+		bool WriteUint32(BinaryOStream& stream, uint32_t value, Timeout timeout = Timeout::Infinite());
+		
+		bool WriteInt32(BinaryOStream& stream, int32_t value, Timeout timeout = Timeout::Infinite());
+		
+		bool WriteUint64(BinaryOStream& stream, uint64_t value, Timeout timeout = Timeout::Infinite());
+		
+		bool WriteInt64(BinaryOStream& stream, int64_t value, Timeout timeout = Timeout::Infinite());
+		
+		
+		std::size_t MoveData(BinaryIStream& source, BinaryOStream& destination, Timeout timeout = Timeout::Infinite());
+	
 	}
 
 }

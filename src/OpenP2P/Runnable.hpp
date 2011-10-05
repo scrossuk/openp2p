@@ -1,13 +1,13 @@
 #ifndef OPENP2P_RUNNABLE_HPP
 #define OPENP2P_RUNNABLE_HPP
 
-#include <OpenP2P/Cancellable.hpp>
-
 namespace OpenP2P{
 
-	class Runnable: public Cancellable{
+	class Runnable{
 		public:
 			virtual void run() = 0;
+			
+			virtual void cancel() = 0;
 
 	};
 

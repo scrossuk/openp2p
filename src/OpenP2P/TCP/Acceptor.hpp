@@ -7,6 +7,7 @@
 #include <OpenP2P/Future.hpp>
 #include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Mutex.hpp>
+#include <OpenP2P/Timeout.hpp>
 
 #include <OpenP2P/TCP/Stream.hpp>
 
@@ -16,11 +17,11 @@ namespace OpenP2P{
 
 		class Acceptor: boost::noncopyable{
 			public:
-				Acceptor(unsigned short port);
+				Acceptor();
+				
+				bool listen(unsigned short port);
 
-				Future<bool> accept(Stream& stream);
-
-				void cancel();
+				bool accept(Stream& stream, Timeout timeout = Timeout::Infinite());
 
 			private:
 				boost::asio::ip::tcp::acceptor internalAcceptor_;

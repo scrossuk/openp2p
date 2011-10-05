@@ -13,24 +13,24 @@ void output(const uint8_t * data, std::size_t size){
 	}
 }
 
-class OutputStream: public OStream{
+class StdOutStream: public OutputStream{
 	public:
-		OutputStream() : size_(0){ }
+		StdOutStream() : size_(0){ }
 
 		std::size_t size(){
 			return size_;
 		}
 		
-		EventHandle writeEvent(){
-			return EventHandle::True;
+		std::size_t waitForSpace(Timeout){
+			return 1000;
 		}
 
-		std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
-			std::cout << "Write of size " << dataSize << ": ";
-			output(data, dataSize);
+		bool write(const uint8_t * data, std::size_t size, Timeout){
+			std::cout << "Write of size " << size << ": ";
+			output(data, size);
 			std::cout << std::endl;
-			size_ += dataSize;
-			return dataSize;
+			size_ += size;
+			return size;
 		}
 
 	private:
@@ -43,12 +43,13 @@ class TextIOStream {
 		TextIOStream(IOStream& stream) : binaryStream_(stream){ }
 	
 		TextIOStream& operator<<(const std::string& string){
-			binaryStream_.write((const uint8_t *) string.c_str(), string.size());
+			binaryStream_.getOutputStream().write((const uint8_t *) string.c_str(), string.size());
 			return *this;
 		}
 		
-		TextIOStream& operator>>(OStream& stream){
-			binaryStream_ >> stream;
+		TextIOStream& operator>>(OutputStream& stream){
+			BinaryOStream outStream(stream);
+			Binary::MoveData(binaryStream_.getInputStream(), outStream);
 			return *this;
 		}
 		
@@ -71,41 +72,40 @@ int main(int argc, char *argv[]){
 	
 	TCP::Resolver resolver;
 
-	std::vector<TCP::Endpoint> endpointList = resolver.resolve(domain, "http").get();
+	boost::optional< std::vector<IP::Endpoint> > endpointList = resolver.resolve(domain, "http", Timeout::Seconds(5.0));
+	
+	if(!endpointList){
+		std::cout << "Failed to resolve" << std::endl;
+		return 0;
+	}
 
 	std::cout << "Connecting..." << std::endl;
 
 	TCP::Stream tcpStream;
 	
-	Future<bool> connect = tcpStream.connect(endpointList);
-	
-	if(!connect.timedWait(5.0)){
-		std::cout << "Timed out" << std::endl;
+	if(!tcpStream.connect(*endpointList, Timeout::Seconds(5.0))){
+		std::cout << "Failed to connect" << std::endl;
 		return 0;
 	}
 
-	if(connect.get()){
-		TextIOStream stream(tcpStream);
+	TextIOStream stream(tcpStream);
 
-		std::cout << "Connected" << std::endl;
+	std::cout << "Connected" << std::endl;
 
-		stream << "GET " << path << " HTTP/1.1\n";
-		stream << "Host: " << domain << "\n";
-		stream << "Connection: close\n\n";
+	stream << "GET " << path << " HTTP/1.1\n";
+	stream << "Host: " << domain << "\n";
+	stream << "Connection: close\n\n";
 
-		std::cout << "HTTP request sent" << std::endl;
+	std::cout << "HTTP request sent" << std::endl;
 
-		std::cout << "Receiving data..." << std::endl << std::endl;
+	std::cout << "Receiving data..." << std::endl << std::endl;
 
-		OutputStream outputStream;
+	StdOutStream outputStream;
 
-		stream >> outputStream;
+	stream >> outputStream;
 
-		std::cout << std::endl << std::endl << "Received: " << outputStream.size() << std::endl;
-		std::cout << "Socket closed" << std::endl;
-	}else{
-		std::cout << "Failed to connect" << std::endl;
-	}
+	std::cout << std::endl << std::endl << "Received: " << outputStream.size() << std::endl;
+	std::cout << "Socket closed" << std::endl;
 
 	return 0;
 }

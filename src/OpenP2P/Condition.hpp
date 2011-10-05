@@ -4,12 +4,13 @@
 #include <boost/thread.hpp>
 
 #include <OpenP2P/Lock.hpp>
+#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P{
 
 	class Condition{
 		public:
-			inline void notify(){
+			inline void notifyOne(){
 				internalCondition_.notify_one();
 			}
 
@@ -17,12 +18,13 @@ namespace OpenP2P{
 				internalCondition_.notify_all();
 			}
 
-			inline void wait(Lock& lock){
-				internalCondition_.wait(lock);
-			}
-			
-			inline void timedWait(Lock& lock, double secs){
-				internalCondition_.timed_wait(lock, boost::posix_time::milliseconds(secs * 1000));
+			inline bool wait(Lock& lock, Timeout timeout = Timeout::Infinite()){
+				if(timeout.isInfinite()){
+					internalCondition_.wait(lock);
+					return true;
+				}else{
+					return internalCondition_.timed_wait(lock, boost::posix_time::milliseconds(timeout.seconds() * 1000));
+				}
 			}
 
 		private:

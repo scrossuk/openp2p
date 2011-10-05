@@ -4,27 +4,27 @@
 #include <stdint.h>
 #include <cstddef>
 
-#include <OpenP2P/EventHandle.hpp>
+#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P{
 
-	class IStream{
+	class InputStream{
 		public:
-			virtual EventHandle readEvent() = 0;
+			virtual std::size_t waitForData(Timeout timeout) = 0;
 			
-			virtual std::size_t readSome(uint8_t * data, std::size_t dataSize) = 0;
+			virtual bool read(uint8_t * data, std::size_t size, Timeout timeout) = 0;
 
 	};
 
-	class OStream{
+	class OutputStream{
 		public:
-			virtual EventHandle writeEvent() = 0;
-		
-			virtual std::size_t writeSome(const uint8_t * data, std::size_t dataSize) = 0;
+			virtual std::size_t waitForSpace(Timeout timeout) = 0;
+			
+			virtual bool write(const uint8_t * data, std::size_t size, Timeout timeout) = 0;
 
 	};
 
-	class IOStream: public IStream, public OStream{ };
+	class IOStream: public InputStream, public OutputStream{ };
 
 }
 

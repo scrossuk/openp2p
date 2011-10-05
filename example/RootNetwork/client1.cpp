@@ -19,7 +19,7 @@ int main(){
 	
 	RootNetwork::Service service(socket, privateIdentity);
 	
-	boost::unique_future< boost::optional<RootNetwork::Node> > r1 = service.addEndpoint(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 46668));
+	boost::optional<RootNetwork::Node> r1 = service.addEndpoint(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 46668));
 	
 	if(r1.get()){
 		std::cout << "Endpoint found" << std::endl;

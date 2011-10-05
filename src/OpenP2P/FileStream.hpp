@@ -7,7 +7,7 @@
 
 namespace OpenP2P{
 
-	class FileIStream: public IStream{
+	class FileIStream: public InputStream{
 		public:
 			inline FileIStream() : handle_(0){ }
 
@@ -29,13 +29,18 @@ namespace OpenP2P{
 				return handle_ != 0;
 			}
 			
-			inline EventHandle readEvent(){
-				return EventHandle::True;
+			inline std::size_t waitForData(Timeout){
+				if(!isOpen()) return 0;
+				const std::size_t currentPos = ftell(handle_);
+				fseek(handle_, 0, SEEK_END);
+				const std::size_t endPos = ftell(handle_);
+				fseek(handle_, currentPos, SEEK_SET);
+				return endPos - currentPos;
 			}
 
-			inline std::size_t readSome(uint8_t * data, std::size_t dataSize){
-				if(!isOpen()) return 0;
-				return fread(data, 1, dataSize, handle_);
+			inline bool read(uint8_t * data, std::size_t size, Timeout){
+				if(!isOpen()) return false;
+				return fread(data, 1, size, handle_) == size;
 			}
 
 			inline void close(){
@@ -50,7 +55,7 @@ namespace OpenP2P{
 
 	};
 
-	class FileOStream: public OStream{
+	class FileOStream: public OutputStream{
 		public:
 			inline FileOStream() : handle_(0){ }
 
@@ -72,13 +77,14 @@ namespace OpenP2P{
 				return handle_ != 0;
 			}
 			
-			inline EventHandle writeEvent(){
-				return EventHandle::True;
+			inline std::size_t waitForSpace(Timeout){
+				if(!isOpen()) return 0;
+				return std::numeric_limits<std::size_t>::max() - ftell(handle_);
 			}
 
-			inline std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
-				if(!isOpen()) return 0;
-				return fwrite(data, 1, dataSize, handle_);
+			inline bool write(const uint8_t * data, std::size_t size, Timeout){
+				if(!isOpen()) return false;
+				return fwrite(data, 1, size, handle_) == size;
 			}
 
 			inline void close(){

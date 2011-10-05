@@ -113,7 +113,7 @@ namespace OpenP2P {
 						i->second->opNotifier->signal->activate();
 					}
 
-					requestCondition_.notify();
+					requestCondition_.notifyOne();
 				}
 
 				bool isClosed(){
@@ -138,7 +138,7 @@ namespace OpenP2P {
 							request.data = data;
 
 							if(requestQueue_.empty()) {
-								requestCondition_.notify();
+								requestCondition_.notifyOne();
 							}
 
 							requestQueue_.push(request);

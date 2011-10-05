@@ -1,16 +1,15 @@
 #include <boost/asio.hpp>
-#include <boost/scoped_array.hpp>
 
-#include <OpenP2P/BinaryStream.hpp>
-#include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/BufferBuilder.hpp>
-#include <OpenP2P/BufferIterator.hpp>
 #include <OpenP2P/Condition.hpp>
+#include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Lock.hpp>
 #include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Socket.hpp>
+#include <OpenP2P/Timeout.hpp>
+#include <OpenP2P/TimeoutSequence.hpp>
 
-#include <OpenP2P/UDP/Endpoint.hpp>
+#include <OpenP2P/IP/Endpoint.hpp>
+
 #include <OpenP2P/UDP/Socket.hpp>
 
 namespace OpenP2P{
@@ -19,66 +18,123 @@ namespace OpenP2P{
 
 		namespace{
 
-			void receiveCallback(Mutex& mutex, Condition& condition, std::size_t& actualLength, const boost::system::error_code& ec, std::size_t length){
-				Lock lock(mutex);
-				actualLength = ec ? 0 : length;
-				condition.notify();
+			void receiveCallback(Mutex * mutex, Condition * condition, boost::system::error_code * receiveResult,
+					std::size_t * receiveLength, const boost::system::error_code& ec, std::size_t transferred){
+				Lock lock(*mutex);
+				*receiveResult = ec;
+				*receiveLength = transferred;
+				condition->notifyOne();
+			}
+			
+			void sendCallback(Mutex * mutex, Condition * condition, boost::system::error_code * sendResult,
+					std::size_t * sendLength, const boost::system::error_code& ec, std::size_t transferred){
+				Lock lock(*mutex);
+				*sendResult = ec;
+				*sendLength = transferred;
+				condition->notifyOne();
 			}
 
 		}
 
-		Socket::Socket() : internalSocket_(service_){
-			internalSocket_.open(boost::asio::ip::udp::v4());
+		Socket::Socket() : internalSocket_(GetIOService()){ }
+		
+		bool Socket::open(){
+			Lock lock(mutex_);
+			boost::system::error_code ec;
+		
+			// This ensures the socket uses both IPv4 and IPv6.
+			boost::asio::ip::v6_only v6OnlyOption(false);
+			internalSocket_.set_option(v6OnlyOption, ec);
+			
+			if(ec) return false;
+			
+			internalSocket_.open(boost::asio::ip::udp::v6(), ec);
+			
+			return !bool(ec);
+		}
+		
+		bool Socket::bind(unsigned short port){
+			Lock lock(mutex_);
+			
+			boost::system::error_code ec;
+			boost::asio::socket_base::reuse_address reuseAddressOption(true);
+			internalSocket_.set_option(reuseAddressOption, ec);
+			
+			if(ec) return false;
+			
+			internalSocket_.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v6(), port), ec);
+			
+			return !bool(ec);
 		}
 
-		Socket::Socket(unsigned short port) : internalSocket_(service_){
-			internalSocket_.open(boost::asio::ip::udp::v4());
-			boost::asio::socket_base::reuse_address option(true);
-			internalSocket_.set_option(option);
-			internalSocket_.bind(Endpoint(boost::asio::ip::udp::v4(), port));
-		}
-
-
-		bool Socket::send(const Endpoint& endpoint, const Buffer& buffer){
-			if(buffer.size() > 65536){
-				return false;
+		std::size_t Socket::send(const IP::Endpoint& endpoint, const uint8_t * data, std::size_t size, Timeout timeout){
+			boost::asio::ip::udp::endpoint endpointImpl(IP::Address::ToImpl(endpoint.address), endpoint.port);
+			
+			boost::system::error_code sendResult;
+			std::size_t sendLength;
+			
+			Condition condition;
+			Lock lock(mutex_);
+			
+			internalSocket_.async_send_to(boost::asio::buffer(data, size), endpointImpl,
+				boost::bind(sendCallback, &mutex_, &condition, &sendResult, &sendLength, _1, _2));
+			
+			TimeoutSequence sequence(timeout);
+			while(condition.wait(lock, sequence.getTimeout())){
+				if(sendResult){
+					if(sendResult == boost::asio::error::operation_aborted){
+						// Other operations being cancelled can cause this operation
+						// to be cancelled - need to restart it.
+						internalSocket_.async_send_to(boost::asio::buffer(data, size), endpointImpl,
+							boost::bind(sendCallback, &mutex_, &condition, &sendResult, &sendLength, _1, _2));
+					}else{
+						return 0;
+					}
+				}else{
+					return sendLength;
+				}
 			}
 
-			boost::scoped_array<uint8_t> ptr(new uint8_t[65536]);
-			BufferIterator iterator(buffer);
-			BinaryIStream binaryStream(iterator);
-			binaryStream.read(ptr.get(), buffer.size());
-
-			{
-				Lock lock(mutex_);
-				internalSocket_.send_to(boost::asio::buffer(ptr.get(), buffer.size()), endpoint);
-			}
-
-			return true;
+			internalSocket_.cancel();
+			condition.wait(lock);
+			return 0;
 		}
 
-		bool Socket::receive(Endpoint& endpoint, Buffer& buffer){
+		std::size_t Socket::receive(IP::Endpoint * endpoint, uint8_t * data, std::size_t size, Timeout timeout){
+			boost::asio::ip::udp::endpoint endpointImpl;
+			
+			boost::system::error_code receiveResult;
+			std::size_t receiveLength;
+			
 			Condition condition;
 			Lock lock(mutex_);
 
-			boost::scoped_array<uint8_t> ptr(new uint8_t[65536]);
+			internalSocket_.async_receive_from(boost::asio::buffer(data, size), endpointImpl,
+				boost::bind(receiveCallback, &mutex_, &condition, &receiveResult, &receiveLength, _1, _2));
+			
+			TimeoutSequence sequence(timeout);
+			
+			while(condition.wait(lock, sequence.getTimeout())){
+				if(receiveResult){
+					if(receiveResult == boost::asio::error::operation_aborted){
+						// Other operations being cancelled can cause this operation
+						// to be cancelled - need to restart it.
+						internalSocket_.async_receive_from(boost::asio::buffer(data, size), endpointImpl,
+							boost::bind(receiveCallback, &mutex_, &condition, &receiveResult, &receiveLength, _1, _2));
+					}else{
+						return 0;
+					}
+				}else{
+					endpoint->address = IP::Address::FromImpl(endpointImpl.address());
+					endpoint->port = endpointImpl.port();
+					
+					return receiveLength;
+				}
+			}
 
-			std::size_t length;
-
-			internalSocket_.async_receive_from(boost::asio::buffer(ptr.get(), 65536), endpoint, boost::bind(receiveCallback, boost::ref(mutex_), boost::ref(condition), boost::ref(length), _1, _2));
-
-			condition.wait(lock);
-
-			BufferBuilder builder(buffer);
-			BinaryOStream stream(builder);
-			stream.write(ptr.get(), length);
-
-			return length > 0;
-		}
-
-		void Socket::cancel(){
-			Lock lock(mutex_);
 			internalSocket_.cancel();
+			condition.wait(lock);
+			return 0;
 		}
 
 		void Socket::close(){

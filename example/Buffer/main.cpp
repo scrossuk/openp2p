@@ -1,87 +1,47 @@
 #include <stdint.h>
-#include <cstddef>
-#include <string>
 #include <iostream>
 
 #include <OpenP2P.hpp>
-#include <OpenP2P/TCP.hpp>
 #include <boost/asio.hpp>
 
 using namespace OpenP2P;
 
 int main(int argc, char* argv[]) {
-
-	{
-		int64_t a = -4000;
-		uint32_t b = 42;
-		uint8_t c = 1;
-		
-		Buffer buffer;
-		BufferBuilder builder(buffer);
-		BinaryOStream stream(builder);
-		
-		if(!(stream << a << b << c)) {
-			std::cout << "Test failed (" << __LINE__ << ") - Failed to build buffer" << std::endl;
-			return 1;
-		}
-		
-		int64_t d;
-		uint32_t e;
-		uint8_t f;
-		
-		BufferIterator iterator(buffer);
-		BinaryIStream readStream(iterator);
-		readStream >> d >> e >> f;
-		
-		if(a != d || b != e || c != f) {
-			std::cout << "Test failed (" << __LINE__ << ") - Data from iterator does not match data from building the buffer" << std::endl;
-			return 1;
-		}
-		
-		//All data in buffer should have been consumed - so this should fail
-		uint8_t someData;
-		
-		if(readStream >> someData) {
-			std::cout << "Test failed (" << __LINE__ << ") - Iterator gives more data than it should" << std::endl;
-			return 1;
-		}
+	int a = -4000, b = 42, c = 1;
+	
+	std::cout << "Writing (" << a << ", " << b << ", " << c << ") to a buffer" << std::endl;
+	
+	Buffer buffer;
+	BufferBuilder builder(buffer);
+	BinaryOStream outputStream(builder);
+	
+	bool writeSuccess = true;
+	writeSuccess &= Binary::WriteInt64(outputStream, a);
+	writeSuccess &= Binary::WriteUint32(outputStream, b);
+	writeSuccess &= Binary::WriteUint8(outputStream, c);
+	
+	if(!writeSuccess){
+		std::cout << "Failed to write values" << std::endl;
+		return 0;
 	}
 	
-	{
-		Buffer buffer;
-		BufferBuilder builder(buffer);
-		BinaryOStream writeStream(builder);
-		
-		boost::array<TCP::Endpoint, 4> array;
-		
-		for(std::size_t i = 0; i < array.size(); i++) {
-			array[i] = TCP::Endpoint(boost::asio::ip::address_v4::loopback(), i * 4);
-		}
-		
-		if(!(writeStream << array)) {
-			std::cout << "Test failed (" << __LINE__ << ") - Failed to write to a boost::array" << std::endl;
-			return 1;
-		}
-		
-		BufferIterator iterator(buffer);
-		BinaryIStream readStream(iterator);
-		
-		boost::array<TCP::Endpoint, 4> array2;
-		
-		if(!(readStream >> array2)) {
-			std::cout << "Test failed (" << __LINE__ << ") - Failed to read from a boost::array" << std::endl;
-			return 1;
-		}
-		
-		for(std::size_t i = 0; i < array.size(); i++) {
-			if(array[i] != array2[i]) {
-				std::cout << "Test failed (" << __LINE__ << ") - Arrays are not equal" << std::endl;
-				return 1;
-			}
-		}
+	int64_t d;
+	uint32_t e;
+	uint8_t f;
+	
+	BufferIterator iterator(buffer);
+	BinaryIStream inputStream(iterator);
+	
+	bool readSuccess = true;
+	readSuccess &= Binary::ReadInt64(inputStream, &d);
+	readSuccess &= Binary::ReadUint32(inputStream, &e);
+	readSuccess &= Binary::ReadUint8(inputStream, &f);
+	
+	if(!readSuccess){
+		std::cout << "Failed to read values" << std::endl;
 	}
 	
-	std::cout << "Test passed" << std::endl;
+	std::cout << "Read (" << d << ", " << e << ", " << f << ") from buffer" << std::endl;
 	
 	return 0;
 }

@@ -11,29 +11,29 @@
 #include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Socket.hpp>
 
-#include <OpenP2P/UDP/Endpoint.hpp>
+#include <OpenP2P/IP/Endpoint.hpp>
 
 namespace OpenP2P{
 
 	namespace UDP{
 
-		class Socket: public OpenP2P::Socket<Endpoint>, boost::noncopyable{
+		class Socket: public OpenP2P::Socket<IP::Endpoint>, boost::noncopyable{
 			public:
 				Socket();
-				Socket(unsigned short);
+				
+				bool open();
+				
+				bool bind(unsigned short port);
 
-				bool send(const Endpoint&, const Buffer&);
+				std::size_t send(const IP::Endpoint& endpoint, const uint8_t * data, std::size_t size, Timeout timeout);
 
-				bool receive(Endpoint&, Buffer&);
-
-				void cancel();
+				std::size_t receive(IP::Endpoint * endpoint, uint8_t * data, std::size_t size, Timeout timeout);
 
 				void close();
 
 			private:
-				IOService service_;
-				boost::asio::ip::udp::socket internalSocket_;
 				Mutex mutex_;
+				boost::asio::ip::udp::socket internalSocket_;
 
 		};
 

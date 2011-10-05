@@ -51,40 +51,6 @@ class BufferTest: public Test {
 					return false;
 				}
 			}
-			
-			{
-				Buffer buffer;
-				BufferBuilder builder(buffer);
-				BinaryOStream writeStream(builder);
-				
-				boost::array<TCP::Endpoint, 4> array;
-				
-				for(std::size_t i = 0; i < array.size(); i++) {
-					array[i] = TCP::Endpoint(boost::asio::ip::address_v4::loopback(), i * 4);
-				}
-				
-				if(!(writeStream << array)) {
-					output.error("Failed to write to a boost::array");
-					return false;
-				}
-				
-				BufferIterator iterator(buffer);
-				BinaryIStream readStream(iterator);
-				
-				boost::array<TCP::Endpoint, 4> array2;
-				
-				if(!(readStream >> array2)) {
-					output.error("Failed to read from a boost::array");
-					return false;
-				}
-				
-				for(std::size_t i = 0; i < array.size(); i++) {
-					if(array[i] != array2[i]) {
-						output.error("Arrays are not equal");
-						return false;
-					}
-				}
-			}
 			return true;
 		}
 		

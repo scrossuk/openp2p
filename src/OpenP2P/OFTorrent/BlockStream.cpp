@@ -7,23 +7,27 @@ namespace OpenP2P{
 
 	namespace OFTorrent{
 
-		BlockOStream::BlockOStream(OStreamGenerator& generator, BlockSize size)
+		BlockStream::BlockStream(OutputStreamGenerator& generator, BlockSize size)
 			: generator_(generator), blockPos_(0), blockSize_(size){
-			stream_ = &(generator_.getOStream());
+			stream_ = &(generator_.getNextOutputStream());
 		}
 		
-		EventHandle BlockOStream::writeEvent(){
-			return stream_->writeEvent();
+		std::size_t BlockStream::waitForSpace(Timeout timeout){
+			return stream_->waitForSpace(timeout);
 		}
 
-		std::size_t BlockOStream::writeSome(const uint8_t * data, std::size_t dataSize){
-			const std::size_t writeSize = stream_->writeSome(data, std::min(dataSize, blockSize_ - blockPos_));
-			blockPos_ += writeSize;
+		bool BlockStream::write(const uint8_t * data, std::size_t size, Timeout timeout){
+			if(!stream_->write(data, size, timeout)){
+				return false;
+			}
+			
+			blockPos_ += size;
 			if(blockPos_ == blockSize_){
-				stream_ = &(generator_.getOStream());
+				stream_ = &(generator_.getNextOutputStream());
 				blockPos_ = 0;
 			}
-			return writeSize;
+			
+			return true;
 		}
 
 	}

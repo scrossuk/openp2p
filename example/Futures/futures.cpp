@@ -22,11 +22,12 @@ class PromiseThread: public Runnable{
 			promise2_.setValue("Second test");
 		}
 		
+		void cancel(){
+			
+		}
+		
 		Promise<std::string> promise1_;
 		Promise<std::string> promise2_;
-		
-	private:
-		Promise<std::string> promise_;
 	
 };
 
@@ -81,7 +82,7 @@ int main(){
 	std::cout << "4" << std::endl;
 	delete interFuture;
 	
-	bool success = future.timedWait(2.0);
+	bool success = future.wait(Timeout::Seconds(2.0));
 	std::cout << "Finished timed wait..." << (success ? "Done" : "Not ready yet") << std::endl;
 	
 	future.wait();

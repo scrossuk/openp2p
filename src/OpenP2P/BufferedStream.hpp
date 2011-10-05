@@ -25,15 +25,9 @@ namespace OpenP2P{
 			 * Constructs a buffered stream on top of an input stream.
 			 *
 			 * @param stream The stream from which data is to be read.
+			 * @param bufferSize Size of the internal buffer.
 			 */
-			BufferedStream(IStream& stream, std::size_t bufferSize = DefaultBufferSize);
-			
-			/**
-			 * Returns an event handle that is active when there are read events.
-			 *
-			 * @return An event handle for read events.
-			 */
-			EventHandle readEvent();
+			BufferedStream(InputStream& stream, std::size_t bufferSize = DefaultBufferSize);
 			
 			/**
 			 * Gets a pointer to the start of the internal buffer.
@@ -50,17 +44,18 @@ namespace OpenP2P{
 			 * @param pos Position in internal buffer to read.
 			 * @return Byte in internal buffer at position given.
 			 */
-			inline const uint8_t& operator[](std::size_t pos) const{
+			inline uint8_t operator[](std::size_t pos) const{
 				return data_[pos];
 			}
 			
 			/**
 			 * Reads as much data as possible from the underlying stream to the internal buffer.
 			 *
-			 * @return Amount of data now in the internal buffer (0 if underlying stream has no more data).
+			 * @param timeout Maximum amount of time this method can block.
+			 * @return Amount of data now in the internal buffer (0 if underlying stream has no more data, or timeout occurs).
 			 */
-			inline std::size_t read(){
-				return read(bufferSize_);
+			inline std::size_t readAll(Timeout timeout){
+				return read(bufferSize_, timeout);
 			}
 
 			/**
@@ -69,9 +64,10 @@ namespace OpenP2P{
 			 * data specified.
 			 *
 			 * @param dataSize Amount of data to read into internal buffer.
+			 * @param timeout Maximum amount of time this method can block.
 			 * @return Amount of data now in the internal buffer (0 if underlying stream has no more data).
 			 */
-			std::size_t read(std::size_t dataSize);
+			std::size_t read(std::size_t dataSize, Timeout timeout);
 
 			/**
 			 * Consume a certain amount of data that has been read, indicating it is
@@ -109,8 +105,7 @@ namespace OpenP2P{
 			}
 
 		private:		
-			IStream& stream_;
-			EventDispatcher dispatcher_;
+			InputStream& stream_;
 			boost::scoped_array<uint8_t> data_;
 			const std::size_t bufferSize_;
 			std::size_t readPos_, writePos_;

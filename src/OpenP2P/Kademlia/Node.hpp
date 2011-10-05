@@ -13,11 +13,6 @@ namespace OpenP2P{
 		struct Node{
 			Id<IdSize> id;
 			EndpointType endpoint;
-
-			Node(){ }
-
-			Node(const Id<IdSize>& i, const EndpointType& e) : id(i), endpoint(e){ }
-
 		};
 
 		template <typename EndpointType, std::size_t IdSize>

@@ -7,9 +7,9 @@ namespace OpenP2P{
 
 	namespace OFTorrent{
 
-		class OStreamGenerator{
+		class OutputStreamGenerator{
 			public:
-				virtual OStream& getOStream() = 0;
+				virtual OutputStream& getNextOutputStream() = 0;
 
 		};
 

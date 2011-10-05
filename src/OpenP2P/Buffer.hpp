@@ -2,7 +2,6 @@
 #define OPENP2P_BUFFER_HPP
 
 #include <stdint.h>
-#include <cstddef>
 #include <vector>
 
 namespace OpenP2P{

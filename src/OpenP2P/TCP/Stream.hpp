@@ -9,8 +9,9 @@
 #include <boost/utility.hpp>
 
 #include <OpenP2P/Stream.hpp>
+#include <OpenP2P/Timeout.hpp>
 
-#include <OpenP2P/TCP/Endpoint.hpp>
+#include <OpenP2P/IP/Endpoint.hpp>
 
 namespace OpenP2P{
 
@@ -20,19 +21,19 @@ namespace OpenP2P{
 			public:
 				Stream();
 
-				Future<bool> connect(const Endpoint& endpoint);
+				bool connect(const IP::Endpoint& endpoint, Timeout timeout = Timeout::Infinite());
 
-				bool connect(const std::vector<Endpoint>& endpointList);
+				bool connect(const std::vector<IP::Endpoint>& endpointList, Timeout timeout = Timeout::Infinite());
 
 				boost::asio::ip::tcp::socket& getInternal();
 				
-				EventHandle readEvent();
+				std::size_t waitForData(Timeout timeout);
 				
-				std::size_t readSome(uint8_t * data, std::size_t dataSize);
+				bool read(uint8_t * data, std::size_t size, Timeout timeout);
 				
-				EventHandle writeEvent();
+				std::size_t waitForSpace(Timeout timeout);
 
-				std::size_t writeSome(const uint8_t * data, std::size_t dataSize);
+				bool write(const uint8_t * data, std::size_t size, Timeout timeout);
 				
 				void close();
 

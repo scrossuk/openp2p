@@ -3,20 +3,19 @@
 
 #include <stdint.h>
 #include <cstddef>
-#include <vector>
 
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P{
 
-	class BufferBuilder: public OStream{
+	class BufferBuilder: public OutputStream{
 		public:
 			BufferBuilder(Buffer&);
 			
-			EventHandle writeEvent();
+			std::size_t waitForSpace(Timeout);
 
-			std::size_t writeSome(const uint8_t * data, std::size_t dataSize);
+			bool write(const uint8_t * data, std::size_t size, Timeout);
 
 		private:
 			Buffer& buffer_;

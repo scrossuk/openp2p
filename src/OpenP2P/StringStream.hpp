@@ -9,13 +9,13 @@
 
 namespace OpenP2P{
 
-	class StringIStream: public IStream{
+	class StringIStream: public InputStream{
 		public:
 			StringIStream(const std::string&);
 			
-			EventHandle readEvent();
+			std::size_t waitForData(Timeout);
 
-			std::size_t readSome(uint8_t * data, std::size_t dataSize);
+			bool read(uint8_t * data, std::size_t size, Timeout);
 
 		private:
 			const std::string& string_;

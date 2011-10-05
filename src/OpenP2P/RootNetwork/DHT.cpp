@@ -60,7 +60,9 @@ namespace OpenP2P {
 				BinaryIStream stream(iterator);
 				if(!(stream >> senderId >> type)) continue;
 
-				Node senderNode(senderId, endpoint);
+				Node senderNode;
+				senderNode.id = senderId;
+				senderNode.endpoint = endpoint;
 
 				dht_.bucketSet_.add(senderNode);
 
@@ -130,7 +132,10 @@ namespace OpenP2P {
 				RPCWrapper<Ping::Reply> replyWrapper;
 
 				if(fromBuffer(replyWrapper, *replyBuffer)){
-					Node node(replyWrapper.senderId, endpoint);
+					Node node;
+					node.id = replyWrapper.senderId;
+					node.endpoint = endpoint;
+					
 					bucketSet_.add(node);
 					return boost::make_optional(node);
 				}

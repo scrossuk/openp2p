@@ -95,12 +95,8 @@ namespace OpenP2P{
 				return layer_->getValue();
 			}
 			
-			void wait(){
-				signal_.wait();
-			}
-		
-			bool timedWait(double secs){
-				return signal_.timedWait(secs);
+			bool wait(Timeout timeout = Timeout::Infinite()){
+				return signal_.wait(timeout);
 			}
 		
 		private:		

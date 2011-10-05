@@ -6,7 +6,6 @@
 #include <boost/utility.hpp>
 
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/BufferIterator.hpp>
 #include <OpenP2P/Stream.hpp>
 
 #include <OpenP2P/Crypt/ECDSA/PublicKey.hpp>
@@ -17,7 +16,7 @@ namespace OpenP2P{
 
 		namespace ECDSA{
 
-			class VerifyStream: boost::noncopyable, public OpenP2P::OStream{
+			class VerifyStream: boost::noncopyable, public OutputStream{
 				public:
 					inline VerifyStream(const PublicKey& publicKey, const Buffer& signature)
 						: verifier_(publicKey), isValid_(false){
@@ -26,25 +25,20 @@ namespace OpenP2P{
 								verifier_,
 								new CryptoPP::ArraySink((byte *) &isValid_, sizeof(isValid_))
 							);
-						BufferIterator iterator(signature);
-						const std::size_t dataSize = 1024;
-						uint8_t data[dataSize];
-						std::size_t readSize;
-						while((readSize = iterator.readSome(data, dataSize)) != 0){
-							filter_->Put(data, readSize);
-						}
+						filter_->Put(&signature[0], signature.size());
 					}
 
 					inline ~VerifyStream(){
 						delete filter_;
 					}
 					
-					inline EventHandle writeEvent(){
-						return EventHandle::True;
+					inline std::size_t waitForSpace(Timeout){
+						// TODO: need to work this out properly.
+						return std::numeric_limits<std::size_t>::max();
 					}
 
-					inline std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
-						return filter_->Put((byte *) data, dataSize);
+					inline bool write(const uint8_t * data, std::size_t size, Timeout){
+						return filter_->Put((byte *) data, size) == size;
 					}
 
 					inline bool isValid(){

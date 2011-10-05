@@ -3,13 +3,13 @@
 
 #include <boost/utility.hpp>
 
-#include <OpenP2P/Cancellable.hpp>
 #include <OpenP2P/Condition.hpp>
 #include <OpenP2P/Mutex.hpp>
+#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P{
 
-	class Signal: public Cancellable, boost::noncopyable{
+	class Signal: boost::noncopyable{
 		public:
 			Signal();
 
@@ -19,9 +19,7 @@ namespace OpenP2P{
 
 			bool isActivated();
 
-			void wait();
-			
-			bool timedWait(double secs);
+			bool wait(Timeout timeout = Timeout::Infinite());
 			
 			void cancel();
 

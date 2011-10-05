@@ -12,17 +12,17 @@ namespace OpenP2P{
 			BLOCKSIZE_512KB = 512 * 1024
 		};
 
-		class BlockOStream: public OStream{
+		class BlockStream: public OutputStream{
 			public:
-				BlockOStream(OStreamGenerator&, BlockSize);
+				BlockStream(OutputStreamGenerator&, BlockSize);
 
-				EventHandle writeEvent();
+				std::size_t waitForSpace(Timeout timeout);
 
-				std::size_t writeSome(const uint8_t * data, std::size_t dataSize);
+				bool write(const uint8_t * data, std::size_t dataSize, Timeout timeout);
 
 			private:
-				OStreamGenerator& generator_;
-				OStream * stream_;
+				OutputStreamGenerator& generator_;
+				OutputStream * stream_;
 				std::size_t blockPos_, blockSize_;
 
 		};

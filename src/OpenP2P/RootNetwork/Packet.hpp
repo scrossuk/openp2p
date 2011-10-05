@@ -3,12 +3,15 @@
 
 #include <OpenP2P/BinaryStream.hpp>
 
+#include <OpenP2P/RootNetwork/Id.hpp>
+#include <OpenP2P/RootNetwork/Node.hpp>
+
 namespace OpenP2P{
 
 	namespace RootNetwork{
 
 		enum Version{
-			VERSION_0 = 0 //Currently only one version
+			VERSION_0 = 0 // Currently only one version.
 		};
 
 		enum PacketType{
@@ -21,12 +24,12 @@ namespace OpenP2P{
 		};
 
 		struct PacketHeader{
-			Version version; //4 bits
-			bool isRequest; //1 bit
-			PacketType type; //3 bits
-			uint8_t packetData; //8 bits
-			uint16_t rpcNumber; //16 bits
-			Id destinationId; //256 bits
+			Version version; // 8 bits.
+			bool isRequest; // 1 bit.
+			PacketType type; // 7 bits.
+			uint8_t data; // 8 bits.
+			uint8_t rpcNumber; // 8 bits.
+			Id destinationId; // 256 bits.
 		};
 		
 		struct PingRequest{ };
@@ -54,7 +57,6 @@ namespace OpenP2P{
 		struct PushSubscribersReply{ };
 
 		union PacketData{
-			PingRequest pingRequest;
 			PingReply pingReply;
 			GetSubnetworkRequest getSubnetworkRequest;
 			GetSubnetworkReply getSubnetworkReply;
@@ -72,14 +74,14 @@ namespace OpenP2P{
 			PacketHeader header;
 			PacketData data;
 		};
-
-		BinaryIStream& operator>>(BinaryIStream&, PacketHeader&);
-
-		BinaryOStream& operator<<(BinaryOStream&, const PacketHeader&);
 		
-		BinaryIStream& operator>>(BinaryIStream&, Packet&);
+		bool ReadPacketHeader(BinaryIStream& stream, PacketHeader * header, Timeout timeout = Timeout::Infinite());
 		
-		BinaryOStream& operator<<(BinaryOStream&, const Packet&);
+		bool WritePacketHeader(BinaryOStream& stream, const PacketHeader& header, Timeout timeout = Timeout::Infinite());
+		
+		bool ReadPacket(BinaryIStream& stream, Packet * packet, Timeout timeout = Timeout::Infinite());
+		
+		bool WritePacket(BinaryOStream& stream, const Packet& packet, Timeout timeout = Timeout::Infinite());
 
 	}
 

@@ -26,7 +26,7 @@ namespace OpenP2P{
 
 		namespace ECDSA{
 
-			class SignStream: boost::noncopyable, public OpenP2P::OStream{
+			class SignStream: boost::noncopyable, public OutputStream{
 				public:
 					inline SignStream(RandomPool& pool, const PrivateKey& privateKey)
 						: signer_(privateKey){
@@ -44,23 +44,20 @@ namespace OpenP2P{
 					inline EventHandle writeEvent(){
 						return EventHandle::True;
 					}
+					
+					inline std::size_t waitForSpace(Timeout){
+						// TODO: need to work this out properly.
+						return std::numeric_limits<std::size_t>::max();
+					}
 
-					inline std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
-						return filter_->Put((byte *) data, dataSize);
+					inline bool write(const uint8_t * data, std::size_t size, Timeout){
+						return filter_->Put((byte *) data, size) == size;
 					}
 
 					inline Buffer signature(){
 						filter_->MessageEnd();
 
-						Buffer buffer;
-						BufferBuilder builder(buffer);
-
-						StringIStream stringStream(signature_);
-						BinaryIStream binaryStream(stringStream);
-
-						binaryStream >> builder;
-						
-						return buffer;
+						return Buffer(signature_.begin(), signature_.end());
 					}
 
 				private:

@@ -2,33 +2,38 @@
 #define OPENP2P_NULLSTREAM_HPP
 
 #include <cstring>
+#include <limits>
 
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P{
 
-	class NullIStream: public IStream{
+	class NullIStream: public InputStream{
 		public:
 			inline EventHandle readEvent(){
 				return EventHandle::True;
 			}
 			
-			inline std::size_t readSome(uint8_t * data, std::size_t dataSize){
+			inline std::size_t waitForData(Timeout){
+				return std::numeric_limits<std::size_t>::max();
+			}
+			
+			inline bool read(uint8_t * data, std::size_t size, Timeout){
 				// Return zeroes.
-				memset(data, 0, dataSize);
-				return dataSize;
+				memset(data, 0, size);
+				return true;
 			}
 
 	};
 
-	class NullOStream: public OStream{
+	class NullOStream: public OutputStream{
 		public:
-			inline EventHandle writeEvent(){
-				return EventHandle::True;
+			inline std::size_t waitForSpace(Timeout){
+				return std::numeric_limits<std::size_t>::max();
 			}
 			
-			inline std::size_t writeSome(const uint8_t * data, std::size_t dataSize){
-				return dataSize;
+			inline bool write(const uint8_t * data, std::size_t size, Timeout){
+				return true;
 			}
 
 	};

@@ -1,30 +1,51 @@
-#include <OpenP2P/BufferedStream.hpp>
+#include <algorithm>
+#include <cstddef>
+
 #include <OpenP2P/EventHandle.hpp>
 #include <OpenP2P/Stream.hpp>
+#include <OpenP2P/Timeout.hpp>
+#include <OpenP2P/TimeoutSequence.hpp>
 
 #include <OpenP2P/OFTorrent/XORStream.hpp>
 
 namespace OpenP2P{
 
 	namespace OFTorrent{
+	
+		static const std::size_t BufferSize = 256;
 
-		XORIStream::XORIStream(IStream& source0, IStream& source1) : bufferedStream_(source0), stream_(source1){ }
+		XORStream::XORStream(InputStream& source0, InputStream& source1) : source0_(source0), source1_(source1){ }
 		
-		EventHandle XORIStream::readEvent(){
-			return EventHandle::And(bufferedStream_.readEvent(), stream_.readEvent());
+		std::size_t XORStream::waitForData(Timeout timeout){
+			TimeoutSequence sequence(timeout);
+			const std::size_t source0DataSize = source0_.waitForData(sequence.getTimeout());
+			const std::size_t source1DataSize = source1_.waitForData(sequence.getTimeout());
+			
+			return std::min(BufferSize, std::min(source0DataSize, source1DataSize));
 		}
 
-		std::size_t XORIStream::readSome(uint8_t * data, std::size_t dataSize){
-			const std::size_t bufferedReadSize = bufferedStream_.read(dataSize);
-			const std::size_t readSize = stream_.readSome(data, bufferedReadSize);
-			
-			for(std::size_t pos = 0; pos < readSize; pos++){
-				data[pos] ^= bufferedStream_[pos];
+		bool XORStream::read(uint8_t * data, std::size_t size, Timeout timeout){
+			if(size > BufferSize){
+				return false;
 			}
 			
-			bufferedStream_.consume(readSize);
+			uint8_t buffer[BufferSize];
 			
-			return readSize;
+			TimeoutSequence sequence(timeout);
+			
+			if(!source0_.read(data, size, sequence.getTimeout())){
+				return false;
+			}
+			
+			if(!source1_.read(buffer, size, sequence.getTimeout())){
+				return false;
+			}
+			
+			for(std::size_t pos = 0; pos < size; pos++){
+				data[pos] ^= buffer[pos];
+			}
+			
+			return true;
 		}
 
 	}

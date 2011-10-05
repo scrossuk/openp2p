@@ -15,7 +15,10 @@ int main(){
 	OpenP2P::BinaryOStream binSign(signStream);
 
 	std::cout << "Signing..." << std::endl;
-	binSign << uint32_t(42);
+	if(!OpenP2P::Binary::WriteUint32(binSign, 42)){
+		std::cout << "Failed to write to SignStream" << std::endl;
+		return 0;
+	}
 
 	OpenP2P::Buffer signature = signStream.signature();
 
@@ -27,9 +30,13 @@ int main(){
 	std::cout << "Create verify stream" << std::endl;
 	ECDSA::VerifyStream verifyStream(publicKey, signature);
 	OpenP2P::BinaryOStream binVerify(verifyStream);
+	
 
 	std::cout << "Verifying..." << std::endl;
-	binVerify << uint32_t(42);
+	if(!OpenP2P::Binary::WriteUint32(binVerify, 42)){
+		std::cout << "Failed to write to SignStream" << std::endl;
+		return 0;
+	}
 
 	std::cout << "Signature is " << (verifyStream.isValid() ? "valid" : "not valid") << std::endl;
 

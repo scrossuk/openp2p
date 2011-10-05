@@ -75,7 +75,7 @@ int main(){
 		ClientThread * c = clientThreads.add(new ClientThread());
 
 		std::cout << "Start accept" << std::endl;
-		if(acceptor.accept(c->getTCPStream()).get()){
+		if(acceptor.accept(c->getTCPStream())){
 			//thread per connection
 			threads.add(new Thread(*c));
 		}else{

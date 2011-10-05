@@ -8,19 +8,22 @@ namespace OpenP2P{
 
 	StringIStream::StringIStream(const std::string& sourceString) : string_(sourceString), pos_(0){ }
 	
-	EventHandle StringIStream::readEvent(){
-		return EventHandle::True;
+	std::size_t StringIStream::waitForData(Timeout){
+		return string_.size() - pos_;
 	}
 
-	std::size_t StringIStream::readSome(uint8_t * data, std::size_t dataSize){
-		std::size_t readSize = std::min(dataSize, string_.size() - pos_);
+	bool StringIStream::read(uint8_t * data, std::size_t size, Timeout){
+		if(size > (string_.size() - pos_)){
+			return false;
+		}
 		
-		for(std::size_t i = 0; i < readSize; i++){
+		for(std::size_t i = 0; i < size; i++){
 			data[i] = string_[pos_ + i];
 		}
-		pos_ += readSize;
 		
-		return readSize;
+		pos_ += size;
+		
+		return true;
 	}
 
 }

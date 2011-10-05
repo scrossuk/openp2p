@@ -5,7 +5,7 @@
 #include <OpenP2P/Lock.hpp>
 #include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Signal.hpp>
-
+#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P{
 
@@ -27,19 +27,13 @@ namespace OpenP2P{
 		return isActivated_;
 	}
 
-	void Signal::wait(){
+	bool Signal::wait(Timeout timeout){
 		Lock lock(mutex_);
 		if(!isActivated_){
-			cond_.wait(lock);
+			return cond_.wait(lock, timeout);
+		}else{
+			return true;
 		}
-	}
-	
-	bool Signal::timedWait(double secs){
-		Lock lock(mutex_);
-		if(!isActivated_){
-			cond_.timedWait(lock, secs);
-		}
-		return isActivated_;
 	}
 
 	void Signal::cancel(){

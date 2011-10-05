@@ -5,11 +5,12 @@
 #include <vector>
 
 #include <boost/asio.hpp>
+#include <boost/optional.hpp>
 #include <boost/utility.hpp>
 
-#include <OpenP2P/Future.hpp>
+#include <OpenP2P/Timeout.hpp>
 
-#include <OpenP2P/TCP/Endpoint.hpp>
+#include <OpenP2P/IP/Endpoint.hpp>
 
 namespace OpenP2P{
 
@@ -19,9 +20,7 @@ namespace OpenP2P{
 			public:
 				Resolver();
 			
-				Future< std::vector<Endpoint> > resolve(const std::string& host, const std::string& service);
-
-				void cancel();
+				boost::optional< std::vector<IP::Endpoint> > resolve(const std::string& host, const std::string& service, Timeout timeout = Timeout::Infinite());
 
 			private:
 				boost::asio::ip::tcp::resolver internalResolver_;

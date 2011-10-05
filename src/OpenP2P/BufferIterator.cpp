@@ -30,20 +30,19 @@ namespace OpenP2P {
 		return true;
 	}
 	
-	EventHandle BufferIterator::readEvent(){
-		return EventHandle::True;
+	std::size_t BufferIterator::waitForData(Timeout){
+		return buffer_.size() - position_;
 	}
 
-	std::size_t BufferIterator::readSome(uint8_t * data, std::size_t dataSize){
-		const std::size_t readSize = std::min(dataSize, buffer_.size() - position_);
+	bool BufferIterator::read(uint8_t * data, std::size_t size, Timeout){
+		const std::size_t readSize = std::min(size, buffer_.size() - position_);
 
 		for(std::size_t i = 0; i < readSize; i++){
 			data[i] = buffer_[position_ + i];
 		}
 		
 		position_ += readSize;
-
-		return dataSize;
+		return true;
 	}
 
 }

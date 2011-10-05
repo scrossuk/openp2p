@@ -5,11 +5,11 @@
 
 using namespace OpenP2P;
 
-class BlockGen: public OFTorrent::OStreamGenerator{
+class BlockGen: public OFTorrent::OutputStreamGenerator{
 	public:
 		BlockGen() : count_(0){ }
 
-		OStream& getOStream(){
+		OutputStream& getNextOutputStream(){
 			std::ostringstream s;
 			s << "out" << count_ << ".txt";
 			count_++;
@@ -35,14 +35,16 @@ int main(int argc, char *argv[]){
 
 	NullIStream nullStream;
 
-	OFTorrent::XORIStream xorStream(fileStream, nullStream);
+	OFTorrent::XORStream xorStream(fileStream, nullStream);
 
 	BlockGen blockGen;
 
-	OFTorrent::BlockOStream blockStream(blockGen, OFTorrent::BLOCKSIZE_512KB);
+	OFTorrent::BlockStream blockStream(blockGen, OFTorrent::BLOCKSIZE_512KB);
 
-	BinaryIStream binaryStream(xorStream);
-	binaryStream >> blockStream;
+	BinaryIStream binaryInStream(xorStream);
+	BinaryOStream binaryOutStream(blockStream);
+	
+	Binary::MoveData(binaryInStream, binaryOutStream);
 
 	return 0;
 }

@@ -1,5 +1,7 @@
 \documentclass{article}
 
+\usepackage{multirow}
+
 \title{Root Network}
 \author{Stephen Cross}
 \date{}
@@ -10,7 +12,7 @@
 \section{Introduction}
 
 \paragraph{}
-This document describes the Root Network, a peer-to-peer network which is designed to facilitate the construction of other peer-to-peer networks, referred to here as 'sub-networks'. Primarily, the network is designed to be an efficient way to bootstrap to these other networks, and to locate specific nodes on the network.
+This document describes the Root Network, a peer-to-peer network which is designed to facilitate the construction of other peer-to-peer networks, referred to here as `sub-networks'. Primarily, the network is designed to be an efficient way to bootstrap to these other networks, and to locate specific nodes on the network.
 
 \section{Functionality}
 
@@ -42,11 +44,11 @@ Messages use a standard format for endpoints, consisting of a 16 bit unsigned in
 The endpoint type values in the 16 bit unsigned integer are:
 
 \begin{itemize}
-\item 0 -> Local
-\item 1 -> UDP over IPv4
-\item 2 -> UDP over IPv6
-\item 3 -> TCP over IPv4
-\item 4 -> TCP over IPv6
+\item 0 = Local
+\item 1 = UDP over IPv4
+\item 2 = UDP over IPv6
+\item 3 = TCP over IPv4
+\item 4 = TCP over IPv6
 \end{itemize}
 
 \section{Routing}
@@ -58,7 +60,7 @@ In the Root Network, it is not expected or required that all nodes can connect d
 The system is fairly simple: nodes attempt to make direct connections to endpoints where possible, otherwise they use the endpoint of the node that delivered the node's endpoint to them. Hence an endpoint in the Root Network is not necessarily the endpoint of the node itself, but may an intermediate node, which will forward any messages sent to it with the correct destination ID.
 
 \paragraph{}
-Note that all messages are signed with the sender's public key so intermediate nodes cannot 'steal' the identity of the node for which they are routing. However, it is important to consider that messages are not encrypted, which means that any contact information for sub-networks can be intercepted (it's usually best to send a public key that can be used for encryption).
+Note that all messages are signed with the sender's public key so intermediate nodes cannot `steal' the identity of the node for which they are routing. However, it is important to consider that messages are not encrypted, which means that any contact information for sub-networks can be intercepted (it's usually best to send a public key that can be used for encryption).
 
 \paragraph{}
 An example of routing would be a computer A connected to another computer B over the internet, which itself is connected to a device C over USB: A can discover C (and vice versa) via the Root Network, since B routes messages between them. Clearly, any intermediate devices can choose to not route messages if appropriate.
@@ -84,6 +86,23 @@ The header comes first since it includes the version number, which can affect th
 
 \subsection{Header}
 
+\begin{tabular}{|c|c|c|c|c|c|c|}
+  \hline
+  byte offset & 0-3 & 4-5 & 6 & 7 & 8-15 & 16-31 \\ \hline
+  0 & Version & State & ERR & COMM & Message Type & Message Data/Flags \\ \hline
+  4 & \multicolumn{6}{|c|}{Routine Identifier} \\ \hline
+  8 & \multicolumn{6}{|c|}{\multirow{2}{*}{Message Counter}} \\ \cline{1-1}
+  12 & \multicolumn{6}{|c|}{} \\ \hline
+  16 & \multicolumn{6}{|c|}{\multirow{8}{*}{Destination Identifier}} \\ \cline{1-1}
+  20 & \multicolumn{6}{|c|}{} \\ \cline{1-1}
+  24 & \multicolumn{6}{|c|}{} \\ \cline{1-1}
+  28 & \multicolumn{6}{|c|}{} \\ \cline{1-1}
+  32 & \multicolumn{6}{|c|}{} \\ \cline{1-1}
+  36 & \multicolumn{6}{|c|}{} \\ \cline{1-1}
+  40 & \multicolumn{6}{|c|}{} \\ \cline{1-1}
+  44 & \multicolumn{6}{|c|}{} \\ \hline
+\end{tabular}
+
 \paragraph{Version}
 A 4 bit value giving the version number for which the message is structured. Currently the only version number is 0. If a node receives a message with a version it doesn't support, it should produce a reply with the version field set to the latest it supports and the initiating node should detect this and send a fresh request with this version - the protocol is designed to support full backwards compatibility.
 
@@ -94,21 +113,21 @@ A 2 bit value giving the state of the routine of which this message is a part. A
 A bit that indicates whether this message represents an error. This is typically used in replies for indicating problems with a request (such as an invalid signature).
 
 \paragraph{COM}
-Elliptic curve public keys are points, which are encoded with the X coordinate and one bit of the Y coordinate in 'compressed' mode. This is therefore the one bit of the Y coordinate.
+Elliptic curve public keys are points, which are encoded with the X coordinate and one bit of the Y coordinate in `compressed' mode. This is therefore the one bit of the Y coordinate.
 
 \paragraph{Message Type}
 An 8 bit value giving the type of the message:
 
 \begin{itemize}
-\item 0 -> IDENTIFY
-\item 1 -> PING
-\item 2 -> GET_NEAREST_NODES
-\item 3 -> SUBSCRIBE
-\item 4 -> GET_SUBSCRIBERS
-\item 5 -> SEND_MESSAGE
-\item 6 -> OPEN_STREAM
-\item 7 -> CLOSE_STREAM
-\item 8 -> SEND_STREAM_DATA
+\item 0 = IDENTIFY
+\item 1 = PING
+\item 2 = GET\_NEAREST\_NODES
+\item 3 = SUBSCRIBE
+\item 4 = GET\_SUBSCRIBERS
+\item 5 = SEND\_MESSAGE
+\item 6 = OPEN\_STREAM
+\item 7 = CLOSE\_STREAM
+\item 8 = SEND\_STREAM\_DATA
 \end{itemize}
 
 \paragraph{Message Flags/Data}
@@ -140,7 +159,7 @@ Requests are very simple: the data section is completely empty, and the message 
 Replies are also simple: the data section includes a single endpoint, which is the endpoint of the sender from the perspective of the receiver, and the message data/flags field in the header is unused.
 Note that the endpoint in the reply is after routing has occurred, so may be the actual endpoint of another node which routed the message. IDENTIFY messages should be used where it is important to determine the characteristics of NATs.
 
-\subsubsection{GET_NEAREST_NODES}
+\subsubsection{GET\_NEAREST\_NODES}
 
 \paragraph{}
 Requests include a 256 bit ID for the target node ID, and the message data/flags field in the header is unused.
@@ -152,12 +171,12 @@ Replies use the message data/flags field to indicate the number of nodes being r
 Requests include a 256 bit field in the data section which is the sub-network to be subscribed to, and the message data/flags field in the header is unused.
 Replies have an empty data section and the message data/flags field in the header is unused.
 
-\subsubsection{GET_SUBSCRIBERS}
+\subsubsection{GET\_SUBSCRIBERS}
 
 \paragraph{}
-This is identical to GET_NEAREST_NODES in structure, although in this case the purpose is clearly to obtain a list of subscribers, with the ID in the request being the sub-network ID.
+This is identical to GET\_NEAREST\_NODES in structure, although in this case the purpose is clearly to obtain a list of subscribers, with the ID in the request being the sub-network ID.
 
-\subsubsection{SEND_MESSAGE}
+\subsubsection{SEND\_MESSAGE}
 
 \paragraph{}
 This message type is used to send a message to a node for a particular sub-network.
@@ -165,14 +184,14 @@ Requests include a 256 bit field in the data section for the sub-network ID, fol
 Replies use the message data/flags field in the header to indicate the status of the stream request, which is one of the following:
 
 \begin{itemize}
-\item 0 -> Success
-\item 1 -> Sub-network not supported
+\item 0 = Success
+\item 1 = Sub-network not supported
 \end{itemize}
 
 \paragraph{}
 The data section is empty.
 
-\subsubsection{OPEN_STREAM}
+\subsubsection{OPEN\_STREAM}
 
 \paragraph{}
 This message type is used for establishing a stream connection between two nodes.
@@ -181,29 +200,29 @@ The first message includes a 256 bit field in the data section for the sub-netwo
 The second message uses the message data/flags field in the header to indicate the status of the stream request, which is one of the following:
 
 \begin{itemize}
-\item 0 -> Success
-\item 1 -> Sub-network not supported
-\item 2 -> Too many connections
+\item 0 = Success
+\item 1 = Sub-network not supported
+\item 2 = Too many connections
 \end{itemize}
 
 \paragraph{}
 If successful, the data section will include a 256 bit field in the data section for the stream ID, which should be used for future messages for the stream.
 Finally, the third message is just an ACK, so the data section is empty and the message data/flags field is unused.
 
-\subsubsection{CLOSE_STREAM}
+\subsubsection{CLOSE\_STREAM}
 
 \paragraph{}
 Requests include a 256 bit field in the data section for the stream ID, and the message data/flags field in the header is unused.
 Replies are simply an ACK so the data section is empty and the message data/flags field is unused.
 
-\subsubsection{SEND_STREAM_DATA}
+\subsubsection{SEND\_STREAM\_DATA}
 
 \paragraph{}
 Requests include a 256 bit field in the data section for the stream ID, followed by the data and the message data/flags field in the header gives the data length.
 Replies use the message data/flags field in the header to indicate the status of the stream request, which is one of the following:
 
 \begin{itemize}
-\item 0 -> Success
+\item 0 = Success
 \end{itemize}
 
 \paragraph{}
@@ -220,7 +239,7 @@ The identity section contains (represented in this order):
 \end{itemize}
 
 \paragraph{}
-The signature is produced using SHA-256, and should be 64 bytes (512 bits -> twice the size of the key) in length. The public key uses the secp256k1 curve, so the public key is 256 bits in length. The value in this section is the encoding of the X coordinate of the public point, hence it is also 256 bits (32 bytes).
+The signature is produced using SHA-256, and should be 64 bytes (512 bits = twice the size of the key) in length. The public key uses the secp256k1 curve, so the public key is 256 bits in length. The value in this section is the encoding of the X coordinate of the public point, hence it is also 256 bits (32 bytes).
 
 \section{Errors}
 
@@ -231,13 +250,13 @@ Rather than ignoring messages with errors such as invalid signatures or improper
 When ERR is set, the data/flags field in the header is a 16 bit error code. Its value can be one of the following:
 
 \begin{itemize}
-\item 0 -> INVALID_MESSAGE_FORMAT
-\item 1 -> INVALID_SIGNATURE
-\item 2 -> INVALID_COUNTER
-\item 3 -> VERSION_NOT_SUPPORTED
+\item 0 = INVALID\_MESSAGE\_FORMAT
+\item 1 = INVALID\_SIGNATURE
+\item 2 = INVALID\_COUNTER
+\item 3 = VERSION\_NOT\_SUPPORTED
 \end{itemize}
 
-\section{Attacks}
+\section{Resistance to Attacks}
 
 \subsection{Replay attack}
 
@@ -256,7 +275,7 @@ As the Root Network uses a DHT, it is vulnerable to the Sybil attack, which in t
 The primary solution to this problem revolves around redundancy: it doesn't matter if a single node returns useless results, we will always ask many nodes so we are likely to get some legitimate results. The same applies to storing data: always store it with many different nodes so it has the best chance of being retrieved. The solution also takes advantages of IP addresses - some systems uses the IP address or a hash of it as the DHT ID, however in this case we just want to get as wide a spread of IP addresses as possible, assuming that most attackers won't have enough widely spread IP addresses as compared to legitimate users. To make this work, IP addresses must be verified (by sending a message to the IP address in expectation of a reply). Other solutions that are likely to be deployed are favoring nodes that provided accurate information in the past, and favoring older nodes.
 
 \paragraph{}
-It is important to note that nodes cannot join the network pretending to be another node, as the node's ID is derived (SHA-256) from its public key, and all messages it sends must be signed with the corresponding private key, hence it must prove it 'owns' the ID.
+It is important to note that nodes cannot join the network pretending to be another node, as the node's ID is derived (SHA-256) from its public key, and all messages it sends must be signed with the corresponding private key, hence it must prove it `owns' the ID.
 
 \end{document}
 

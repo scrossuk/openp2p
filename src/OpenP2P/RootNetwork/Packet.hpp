@@ -15,46 +15,70 @@ namespace OpenP2P{
 		};
 
 		enum PacketType{
-			TYPE_PING = 0,
-			TYPE_GETSUBNETWORK = 1,
-			TYPE_SUBSCRIBE = 2,
-			TYPE_NODELOOKUP = 3,
+			TYPE_IDENTIFY = 0,
+			TYPE_PING = 1,
+			TYPE_GETNEARESTNODES = 2,
+			TYPE_SUBSCRIBE = 3,
 			TYPE_GETSUBSCRIBERS = 4,
-			TYPE_PUSHSUBSCRIBERS = 5
+			TYPE_SENDMESSAGE = 5,
+			TYPE_OPENSTREAM = 6,
+			TYPE_CLOSESTREAM = 7,
+			TYPE_SENDSTREAMDATA = 8
+		};
+		
+		enum Status{
+			STATUS_SUCCESS = 0,
+			STATUS_SUBNETWORKUNSUPPORTED = 1,
+			STATUS_TOOMANYCONNECTIONS = 2
 		};
 
 		struct PacketHeader{
-			Version version; // 8 bits.
-			bool isRequest; // 1 bit.
-			PacketType type; // 7 bits.
-			uint8_t data; // 8 bits.
-			uint8_t rpcNumber; // 8 bits.
+			Version version; // 4 bits.
+			bool REQ; // 1 bit.
+			bool ERR; // 1 bit.
+			bool RES; // 1 bit.
+			bool COM; // 1 bit.
+			PacketType type; // 8 bits.
+			uint16_t data; // 16 bits.
+			uint64_t requestCounter; // 64 bits.
 			Id destinationId; // 256 bits.
 		};
 		
+		struct IdentifyRequest{ };
+		
+		struct IdentifyReply{ Endpoint endpoint; }
+		
 		struct PingRequest{ };
 		
-		struct PingReply{ };
+		struct PingReply{ Endpoint endpoint; };
 		
-		struct GetSubnetworkRequest{ Id subnetworkId; };
+		struct GetNearestNodesRequest{ Id nodeId; }
 		
-		struct GetSubnetworkReply{ uint8_t contactInfo[256]; };
+		struct GetNearestNodesReply{ std::vector<Node> nodeList; }
 		
 		struct SubscribeRequest{ Id subnetworkId; };
 		
 		struct SubscribeReply{ };
 		
-		struct NodeLookupRequest{ Id nodeId; };
-		
-		struct NodeLookupReply{ boost::array<Node, 16> nodeList; };
-		
 		struct GetSubscribersRequest{ Id subnetworkId; };
 		
-		struct GetSubscribersReply{ boost::array<Node, 16> subscriberList; };
+		struct GetSubscribersReply{ std::vector<Node> subscriberList; };
 		
-		struct PushSubscribersRequest{ boost::array<Node, 16> subscriberList; };
+		struct SendMessageRequest{ Id subnetworkId; Buffer data; }
 		
-		struct PushSubscribersReply{ };
+		struct SendMessageReply{ Status status; }
+		
+		struct OpenStreamRequest{ Id subnetworkId; }
+		
+		struct OpenStreamReply{ Status status; Id streamId; }
+		
+		struct CloseStreamRequest{ Id streamId; }
+		
+		struct CloseStreamReply{ Status status; }
+		
+		struct SendStreamDataRequest{ Id streamId; Buffer data; }
+		
+		struct SendStreamDataReply{ Status status; }
 
 		union PacketData{
 			PingReply pingReply;

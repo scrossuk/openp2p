@@ -11,7 +11,6 @@ namespace OpenP2P{
 	namespace RootNetwork{
 	
 		struct PacketSignature{
-			uint64_t packetCount;
 			Buffer signature;
 			Crypt::ECDSA::PublicKey publicKey;
 		};

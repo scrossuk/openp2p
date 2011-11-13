@@ -1,0 +1,69 @@
+\documentclass{article}
+
+\title{OpenP2P}
+\author{Stephen Cross}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\paragraph{}
+This document provides an overview of the OpenP2P library. OpenP2P is a library designed to simplify the construction of peer-to-peer networks. To this end it offers a number of modules, such as the framework for a Kademlia DHT, from which it is simple to construct any number of different networks, or to build clients to interface with existing networks. It also includes implementations for peer-to-peer networks such as the `Root Network' and 'OFTorrent'.
+
+\paragraph{}
+The premise of the project is that many peer-to-peer applications re-implement the same components, and also that peer-to-peer is a fundamentally useful and underused method of communication. As a result future versions are likely to provide modules to support existing protocols (e.g. BitTorrent's DHT protocol) so these can be effectively reused by applications.
+
+\paragraph{}
+All code within the project is licensed under the MIT License (could change in the future to GPL). The code is also cross-platform and therefore doesn't rely on any particular operating system or underlying hardware. Currently the only language supported is C++, which is based upon numerous parts of the Boost framework (particularly boost::asio), however support for other programming languages (such as Java and PHP) is planned.
+
+\section{Core Library}
+
+\paragraph{}
+The core library aims to provide support for:
+
+\begin{itemize}
+\item Basic sockets/streams support (Completed)
+\item RPC (Remote Procedure Call) based protocols (Completed)
+\item DHTs - for both node identification, node lookup and evenly distributed data storage and retrieval (Mostly Completed)
+\item Cryptography - most platforms will incorporate an existing cryptographic library (using Crypto++ on C++)
+\item UPnP and other methods to workaround NATs (To be implemented soon)
+\item Darknet Routing
+\item Trust system
+\item Economy
+\item Distributed search (low priority - pre-design stage) - note that this can be easily provided by using a Gossip protocol
+\item Coordinate-based overlays (low priority - pre-design stage - see VAST)
+\end{itemize}
+
+\section{Implemented Networks}
+
+\subsection{Root Network}
+
+\paragraph{}
+The Root Network is one of the networks supported by the project, using some of the tools from the core library. The network is designed to facilitate the construction of other peer-to-peer networks, referred to here as 'sub-networks'. Primarily, the network is designed to be an efficient way to bootstrap to these other networks, and to locate specific nodes on the network. It is described in full detail in a separate document.
+
+\subsection{OFTorrent}
+
+\paragraph{}
+The OFTorrent protocol, or Owner Free Torrent protocol, is a modification of the idea of the 'Owner Free Filesystem' (or OFF), for providing an efficient and private means to share files. In effect, it's very similar to torrenting (hence the name), but it is not possible to know with any reasonable certainty what torrents any nodes are downloading or seeding. The key advantage is that file data can be transferred directly, as opposed to dark-nets which are very secure but usually have considerably worse performance. However, file data for an OFTorrent must usually be about twice the size of the original data to provide the desired privacy.
+
+\section{Future Networks}
+
+\paragraph{}
+Work is currently underway to design a peer-to-peer ('cloud'-like) remote storage protocol, allowing nodes on a network to offer space and other nodes to store and retrieve their data. The intended use would generally be for personal data, or data for within certain groups, where a method of remote storage would be useful. Data security is the easy part - it can be provided by encrypting all data to be stored remotely, and then decrypting it on retrieval. Reliability is a more significant concern, of which there are some very reasonable solutions. A mechanism is also needed to ensure there is some balance between users providing space and consuming the space of others - some sort of peer-to-peer economy would be best placed to provide this. The current thinking is to use something like BitCoin, because it is tried-and-tested and allows currency to be used from other things (so you make money selling hard disk space and then buy other items with that), although it is slow for payments to be processed. There are also some additional complexities here; a market needs to be created, and with it a trust mechanism will ultimately end up being needed.
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+

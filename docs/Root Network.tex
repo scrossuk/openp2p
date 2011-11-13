@@ -1,0 +1,274 @@
+\documentclass{article}
+
+\title{Root Network}
+\author{Stephen Cross}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\paragraph{}
+This document describes the Root Network, a peer-to-peer network which is designed to facilitate the construction of other peer-to-peer networks, referred to here as 'sub-networks'. Primarily, the network is designed to be an efficient way to bootstrap to these other networks, and to locate specific nodes on the network.
+
+\section{Functionality}
+
+\paragraph{}
+The basic functions are:
+
+\begin{itemize}
+\item Establish a pseudo-anonymous reliable entity (based on a public key).
+\item Join the network, given the address of one or more participating nodes.
+\item Locate a particular node on the network by its ID.
+\item Subscribe to sub-networks (given by DHT IDs).
+\item Get a list containing a selection of users on a particular sub-network.
+\item Get information from a node about how to contact it for a sub-network.
+\item Establish unreliable or reliable communication with other nodes.
+\end{itemize}
+
+\paragraph{}
+The network is implemented using a basic Kademlia DHT, with 256 bits for each ID, which is a SHA-256 hash of the node's public key. Messages are designed to be as small as possible so that the Root Network is a light weight protocol. When a node subscribes to a sub-network it asks the DHT to store its node data (its ID and address info). Nodes that get subscribers will then receive a list of nodes, each of which it should contact directly to obtain information about how to contact them for the sub-network.
+
+\section{Protocols and Endpoints}
+
+\paragraph{}
+The Root Network is designed to work over multiple protocols/transport mechanisms, such as UDP, TCP, USB etc. For internet communications, UDP is preferred over TCP because packets are smaller (TCP requires space for its header), there is no need to establish a connection (which takes three messages in TCP), and small amounts of packet loss are acceptable.
+
+\paragraph{}
+Messages use a standard format for endpoints, consisting of a 16 bit unsigned integer that gives the type of an endpoint, followed by the endpoint's data.
+
+\paragraph{}
+The endpoint type values in the 16 bit unsigned integer are:
+
+\begin{itemize}
+\item 0 -> Local
+\item 1 -> UDP over IPv4
+\item 2 -> UDP over IPv6
+\item 3 -> TCP over IPv4
+\item 4 -> TCP over IPv6
+\end{itemize}
+
+\section{Routing}
+
+\paragraph{}
+In the Root Network, it is not expected or required that all nodes can connect directly to each other. In order that messages travel between nodes that cannot connect directly to each other, they are routed by intermediate nodes.
+
+\paragraph{}
+The system is fairly simple: nodes attempt to make direct connections to endpoints where possible, otherwise they use the endpoint of the node that delivered the node's endpoint to them. Hence an endpoint in the Root Network is not necessarily the endpoint of the node itself, but may an intermediate node, which will forward any messages sent to it with the correct destination ID.
+
+\paragraph{}
+Note that all messages are signed with the sender's public key so intermediate nodes cannot 'steal' the identity of the node for which they are routing. However, it is important to consider that messages are not encrypted, which means that any contact information for sub-networks can be intercepted (it's usually best to send a public key that can be used for encryption).
+
+\paragraph{}
+An example of routing would be a computer A connected to another computer B over the internet, which itself is connected to a device C over USB: A can discover C (and vice versa) via the Root Network, since B routes messages between them. Clearly, any intermediate devices can choose to not route messages if appropriate.
+
+\section{Routine}
+
+\paragraph{}
+All messages are a part of a routine. Most routines have just two messages: a request and a reply. However, other routines can contain more messages. A routine is only between two nodes, and all messages are from one node to the other node.
+
+\section{Message Structure}
+
+\paragraph{}
+Each message consists of three sections (represented in this order):
+
+\begin{itemize}
+\item Header - gives information about the message.
+\item Data - contents and size depends on request type.
+\item Identity - contains a signature of the message by the sender's private key, and the sender's public key.
+\end{itemize}
+
+\paragraph{}
+The header comes first since it includes the version number, which can affect the fundamental structure of the rest of the message.
+
+\subsection{Header}
+
+\paragraph{Version}
+A 4 bit value giving the version number for which the message is structured. Currently the only version number is 0. If a node receives a message with a version it doesn't support, it should produce a reply with the version field set to the latest it supports and the initiating node should detect this and send a fresh request with this version - the protocol is designed to support full backwards compatibility.
+
+\paragraph{State}
+A 2 bit value giving the state of the routine of which this message is a part. An initial request has a value of 0, a reply to that request has a value of 1 etc. Clearly, the limits of this value means that routines can have up to 4 messages.
+
+\paragraph{ERR}
+A bit that indicates whether this message represents an error. This is typically used in replies for indicating problems with a request (such as an invalid signature).
+
+\paragraph{COM}
+Elliptic curve public keys are points, which are encoded with the X coordinate and one bit of the Y coordinate in 'compressed' mode. This is therefore the one bit of the Y coordinate.
+
+\paragraph{Message Type}
+An 8 bit value giving the type of the message:
+
+\begin{itemize}
+\item 0 -> IDENTIFY
+\item 1 -> PING
+\item 2 -> GET_NEAREST_NODES
+\item 3 -> SUBSCRIBE
+\item 4 -> GET_SUBSCRIBERS
+\item 5 -> SEND_MESSAGE
+\item 6 -> OPEN_STREAM
+\item 7 -> CLOSE_STREAM
+\item 8 -> SEND_STREAM_DATA
+\end{itemize}
+
+\paragraph{Message Flags/Data}
+16 bits of space for flags or data, which have meaning depending on the message type.
+
+\paragraph{Routine Identifier}
+A 32 bit value identifying the routine of which this message is a part. This value is created by the node which starts the routine; receivers simply copy this value into their replies.
+
+\paragraph{Message Counter}
+A 64 bit value used by a node to indicate the order of all messages they send, which can be verified by receivers (i.e. to prevent replays), and its value should start at 0.
+
+\paragraph{Destination Identifier}
+256 bit destination DHT identifier.
+
+\subsection{Data}
+
+\subsubsection{IDENTIFY}
+
+\paragraph{}
+An IDENTIFY message is sent to an endpoint when nothing is known about its ID.
+Requests should have a zeroed destination ID (since it's not known) in the message header. The data section is empty and the message data/flags field in the header is unused (meaning it should be zeroed).
+Replies include a single endpoint, which is the endpoint of the sender from the perspective of the receiver, and the message data/flags field in the header is unused.
+
+\subsubsection{PING}
+
+\paragraph{}
+A PING message is equivalent to an IDENTIFY message except that the message is sent to an ID rather than an endpoint, and so is subject to routing. This message is usually used to determine if a node can be reached.
+Requests are very simple: the data section is completely empty, and the message data/flags field in the header is unused.
+Replies are also simple: the data section includes a single endpoint, which is the endpoint of the sender from the perspective of the receiver, and the message data/flags field in the header is unused.
+Note that the endpoint in the reply is after routing has occurred, so may be the actual endpoint of another node which routed the message. IDENTIFY messages should be used where it is important to determine the characteristics of NATs.
+
+\subsubsection{GET_NEAREST_NODES}
+
+\paragraph{}
+Requests include a 256 bit ID for the target node ID, and the message data/flags field in the header is unused.
+Replies use the message data/flags field to indicate the number of nodes being returned. In the data section itself, each node ID is given (256 bits), followed by its endpoint, up to the number of nodes specified in the header.
+
+\subsubsection{SUBSCRIBE}
+
+\paragraph{}
+Requests include a 256 bit field in the data section which is the sub-network to be subscribed to, and the message data/flags field in the header is unused.
+Replies have an empty data section and the message data/flags field in the header is unused.
+
+\subsubsection{GET_SUBSCRIBERS}
+
+\paragraph{}
+This is identical to GET_NEAREST_NODES in structure, although in this case the purpose is clearly to obtain a list of subscribers, with the ID in the request being the sub-network ID.
+
+\subsubsection{SEND_MESSAGE}
+
+\paragraph{}
+This message type is used to send a message to a node for a particular sub-network.
+Requests include a 256 bit field in the data section for the sub-network ID, followed by the data itself. The message data/flags field in the header is used as a 16 bit data length field.
+Replies use the message data/flags field in the header to indicate the status of the stream request, which is one of the following:
+
+\begin{itemize}
+\item 0 -> Success
+\item 1 -> Sub-network not supported
+\end{itemize}
+
+\paragraph{}
+The data section is empty.
+
+\subsubsection{OPEN_STREAM}
+
+\paragraph{}
+This message type is used for establishing a stream connection between two nodes.
+This routine is a 3-way handshake, as is used with TCP.
+The first message includes a 256 bit field in the data section for the sub-network ID, and the message data/flags field in the header is unused.
+The second message uses the message data/flags field in the header to indicate the status of the stream request, which is one of the following:
+
+\begin{itemize}
+\item 0 -> Success
+\item 1 -> Sub-network not supported
+\item 2 -> Too many connections
+\end{itemize}
+
+\paragraph{}
+If successful, the data section will include a 256 bit field in the data section for the stream ID, which should be used for future messages for the stream.
+Finally, the third message is just an ACK, so the data section is empty and the message data/flags field is unused.
+
+\subsubsection{CLOSE_STREAM}
+
+\paragraph{}
+Requests include a 256 bit field in the data section for the stream ID, and the message data/flags field in the header is unused.
+Replies are simply an ACK so the data section is empty and the message data/flags field is unused.
+
+\subsubsection{SEND_STREAM_DATA}
+
+\paragraph{}
+Requests include a 256 bit field in the data section for the stream ID, followed by the data and the message data/flags field in the header gives the data length.
+Replies use the message data/flags field in the header to indicate the status of the stream request, which is one of the following:
+
+\begin{itemize}
+\item 0 -> Success
+\end{itemize}
+
+\paragraph{}
+The data section is empty.
+
+\subsection{Identity}
+
+\paragraph{}
+The identity section contains (represented in this order):
+
+\begin{itemize}
+\item A signature for {Header || Data} (concatenation), created by the sender's private key.
+\item The encoding of the X coordinate of the public point of the sender's public key.
+\end{itemize}
+
+\paragraph{}
+The signature is produced using SHA-256, and should be 64 bytes (512 bits -> twice the size of the key) in length. The public key uses the secp256k1 curve, so the public key is 256 bits in length. The value in this section is the encoding of the X coordinate of the public point, hence it is also 256 bits (32 bytes).
+
+\section{Errors}
+
+\paragraph{}
+Rather than ignoring messages with errors such as invalid signatures or improper structure, nodes will send a reply with the ERR bit set in the header. However, this should only be performed by the destination node; intermediate nodes (in routing) should route messages even if they are invalid (since nodes will look for replies based on the sender).
+
+\paragraph{}
+When ERR is set, the data/flags field in the header is a 16 bit error code. Its value can be one of the following:
+
+\begin{itemize}
+\item 0 -> INVALID_MESSAGE_FORMAT
+\item 1 -> INVALID_SIGNATURE
+\item 2 -> INVALID_COUNTER
+\item 3 -> VERSION_NOT_SUPPORTED
+\end{itemize}
+
+\section{Attacks}
+
+\subsection{Replay attack}
+
+\paragraph{}
+The message counter prevents replay attacks, which could introduce outdated information into the network, since it is easy to identify old messages. Furthermore, it provides a clear ordering to the messages.
+
+\paragraph{}
+Note that checking incoming message request counts is more complex than checking them against a counter, since messages could be delivered out of order on some protocols (e.g. UDP). A good solution is to have a counter value and a 'window' of boolean values indicating whether the counter value has appeared in a sent value (after which it cannot be used again). Each time a message arrives with a value greater than the counter, it is advanced to that value, and the window is shifted by that amount. Messages with a value lower than the counter are checked against the window (if thee values is not less than the counter value - the window size, otherwise they are simply rejected). This simply needs to be a fixed size bitset, and is unlikely to need to be longer than 8 entries, hence taking a byte of storage per node (in addition to the 8 bytes for the message counter value).
+
+\subsection{Sybil attack}
+
+\paragraph{}
+As the Root Network uses a DHT, it is vulnerable to the Sybil attack, which in this case would be an attacker creating multiple different DHT entities and then using them to restrict access to some part of the network. Similarly, an attacker can push the node data of all of its entities to the DHT, hoping that other legitimate entities are unlikely to be selected or will be removed over time to save space.
+
+\paragraph{}
+The primary solution to this problem revolves around redundancy: it doesn't matter if a single node returns useless results, we will always ask many nodes so we are likely to get some legitimate results. The same applies to storing data: always store it with many different nodes so it has the best chance of being retrieved. The solution also takes advantages of IP addresses - some systems uses the IP address or a hash of it as the DHT ID, however in this case we just want to get as wide a spread of IP addresses as possible, assuming that most attackers won't have enough widely spread IP addresses as compared to legitimate users. To make this work, IP addresses must be verified (by sending a message to the IP address in expectation of a reply). Other solutions that are likely to be deployed are favoring nodes that provided accurate information in the past, and favoring older nodes.
+
+\paragraph{}
+It is important to note that nodes cannot join the network pretending to be another node, as the node's ID is derived (SHA-256) from its public key, and all messages it sends must be signed with the corresponding private key, hence it must prove it 'owns' the ID.
+
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+

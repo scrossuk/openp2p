@@ -65,10 +65,25 @@ Note that all messages are signed with the sender's public key so intermediate n
 \paragraph{}
 An example of routing would be a computer A connected to another computer B over the internet, which itself is connected to a device C over USB: A can discover C (and vice versa) via the Root Network, since B routes messages between them. Clearly, any intermediate devices can choose to not route messages if appropriate.
 
-\section{Routine}
+\section{Routines}
 
 \paragraph{}
 All messages are a part of a routine. Most routines have just two messages: a request and a reply. However, other routines can contain more messages. A routine is only between two nodes, and all messages are from one node to the other node.
+
+\section{Sub-network Communication}
+
+\paragraph{}
+The Root Network provides functionality to allow nodes to communicate on a specific sub-network. The abstraction is similar to communication over the internet, except that Root Network IDs identify nodes on the network (similar to IP addresses) and sub-network IDs represent channels on which communication can occur (similar to TCP/UDP ports). This allows sub-network implementations to avoid the complexity of handling issues such as NAT-traversal, or identifying which nodes can connect to each other (and whether a proxy node is required). Two methods of communication are provided: unreliable and reliable.
+
+\subsection{Unreliable Communication}
+
+\paragraph{}
+Unreliable communication is very similar to UDP, since data is transmitted in messages which may or may not arrive, and may arrive out of order. Any underlying protocol can be used, however protocols such as UDP that are more similar to this communication mechanism are preferred because they are more lightweight.
+
+\subsection{Reliable Communication}
+
+\paragraph{}
+Reliable communication is very similar to TCP, since a connection is established between nodes and data is sent in a stream, in which it is guaranteed to arrive in order. Either TCP (for the internet) or another reliable protocol (for other mediums) is used as the underlying protocol. In cases where packets can be transmitted between nodes via UDP but a TCP connection cannot be established, this means reliable communication will be unavailable whereas unreliable communication will be (and vice versa).
 
 \section{Message Structure}
 

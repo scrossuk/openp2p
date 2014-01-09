@@ -4,11 +4,11 @@
 
 using namespace OpenP2P;
 
-class TestRPCSocket: public RPC::Socket<UDP::Endpoint, uint32_t>{
+class TestRPCSocket: public RPC::Socket<IP::Endpoint, uint32_t>{
 	public:
 		TestRPCSocket(UDP::Socket& socket) : socket_(socket){ }
 
-		void send(const UDP::Endpoint& endpoint, bool isRequest, const uint32_t& id, const Buffer& data){
+		void send(const IP::Endpoint& endpoint, bool isRequest, const uint32_t& id, const Buffer& data){
 			Buffer buffer;
 			BufferBuilder builder(buffer);
 			BinaryOStream stream(builder);
@@ -17,7 +17,7 @@ class TestRPCSocket: public RPC::Socket<UDP::Endpoint, uint32_t>{
 			socket_.send(endpoint, buffer);
 		}
 			
-		bool receive(UDP::Endpoint& endpoint, bool& isRequest, uint32_t& id, Buffer& data){
+		bool receive(IP::Endpoint& endpoint, bool& isRequest, uint32_t& id, Buffer& data){
 			Buffer buff;
 			if(socket_.receive(endpoint, buff)){
 				BufferIterator iterator(buff);

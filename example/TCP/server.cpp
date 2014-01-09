@@ -40,9 +40,12 @@ class ClientThread: public Runnable{
 			BinaryIOStream stream(tcpStream_);
 	
 			for(unsigned int i = 0; i < 1000; i += 2){
-				uint32_t v;
-				stream >> v;
-
+				uint32_t v = 0;
+				if (!Binary::ReadUint32(stream.getInputStream(), &v)) {
+					std::cout << "---Failed to read from stream" << std::endl;
+					return;
+				}
+				
 				if(v != i){
 					std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << " - Terminating connection" << std::endl;
 					return;
@@ -50,7 +53,10 @@ class ClientThread: public Runnable{
 
 				std::cout << "Received: " << i << std::endl;
 
-				stream << uint32_t(i + 1);
+				if (!Binary::WriteUint32(stream.getOutputStream(), i + 1)) {
+					std::cout << "---Failed to write to stream" << std::endl;
+					return;
+				}
 			}
 
 			std::cout << "---Successfully completed transfer" << std::endl;
@@ -66,7 +72,11 @@ class ClientThread: public Runnable{
 };
 
 int main(){
-	TCP::Acceptor acceptor(45556);
+	TCP::Acceptor acceptor;
+	if (!acceptor.listen(45556)) {
+		std::cout << "Error: Listen failed." << std::endl;
+		return 1;
+	}
 
 	Container<ClientThread> clientThreads;
 	Container<Thread> threads;
@@ -74,12 +84,12 @@ int main(){
 	while(true){
 		ClientThread * c = clientThreads.add(new ClientThread());
 
-		std::cout << "Start accept" << std::endl;
+		std::cout << "Start accept." << std::endl;
 		if(acceptor.accept(c->getTCPStream())){
 			//thread per connection
 			threads.add(new Thread(*c));
 		}else{
-			std::cout << "Error: Accept failed" << std::endl;
+			std::cout << "Error: Accept failed." << std::endl;
 			return 1;
 		}
 	}

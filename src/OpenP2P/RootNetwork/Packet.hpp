@@ -34,9 +34,8 @@ namespace OpenP2P{
 
 		struct PacketHeader{
 			Version version; // 4 bits.
-			bool REQ; // 1 bit.
+			uint8_t state; // 2 bits.
 			bool ERR; // 1 bit.
-			bool RES; // 1 bit.
 			bool COM; // 1 bit.
 			PacketType type; // 8 bits.
 			uint16_t data; // 16 bits.
@@ -80,18 +79,26 @@ namespace OpenP2P{
 		
 		struct SendStreamDataReply{ Status status; }
 
-		union PacketData{
+		// Using struct because union has problems with C++ types.
+		struct PacketData{
+			IdentifyRequest identifyRequest;
+			IdentifyReply identifyReply;
+			PingRequest pingRequest;
 			PingReply pingReply;
-			GetSubnetworkRequest getSubnetworkRequest;
-			GetSubnetworkReply getSubnetworkReply;
+			GetNearestNodesRequest getNearestNodesRequest;
+			GetNearestNodesReply getNearestNodesReply;
 			SubscribeRequest subscribeRequest;
 			SubscribeReply subscribeReply;
-			NodeLookupRequest nodeLookupRequest;
-			NodeLookupReply nodeLookupReply;
 			GetSubscribersRequest getSubscribersRequest;
 			GetSubscribersReply getSubscribersReply;
-			PushSubscribersRequest pushSubscribersRequest;
-			PushSubscribersReply pushSubscribersReply;
+			SendMessageRequest sendMessageRequest;
+			SendMessageReply sendMessageReply;
+			OpenStreamRequest openStreamRequest;
+			OpenStreamReply openStreamReply;
+			CloseStreamRequest closeStreamRequest;
+			CloseStreamReply closeStreamReply;
+			SendStreamDataRequest sendStreamDataRequest;
+			SendStreamDataReply sendStreamDataReply;
 		};
 		
 		struct Packet{

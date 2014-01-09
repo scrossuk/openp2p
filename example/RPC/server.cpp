@@ -12,7 +12,7 @@ int main(){
 	TestRPCSocket rpcSocket(socket);
 	TestIdGenerator idGenerator;
 
-	RPC::Protocol<UDP::Endpoint, uint32_t> protocol(rpcSocket, idGenerator);
+	RPC::Protocol<IP::Endpoint, uint32_t> protocol(rpcSocket, idGenerator);
 
 	uint32_t rpcId;
 	UDP::Endpoint endpoint;

@@ -12,6 +12,12 @@ namespace OpenP2P{
 		struct Endpoint{
 			Address address;
 			uint16_t port;
+			
+			inline Endpoint()
+				: address(), port(0) { }
+			
+			inline Endpoint(const Address& pAddress, uint16_t pPort)
+				: address(pAddress), port(pPort) { }
 		};
 
 	}

@@ -18,7 +18,7 @@ namespace OpenP2P{
 			
 			union{
 				IP::Endpoint ipEndpoint;
-			}
+			};
 		};
 
 	}

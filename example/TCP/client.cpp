@@ -9,7 +9,7 @@ int main(){
 	TCP::Stream tcpStream;
 	std::cout << "---Connecting" << std::endl;
 
-	if(!tcpStream.connect(OpenP2P::TCP::Endpoint(boost::asio::ip::address_v4::loopback(), 45556), Timeout::Seconds(5.0))){
+	if (!tcpStream.connect(IP::Endpoint(IP::V4Address::Localhost(), 45556), Timeout::Seconds(5.0))) {
 		std::cout << "---Failed to connect" << std::endl;
 		return 0;
 	}
@@ -18,14 +18,14 @@ int main(){
 
 	BinaryIOStream stream(tcpStream);
 	for(unsigned int i = 0; i < 1000; i += 2){
-		if(!Binary::WriteUint32(stream, i)){
+		if (!Binary::WriteUint32(stream.getOutputStream(), i)) {
 			std::cout << "---Failed to write to stream" << std::endl;
 			return 0;
 		}
 
-		uint32_t v;
+		uint32_t v = 0;
 		
-		if(!Binary::ReadUint32(stream, &v)){
+		if (!Binary::ReadUint32(stream.getInputStream(), &v)) {
 			std::cout << "---Failed to read from stream" << std::endl;
 			return 0;
 		}

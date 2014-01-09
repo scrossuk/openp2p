@@ -28,6 +28,14 @@ namespace OpenP2P{
 			}
 		}
 		
+		Address::Address() { }
+		
+		Address::Address(const V4Address& pAddress)
+			: version(v4), v4Address(pAddress) { }
+		
+		Address::Address(const V6Address& pAddress)
+			: version(v6), v6Address(pAddress) { }
+		
 	}
 	
 }

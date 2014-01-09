@@ -22,6 +22,11 @@ namespace OpenP2P{
 			static AddressImplType ToImpl(const Address&);
 			
 			static Address FromImpl(const AddressImplType&);
+			
+			Address();
+			Address(const V4Address& pAddress);
+			Address(const V6Address& pAddress);
+			
 		};
 		
 	}

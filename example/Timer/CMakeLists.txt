@@ -1,2 +1,2 @@
 add_executable(timerTest main.cpp)
-target_link_libraries(timerTest boost_thread-mt boost_system-mt openp2p)
+target_link_libraries(timerTest openp2p boost_thread boost_system)

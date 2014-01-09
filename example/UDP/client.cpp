@@ -13,20 +13,20 @@ int main(){
 		Buffer buffer;
 		BufferBuilder builder(buffer);
 		BinaryOStream binaryStream(builder);
-		binaryStream << uint16_t(0);
+		Binary::WriteUint16(binaryStream, 0);
 
-		socket.send(UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 45557), buffer);
+		socket.send(IP::Endpoint(IP::V4Address::Localhost(), 45557), buffer);
 	}
 	
 	std::cout << "Sent: 0" << std::endl;
 	
 	uint16_t v = 1;
 	
-	while(true){
+	while (true) {
 		UDP::Endpoint endpoint;
 		Buffer data;
 		
-		if(!socket.receive(endpoint, data)){
+		if (!socket.receive(endpoint, data)) {
 			std::cout << "Server failed to respond in time" << std::endl;
 			break;
 		}
@@ -36,17 +36,17 @@ int main(){
 		{
 			BufferIterator iterator(data);
 			BinaryIStream binaryStream(iterator);
-			binaryStream >> i;
+			Binary::ReadUint16(binaryStream, i);
 		}
 		
 		std::cout << "Received: " << i << " from " << endpoint << std::endl;
 		
-		if(i != v){
+		if (i != v) {
 			std::cout << "Incorrect data received: " << i << std::endl;
 			break;
 		}
 		
-		if(i < 10000){
+		if (i < 10000) {
 			v += 2;
 			std::cout << "Sent: " << (i + 1) << std::endl;
 			Buffer buffer;
@@ -56,7 +56,7 @@ int main(){
 			socket.send(endpoint, buffer);
 		}
 		
-		if(i >= 9999){
+		if (i >= 9999) {
 			std::cout << "Completed Successfully" << std::endl;
 			break;
 		}

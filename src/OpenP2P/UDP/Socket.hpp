@@ -13,32 +13,32 @@
 
 #include <OpenP2P/IP/Endpoint.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace UDP{
-
-		class Socket: public OpenP2P::Socket<IP::Endpoint>, boost::noncopyable{
+	namespace UDP {
+	
+		class Socket: public OpenP2P::Socket<IP::Endpoint>, boost::noncopyable {
 			public:
 				Socket();
 				
 				bool open();
 				
 				bool bind(unsigned short port);
-
-				std::size_t send(const IP::Endpoint& endpoint, const uint8_t * data, std::size_t size, Timeout timeout);
-
-				std::size_t receive(IP::Endpoint * endpoint, uint8_t * data, std::size_t size, Timeout timeout);
-
+				
+				std::size_t send(const IP::Endpoint& endpoint, const uint8_t* data, std::size_t size, Timeout timeout);
+				
+				std::size_t receive(IP::Endpoint* endpoint, uint8_t* data, std::size_t size, Timeout timeout);
+				
 				void close();
-
+				
 			private:
 				Mutex mutex_;
 				boost::asio::ip::udp::socket internalSocket_;
-
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

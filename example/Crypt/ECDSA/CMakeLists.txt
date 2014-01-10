@@ -1,2 +1,2 @@
 add_executable(ecdsaTest main.cpp)
-target_link_libraries(ecdsaTest boost_thread boost_system cryptopp openp2p openp2p-crypt)
+target_link_libraries(ecdsaTest openp2p-crypt openp2p boost_thread boost_system cryptopp pthread)

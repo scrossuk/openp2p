@@ -7,38 +7,39 @@
 #include <OpenP2P/Signal.hpp>
 #include <OpenP2P/Timeout.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	Signal::Signal() : isActivated_(false){ }
-
-	void Signal::activate(){
+	Signal::Signal() : isActivated_(false) { }
+	
+	void Signal::activate() {
 		Lock lock(mutex_);
 		cond_.notifyAll();
 		isActivated_ = true;
 	}
-
-	void Signal::reset(){
+	
+	void Signal::reset() {
 		Lock lock(mutex_);
 		isActivated_ = false;
 	}
-
-	bool Signal::isActivated(){
+	
+	bool Signal::isActivated() {
 		Lock lock(mutex_);
 		return isActivated_;
 	}
-
-	bool Signal::wait(Timeout timeout){
+	
+	bool Signal::wait(Timeout timeout) {
 		Lock lock(mutex_);
-		if(!isActivated_){
+		
+		if (!isActivated_) {
 			return cond_.wait(lock, timeout);
-		}else{
+		} else {
 			return true;
 		}
 	}
-
-	void Signal::cancel(){
+	
+	void Signal::cancel() {
 		cond_.notifyAll();
 	}
-
+	
 }
 

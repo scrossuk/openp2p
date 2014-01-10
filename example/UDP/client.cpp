@@ -4,17 +4,17 @@
 
 using namespace OpenP2P;
 
-int main(){
+int main() {
 	std::cout << "Start client" << std::endl;
-
+	
 	UDP::Socket socket;
-
+	
 	{
 		Buffer buffer;
 		BufferBuilder builder(buffer);
 		BinaryOStream binaryStream(builder);
 		Binary::WriteUint16(binaryStream, 0);
-
+		
 		socket.send(IP::Endpoint(IP::V4Address::Localhost(), 45557), buffer);
 	}
 	
@@ -61,7 +61,7 @@ int main(){
 			break;
 		}
 	}
-
+	
 	return 0;
 }
 

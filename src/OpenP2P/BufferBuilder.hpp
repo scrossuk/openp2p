@@ -7,21 +7,21 @@
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	class BufferBuilder: public OutputStream{
+	class BufferBuilder: public OutputStream {
 		public:
 			BufferBuilder(Buffer&);
 			
 			std::size_t waitForSpace(Timeout);
-
-			bool write(const uint8_t * data, std::size_t size, Timeout);
-
+			
+			bool write(const uint8_t* data, std::size_t size, Timeout);
+			
 		private:
 			Buffer& buffer_;
-
+			
 	};
-
+	
 }
 
 #endif

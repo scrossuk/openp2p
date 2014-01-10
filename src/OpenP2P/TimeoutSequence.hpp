@@ -4,19 +4,19 @@
 #include <OpenP2P/Timeout.hpp>
 #include <OpenP2P/Timer.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	class TimeoutSequence{
+	class TimeoutSequence {
 		public:
 			inline TimeoutSequence(Timeout timeout)
 				: timeout_(timeout),
-				startTime_(timer_.getTime()){ }
-			
-			inline Timeout getTimeout(){
+				  startTime_(timer_.getTime()) { }
+				  
+			inline Timeout getTimeout() {
 				return Timeout::Seconds(timeout_.seconds() - (timer_.getTime() - startTime_));
 			}
 			
-			inline bool hasExpired(){
+			inline bool hasExpired() {
 				return getTimeout().hasExpired();
 			}
 			
@@ -24,7 +24,7 @@ namespace OpenP2P{
 			Timeout timeout_;
 			Timer timer_;
 			double startTime_;
-		
+			
 	};
 	
 }

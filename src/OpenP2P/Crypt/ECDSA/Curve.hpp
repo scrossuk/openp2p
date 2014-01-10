@@ -3,21 +3,21 @@
 
 #include <cryptopp/oids.h>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Crypt{
-
-		namespace ECDSA{
-
-			enum Curve{
+	namespace Crypt {
+	
+		namespace ECDSA {
+		
+			enum Curve {
 				brainpoolP256r1,
 				brainpoolP512r1
 			};
-
+			
 		}
-
+		
 	}
-
+	
 }
 
 #endif

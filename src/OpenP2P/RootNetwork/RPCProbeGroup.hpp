@@ -14,44 +14,45 @@
 #include <OpenP2P/RootNetwork/Node.hpp>
 #include <OpenP2P/RootNetwork/Parameters.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
-		class RPCProbeGroup{
-			typedef Kademlia::NodeQueue<Endpoint, IdSize> QueueType;
-
+	namespace RootNetwork {
+	
+		class RPCProbeGroup {
+				typedef Kademlia::NodeQueue<Endpoint, IdSize> QueueType;
+				
 			public:
-				inline RPCProbeGroup(RPC::Protocol<Endpoint, Id>& protocol, QueueType& queue, const Buffer& request) : rpcGroup_(protocol){
+				inline RPCProbeGroup(RPC::Protocol<Endpoint, Id>& protocol, QueueType& queue, const Buffer& request) : rpcGroup_(protocol) {
 					std::vector<Node> nearestUnvisited = queue.getNearestUnvisited(NumProbes);
-					for(std::vector<Node>::iterator i = nearestUnvisited.begin(); i != nearestUnvisited.end(); ++i){
+					
+					for (std::vector<Node>::iterator i = nearestUnvisited.begin(); i != nearestUnvisited.end(); ++i) {
 						rpcGroup_.add(i->endpoint, request);
 					}
 				}
-
-				inline void execute(){
+				
+				inline void execute() {
 					rpcGroup_.execute();
 				}
-
-				inline std::size_t size() const{
+				
+				inline std::size_t size() const {
 					return NumProbes;
 				}
-
-				inline bool hasReply(std::size_t i){
+				
+				inline bool hasReply(std::size_t i) {
 					return rpcGroup_.hasReply(i);
 				}
-
-				inline Buffer getReply(std::size_t i){
+				
+				inline Buffer getReply(std::size_t i) {
 					return rpcGroup_.getReply(i);
 				}
-
+				
 			private:
 				RPC::Group<Endpoint, Id> rpcGroup_;
-
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

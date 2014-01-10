@@ -6,34 +6,35 @@
 #include <OpenP2P/RootNetwork/Id.hpp>
 #include <OpenP2P/RootNetwork/Parameters.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
+	namespace RootNetwork {
+	
 		//Simple increment ID generator
-		class IdGenerator : public OpenP2P::IdGenerator<Id>{
+		class IdGenerator : public OpenP2P::IdGenerator<Id> {
 			public:
-				inline IdGenerator() : id_(Id::Zero()){ }
-
-				inline Id generate(){
-					for(unsigned int i = IdSize - 1; i >= 0; i--){
-						if(id_.data[i] == 255){
+				inline IdGenerator() : id_(Id::Zero()) { }
+				
+				inline Id generate() {
+					for (unsigned int i = IdSize - 1; i >= 0; i--) {
+						if (id_.data[i] == 255) {
 							id_.data[i] = 0;
-						}else{
+						} else {
 							id_.data[i]++;
 							return id_;
 						}
 					}
+					
 					return id_;
 				}
-
+				
 			private:
 				Id id_;
-
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

@@ -9,27 +9,27 @@ namespace OpenP2P {
 	namespace Notification {
 	
 		Notifier::Notifier()
-			: isComplete_(false){ }
+			: isComplete_(false) { }
 			
-		void Notifier::addHandler(Handler * handler) {
+		void Notifier::addHandler(Handler* handler) {
 			Lock lock(mutex_);
 			
-			if(isComplete_) {
+			if (isComplete_) {
 				handler->notify();
 			} else {
 				handlers_.insert(handler);
 			}
 		}
 		
-		void Notifier::removeHandler(Handler * handler) {
+		void Notifier::removeHandler(Handler* handler) {
 			Lock lock(mutex_);
 			
 			// If it is complete, the handler must already have been notified.
-			if(!isComplete_) {
-				std::multiset<Handler *>::iterator it;
+			if (!isComplete_) {
+				std::multiset<Handler*>::iterator it;
 				it = handlers_.find(handler);
 				
-				if(it != handlers_.end()) {
+				if (it != handlers_.end()) {
 					handlers_.erase(it);
 				}
 			}
@@ -43,10 +43,10 @@ namespace OpenP2P {
 		void Notifier::notify() {
 			Lock lock(mutex_);
 			
-			if(!isComplete_) {
-				std::multiset<Handler *>::iterator it;
+			if (!isComplete_) {
+				std::multiset<Handler*>::iterator it;
 				
-				for(it = handlers_.begin(); it != handlers_.end(); ++it) {
+				for (it = handlers_.begin(); it != handlers_.end(); ++it) {
 					(*it)->notify();
 				}
 				

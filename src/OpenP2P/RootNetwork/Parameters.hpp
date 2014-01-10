@@ -3,10 +3,10 @@
 
 #include <cstddef>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
+	namespace RootNetwork {
+	
 		const std::size_t NumProbes = 3; // Amount of concurrency for lookups.
 		const std::size_t IdSize = 32; // 32 bytes = 256 bits.
 		const std::size_t MaxBucketSize = 20; // Maximum number of nodes in each bucket.

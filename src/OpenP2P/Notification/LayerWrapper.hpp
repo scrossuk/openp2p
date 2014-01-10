@@ -3,15 +3,15 @@
 
 #include <OpenP2P/Notification/LayerPtr.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Notification{
-
+	namespace Notification {
+	
 		template <typename T>
-		class LayerWrapper{
+		class LayerWrapper {
 			public:
 				virtual LayerPtr<T> getLayer() const = 0;
-	
+				
 		};
 		
 	}

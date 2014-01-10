@@ -4,19 +4,19 @@
 #include <boost/shared_ptr.hpp>
 #include <OpenP2P/Notification/Layer.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Notification{
-
+	namespace Notification {
+	
 		template <typename T>
-		class LayerPtr: public boost::shared_ptr< Layer<T> >{
+		class LayerPtr: public boost::shared_ptr< Layer<T> > {
 			public:
-				LayerPtr(){ }
+				LayerPtr() { }
 				
 				template <typename P>
 				LayerPtr(P ptr)
-					: boost::shared_ptr< Layer<T> >(ptr){ }
-			
+					: boost::shared_ptr< Layer<T> >(ptr) { }
+					
 		};
 		
 	}

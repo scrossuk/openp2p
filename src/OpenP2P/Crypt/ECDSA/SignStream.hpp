@@ -20,57 +20,57 @@
 #include <OpenP2P/Crypt/RandomPool.hpp>
 #include <OpenP2P/Crypt/ECDSA/PrivateKey.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Crypt{
-
-		namespace ECDSA{
-
-			class SignStream: boost::noncopyable, public OutputStream{
+	namespace Crypt {
+	
+		namespace ECDSA {
+		
+			class SignStream: boost::noncopyable, public OutputStream {
 				public:
 					inline SignStream(RandomPool& pool, const PrivateKey& privateKey)
-						: signer_(privateKey){
-
+						: signer_(privateKey) {
+						
 						filter_ = new CryptoPP::SignerFilter(pool,
-								signer_,
-								new CryptoPP::StringSink(signature_)
-							);
+															 signer_,
+															 new CryptoPP::StringSink(signature_)
+															);
 					}
-
-					inline ~SignStream(){
+					
+					inline ~SignStream() {
 						delete filter_;
 					}
 					
-					inline EventHandle writeEvent(){
+					inline EventHandle writeEvent() {
 						return EventHandle::True;
 					}
 					
-					inline std::size_t waitForSpace(Timeout){
+					inline std::size_t waitForSpace(Timeout) {
 						// TODO: need to work this out properly.
 						return std::numeric_limits<std::size_t>::max();
 					}
-
-					inline bool write(const uint8_t * data, std::size_t size, Timeout){
-						return filter_->Put((byte *) data, size) == size;
+					
+					inline bool write(const uint8_t* data, std::size_t size, Timeout) {
+						return filter_->Put((byte*) data, size) == size;
 					}
-
-					inline Buffer signature(){
+					
+					inline Buffer signature() {
 						filter_->MessageEnd();
-
+						
 						return Buffer(signature_.begin(), signature_.end());
 					}
-
+					
 				private:
 					std::string signature_;
 					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer_;
-					CryptoPP::Filter * filter_;
+					CryptoPP::Filter* filter_;
 					
 			};
-
+			
 		}
-
+		
 	}
-
+	
 }
 
 #endif

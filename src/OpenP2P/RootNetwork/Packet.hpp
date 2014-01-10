@@ -6,15 +6,15 @@
 #include <OpenP2P/RootNetwork/Id.hpp>
 #include <OpenP2P/RootNetwork/Node.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
-		enum Version{
+	namespace RootNetwork {
+	
+		enum Version {
 			VERSION_0 = 0 // Currently only one version.
 		};
-
-		enum PacketType{
+		
+		enum PacketType {
 			TYPE_IDENTIFY = 0,
 			TYPE_PING = 1,
 			TYPE_GETNEARESTNODES = 2,
@@ -26,13 +26,13 @@ namespace OpenP2P{
 			TYPE_SENDSTREAMDATA = 8
 		};
 		
-		enum Status{
+		enum Status {
 			STATUS_SUCCESS = 0,
 			STATUS_SUBNETWORKUNSUPPORTED = 1,
 			STATUS_TOOMANYCONNECTIONS = 2
 		};
-
-		struct PacketHeader{
+		
+		struct PacketHeader {
 			Version version; // 4 bits.
 			uint8_t state; // 2 bits.
 			bool ERR; // 1 bit.
@@ -43,44 +43,77 @@ namespace OpenP2P{
 			Id destinationId; // 256 bits.
 		};
 		
-		struct IdentifyRequest{ };
+		struct IdentifyRequest { };
 		
-		struct IdentifyReply{ Endpoint endpoint; }
+		struct IdentifyReply {
+			Endpoint endpoint;
+		}
 		
-		struct PingRequest{ };
+		struct PingRequest { };
 		
-		struct PingReply{ Endpoint endpoint; };
+		struct PingReply {
+			Endpoint endpoint;
+		};
 		
-		struct GetNearestNodesRequest{ Id nodeId; }
+		struct GetNearestNodesRequest {
+			Id nodeId;
+		}
 		
-		struct GetNearestNodesReply{ std::vector<Node> nodeList; }
+		struct GetNearestNodesReply {
+			std::vector<Node> nodeList;
+		}
 		
-		struct SubscribeRequest{ Id subnetworkId; };
+		struct SubscribeRequest {
+			Id subnetworkId;
+		};
 		
-		struct SubscribeReply{ };
+		struct SubscribeReply { };
 		
-		struct GetSubscribersRequest{ Id subnetworkId; };
+		struct GetSubscribersRequest {
+			Id subnetworkId;
+		};
 		
-		struct GetSubscribersReply{ std::vector<Node> subscriberList; };
+		struct GetSubscribersReply {
+			std::vector<Node> subscriberList;
+		};
 		
-		struct SendMessageRequest{ Id subnetworkId; Buffer data; }
+		struct SendMessageRequest {
+			Id subnetworkId;
+			Buffer data;
+		}
 		
-		struct SendMessageReply{ Status status; }
+		struct SendMessageReply {
+			Status status;
+		}
 		
-		struct OpenStreamRequest{ Id subnetworkId; }
+		struct OpenStreamRequest {
+			Id subnetworkId;
+		}
 		
-		struct OpenStreamReply{ Status status; Id streamId; }
+		struct OpenStreamReply {
+			Status status;
+			Id streamId;
+		}
 		
-		struct CloseStreamRequest{ Id streamId; }
+		struct CloseStreamRequest {
+			Id streamId;
+		}
 		
-		struct CloseStreamReply{ Status status; }
+		struct CloseStreamReply {
+			Status status;
+		}
 		
-		struct SendStreamDataRequest{ Id streamId; Buffer data; }
+		struct SendStreamDataRequest {
+			Id streamId;
+			Buffer data;
+		}
 		
-		struct SendStreamDataReply{ Status status; }
-
+		struct SendStreamDataReply {
+			Status status;
+		}
+		
 		// Using struct because union has problems with C++ types.
-		struct PacketData{
+		struct PacketData {
 			IdentifyRequest identifyRequest;
 			IdentifyReply identifyReply;
 			PingRequest pingRequest;
@@ -101,21 +134,21 @@ namespace OpenP2P{
 			SendStreamDataReply sendStreamDataReply;
 		};
 		
-		struct Packet{
+		struct Packet {
 			PacketHeader header;
 			PacketData data;
 		};
 		
-		bool ReadPacketHeader(BinaryIStream& stream, PacketHeader * header, Timeout timeout = Timeout::Infinite());
+		bool ReadPacketHeader(BinaryIStream& stream, PacketHeader* header, Timeout timeout = Timeout::Infinite());
 		
 		bool WritePacketHeader(BinaryOStream& stream, const PacketHeader& header, Timeout timeout = Timeout::Infinite());
 		
-		bool ReadPacket(BinaryIStream& stream, Packet * packet, Timeout timeout = Timeout::Infinite());
+		bool ReadPacket(BinaryIStream& stream, Packet* packet, Timeout timeout = Timeout::Infinite());
 		
 		bool WritePacket(BinaryOStream& stream, const Packet& packet, Timeout timeout = Timeout::Infinite());
-
+		
 	}
-
+	
 }
 
 #endif

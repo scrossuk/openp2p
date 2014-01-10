@@ -5,23 +5,23 @@
 #include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/IP/Address.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace IP{
-
-		struct Endpoint{
+	namespace IP {
+	
+		struct Endpoint {
 			Address address;
 			uint16_t port;
 			
 			inline Endpoint()
 				: address(), port(0) { }
-			
+				
 			inline Endpoint(const Address& pAddress, uint16_t pPort)
 				: address(pAddress), port(pPort) { }
 		};
-
+		
 	}
-
+	
 }
 
 #endif

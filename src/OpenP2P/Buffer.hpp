@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include <vector>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
 	typedef std::vector<uint8_t> Buffer;
-
+	
 	//void printBuffer(const Buffer&);
-
+	
 }
 
 #endif

@@ -9,35 +9,35 @@
 
 #include <OpenP2P/Crypt/ECDSA/PrivateKey.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Crypt{
-
-		namespace ECDSA{
-
-			class PublicKey{
+	namespace Crypt {
+	
+		namespace ECDSA {
+		
+			class PublicKey {
 				public:
-					inline PublicKey(PrivateKey& privateKey){
+					inline PublicKey(PrivateKey& privateKey) {
 						((CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey&) privateKey).MakePublicKey(publicKey_);
 					}
-
-					inline operator CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey&(){
+					
+					inline operator CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& () {
 						return publicKey_;
 					}
-
-					inline operator const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey&() const{
+					
+					inline operator const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& () const {
 						return publicKey_;
 					}
-
+					
 				private:
 					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey_;
-
+					
 			};
-
+			
 		}
-
+		
 	}
-
+	
 }
 
 #endif

@@ -6,20 +6,20 @@
 
 #include <cryptopp/osrng.h>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Crypt{
-
-		class RandomPool{
+	namespace Crypt {
+	
+		class RandomPool {
 			public:
-				virtual void generateBlock(uint8_t * data, std::size_t size) = 0;
-
-				virtual operator CryptoPP::RandomPool&() = 0;
-
+				virtual void generateBlock(uint8_t* data, std::size_t size) = 0;
+				
+				virtual operator CryptoPP::RandomPool& () = 0;
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

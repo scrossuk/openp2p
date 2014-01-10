@@ -4,14 +4,14 @@
 #include <OpenP2P/Kademlia/Id.hpp>
 #include <OpenP2P/RootNetwork/Parameters.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
+	namespace RootNetwork {
+	
 		typedef Kademlia::Id<IdSize> Id;
-
+		
 	}
-
+	
 }
 
 #endif

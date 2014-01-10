@@ -10,47 +10,50 @@
 #include <OpenP2P/Crypt/RandomPool.hpp>
 #include <OpenP2P/Crypt/ECDSA/Curve.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Crypt{
-
-		namespace ECDSA{
-
-			class PrivateKey{
+	namespace Crypt {
+	
+		namespace ECDSA {
+		
+			class PrivateKey {
 				public:
-					inline PrivateKey(RandomPool& pool, Curve curve){
+					inline PrivateKey(RandomPool& pool, Curve curve) {
 						CryptoPP::OID oid;
-						switch(curve){
+						
+						switch (curve) {
 							case brainpoolP256r1:
 								oid = CryptoPP::ASN1::brainpoolP256r1();
 								break;
+								
 							case brainpoolP512r1:
 								oid = CryptoPP::ASN1::brainpoolP512r1();
 								break;
+								
 							default:
 								oid = CryptoPP::ASN1::brainpoolP256r1();
 						}
-
+						
 						privateKey_.Initialize(pool, oid);
 					}
-
-					inline operator CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey&(){
+					
+					inline operator CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& () {
 						return privateKey_;
 					}
-
-					inline operator const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey&() const{
+					
+					inline operator const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& () const {
 						return privateKey_;
 					}
-
+					
 				private:
 					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey privateKey_;
-
+					
 			};
-
+			
 		}
-
+		
 	}
-
+	
 }
 
 #endif

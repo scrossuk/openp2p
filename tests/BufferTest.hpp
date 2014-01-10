@@ -25,7 +25,7 @@ class BufferTest: public Test {
 				BufferBuilder builder(buffer);
 				BinaryOStream stream(builder);
 				
-				if(!(stream << a << b << c)) {
+				if (!(stream << a << b << c)) {
 					output.error("Failed to build buffer");
 					return false;
 				}
@@ -38,7 +38,7 @@ class BufferTest: public Test {
 				BinaryIStream readStream(iterator);
 				readStream >> d >> e >> f;
 				
-				if(a != d || b != e || c != f) {
+				if (a != d || b != e || c != f) {
 					output.error("Data from iterator does not match data from building the buffer");
 					return false;
 				}
@@ -46,7 +46,7 @@ class BufferTest: public Test {
 				//All data in buffer should have been consumed - so this should fail
 				uint8_t someData;
 				
-				if(readStream >> someData) {
+				if (readStream >> someData) {
 					output.error("Iterator gives more data than it should");
 					return false;
 				}

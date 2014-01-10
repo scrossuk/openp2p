@@ -12,23 +12,23 @@
 
 #include <OpenP2P/IP/Endpoint.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace TCP{
-
-		class Resolver: boost::noncopyable{
+	namespace TCP {
+	
+		class Resolver: boost::noncopyable {
 			public:
 				Resolver();
-			
+				
 				boost::optional< std::vector<IP::Endpoint> > resolve(const std::string& host, const std::string& service, Timeout timeout = Timeout::Infinite());
-
+				
 			private:
 				boost::asio::ip::tcp::resolver internalResolver_;
-
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

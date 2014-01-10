@@ -4,11 +4,11 @@
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/PublicIdentity.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
+	namespace RootNetwork {
 	
-		class Service{
+		class Service {
 			public:
 				Service(PrivateIdentity& identity);
 				
@@ -28,11 +28,11 @@ namespace OpenP2P{
 				
 			private:
 				PrivateIdentity& identity_;
-		
+				
 		};
-	
+		
 	}
-
+	
 }
 
 #endif

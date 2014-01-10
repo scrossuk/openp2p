@@ -12,17 +12,17 @@
 
 #include <OpenP2P/TCP/Resolver.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace TCP{
-
-		namespace{
-
-			void resolveCallback(Signal * signal, bool * resolveResult, std::vector<IP::Endpoint> * endpointList,
-					const boost::system::error_code& ec, boost::asio::ip::tcp::resolver::iterator iterator){
-
-				if(!ec){
-					for(boost::asio::ip::tcp::resolver::iterator end; iterator != end; ++iterator){
+	namespace TCP {
+	
+		namespace {
+		
+			void resolveCallback(Signal* signal, bool* resolveResult, std::vector<IP::Endpoint>* endpointList,
+								 const boost::system::error_code& ec, boost::asio::ip::tcp::resolver::iterator iterator) {
+								 
+				if (!ec) {
+					for (boost::asio::ip::tcp::resolver::iterator end; iterator != end; ++iterator) {
 						const boost::asio::ip::tcp::endpoint& endpointImpl = *iterator;
 						
 						IP::Endpoint endpoint;
@@ -35,12 +35,12 @@ namespace OpenP2P{
 				*resolveResult = !bool(ec);
 				signal->activate();
 			}
-
+			
 		}
 		
-		Resolver::Resolver() : internalResolver_(GetIOService()){ }
-
-		boost::optional< std::vector<IP::Endpoint> > Resolver::resolve(const std::string& host, const std::string& service, Timeout timeout){
+		Resolver::Resolver() : internalResolver_(GetIOService()) { }
+		
+		boost::optional< std::vector<IP::Endpoint> > Resolver::resolve(const std::string& host, const std::string& service, Timeout timeout) {
 			boost::asio::ip::tcp::resolver::query query(host, service);
 			
 			bool resolveResult = false;
@@ -48,20 +48,20 @@ namespace OpenP2P{
 			Signal signal;
 			
 			std::vector<IP::Endpoint> endpointList;
-
+			
 			internalResolver_.async_resolve(query,
-				boost::bind(resolveCallback, &signal, &resolveResult, &endpointList, _1, _2));
-				
-			if(signal.wait(timeout)){
+											boost::bind(resolveCallback, &signal, &resolveResult, &endpointList, _1, _2));
+											
+			if (signal.wait(timeout)) {
 				return resolveResult ? boost::make_optional(endpointList) : boost::optional< std::vector<IP::Endpoint> >();
-			}else{
+			} else {
 				internalResolver_.cancel();
 				signal.wait();
 				return boost::optional< std::vector<IP::Endpoint> >();
 			}
 		}
-
+		
 	}
-
+	
 }
 

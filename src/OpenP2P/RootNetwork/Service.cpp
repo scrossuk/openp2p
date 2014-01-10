@@ -1,11 +1,11 @@
 #ifndef OPENP2P_ROOTNETWORK_SERVICE_HPP
 #define OPENP2P_ROOTNETWORK_SERVICE_HPP
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
+	namespace RootNetwork {
 	
-		class Service{
+		class Service {
 			public:
 				Service(PrivateIdentity& identity);
 				
@@ -25,11 +25,11 @@ namespace OpenP2P{
 				
 			private:
 				PrivateIdentity& identity_;
-		
+				
 		};
-	
+		
 	}
-
+	
 }
 
 #endif

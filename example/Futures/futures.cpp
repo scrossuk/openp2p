@@ -9,11 +9,11 @@
 
 using namespace OpenP2P;
 
-class PromiseThread: public Runnable{
+class PromiseThread: public Runnable {
 	public:
-		PromiseThread(){ }
-			
-		void run(){
+		PromiseThread() { }
+		
+		void run() {
 			promise1_.setValue("First test");
 			OpenP2P::IOService ioService;
 			boost::asio::deadline_timer timer(ioService);
@@ -22,45 +22,45 @@ class PromiseThread: public Runnable{
 			promise2_.setValue("Second test");
 		}
 		
-		void cancel(){
-			
+		void cancel() {
+		
 		}
 		
 		Promise<std::string> promise1_;
 		Promise<std::string> promise2_;
-	
+		
 };
 
-std::size_t transform1(std::string string){
+std::size_t transform1(std::string string) {
 	std::cout << "Transform 1" << std::endl;
 	return string.size();
 }
 
-std::string transform2(std::size_t size){
+std::string transform2(std::size_t size) {
 	std::cout << "Transform 2" << std::endl;
 	std::ostringstream stream;
 	stream << size;
 	return stream.str();
 }
 
-std::string transform3(const std::string& string){
+std::string transform3(const std::string& string) {
 	std::cout << "Transform 3" << std::endl;
 	std::ostringstream stream;
 	stream << "[" << string << "]";
 	return stream.str();
 }
 
-std::string joinTransform(std::pair<std::string, std::string> pair){
+std::string joinTransform(std::pair<std::string, std::string> pair) {
 	return std::string("(") + pair.first + std::string("|") + pair.second + std::string(")");
 }
 
-int main(){
+int main() {
 	PromiseThread promiseThread;
 	Thread thread(promiseThread);
 	
 	// Compose three times.
 	std::cout << "1" << std::endl;
-	Future<std::string> * interFuture = new Future<std::string>(Future<std::string>(promiseThread.promise1_).compose<std::size_t>(transform1).compose<std::string>(transform2));
+	Future<std::string>* interFuture = new Future<std::string>(Future<std::string>(promiseThread.promise1_).compose<std::size_t>(transform1).compose<std::string>(transform2));
 	
 	std::cout << "2" << std::endl;
 	

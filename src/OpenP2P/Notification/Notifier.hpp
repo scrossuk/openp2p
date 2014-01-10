@@ -12,10 +12,10 @@ namespace OpenP2P {
 		class Notifier {
 			public:
 				Notifier();
-					
-				void addHandler(Handler * handler);
 				
-				void removeHandler(Handler * handler);
+				void addHandler(Handler* handler);
+				
+				void removeHandler(Handler* handler);
 				
 				bool isComplete();
 				
@@ -24,7 +24,7 @@ namespace OpenP2P {
 			private:
 				Mutex mutex_;
 				bool isComplete_;
-				std::multiset<Handler *> handlers_;
+				std::multiset<Handler*> handlers_;
 				
 		};
 		

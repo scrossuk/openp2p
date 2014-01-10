@@ -15,22 +15,22 @@ namespace OpenP2P {
 	void IOServiceThread::cancel() {
 		work_.reset();
 		
-		if(!wait_) {
+		if (!wait_) {
 			internalIOService_.stop();
 		}
 	}
 	
 	IOService::IOService(bool wait) : internalIOService_(1), ioThread_(internalIOService_, wait), thread_(ioThread_) { }
 	
-	void IOService::post(boost::function<void ()> function){
+	void IOService::post(boost::function<void ()> function) {
 		internalIOService_.post(function);
 	}
 	
-	IOService::operator boost::asio::io_service&() {
+	IOService::operator boost::asio::io_service& () {
 		return internalIOService_;
 	}
 	
-	IOService& GetIOService(){
+	IOService& GetIOService() {
 		static IOService service(true);
 		return service;
 	}

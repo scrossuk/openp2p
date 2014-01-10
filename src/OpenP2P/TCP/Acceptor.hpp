@@ -11,25 +11,25 @@
 
 #include <OpenP2P/TCP/Stream.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace TCP{
-
-		class Acceptor: boost::noncopyable{
+	namespace TCP {
+	
+		class Acceptor: boost::noncopyable {
 			public:
 				Acceptor();
 				
 				bool listen(unsigned short port);
-
+				
 				bool accept(Stream& stream, Timeout timeout = Timeout::Infinite());
-
+				
 			private:
 				boost::asio::ip::tcp::acceptor internalAcceptor_;
-
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

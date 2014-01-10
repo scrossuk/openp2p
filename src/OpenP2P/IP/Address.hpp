@@ -5,16 +5,16 @@
 #include <OpenP2P/IP/V4Address.hpp>
 #include <OpenP2P/IP/V6Address.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace IP{
+	namespace IP {
 	
 		typedef boost::asio::ip::address AddressImplType;
 		
-		struct Address{
+		struct Address {
 			Version version;
 			
-			union{
+			union {
 				V4Address v4Address;
 				V6Address v6Address;
 			};

@@ -3,18 +3,18 @@
 
 #include <OpenP2P/Stream.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace OFTorrent{
-
-		class OutputStreamGenerator{
+	namespace OFTorrent {
+	
+		class OutputStreamGenerator {
 			public:
 				virtual OutputStream& getNextOutputStream() = 0;
-
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

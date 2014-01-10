@@ -9,7 +9,7 @@
 #include <OpenP2P/EventDispatcher.hpp>
 #include <OpenP2P/Stream.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
 	/**
 	 * This class provides a way to read data from a stream without consuming it immediately.
@@ -17,10 +17,10 @@ namespace OpenP2P{
 	 * smaller read than the other it is necessary to keep the data from the larger read.
 	 * Note that, as with all streams, instances of this class are NOT thread safe.
 	 */
-	class BufferedStream{
+	class BufferedStream {
 		public:
 			static const std::size_t DefaultBufferSize = 4096;
-		
+			
 			/**
 			 * Constructs a buffered stream on top of an input stream.
 			 *
@@ -34,7 +34,7 @@ namespace OpenP2P{
 			 *
 			 * @return Pointer to internal buffer.
 			 */
-			inline const uint8_t * get() const{
+			inline const uint8_t* get() const {
 				return data_.get();
 			}
 			
@@ -44,7 +44,7 @@ namespace OpenP2P{
 			 * @param pos Position in internal buffer to read.
 			 * @return Byte in internal buffer at position given.
 			 */
-			inline uint8_t operator[](std::size_t pos) const{
+			inline uint8_t operator[](std::size_t pos) const {
 				return data_[pos];
 			}
 			
@@ -54,10 +54,10 @@ namespace OpenP2P{
 			 * @param timeout Maximum amount of time this method can block.
 			 * @return Amount of data now in the internal buffer (0 if underlying stream has no more data, or timeout occurs).
 			 */
-			inline std::size_t readAll(Timeout timeout){
+			inline std::size_t readAll(Timeout timeout) {
 				return read(bufferSize_, timeout);
 			}
-
+			
 			/**
 			 * Reads some data from the underlying stream to the internal buffer. Note that
 			 * no reading will occur if the internal buffer already holds the amount of
@@ -68,7 +68,7 @@ namespace OpenP2P{
 			 * @return Amount of data now in the internal buffer (0 if underlying stream has no more data).
 			 */
 			std::size_t read(std::size_t dataSize, Timeout timeout);
-
+			
 			/**
 			 * Consume a certain amount of data that has been read, indicating it is
 			 * no longer needed.
@@ -82,7 +82,7 @@ namespace OpenP2P{
 			 *
 			 * @return The data size.
 			 */
-			inline std::size_t size() const{
+			inline std::size_t size() const {
 				return writePos_ - readPos_;
 			}
 			
@@ -91,7 +91,7 @@ namespace OpenP2P{
 			 *
 			 * @return The internal buffer's capacity.
 			 */
-			inline std::size_t capacity() const{
+			inline std::size_t capacity() const {
 				return bufferSize_ - writePos_;
 			}
 			
@@ -100,18 +100,18 @@ namespace OpenP2P{
 			 *
 			 * @return The internal buffer's size.
 			 */
-			inline std::size_t bufferSize() const{
+			inline std::size_t bufferSize() const {
 				return bufferSize_;
 			}
-
-		private:		
+			
+		private:
 			InputStream& stream_;
 			boost::scoped_array<uint8_t> data_;
 			const std::size_t bufferSize_;
 			std::size_t readPos_, writePos_;
-
+			
 	};
-
+	
 }
 
 #endif

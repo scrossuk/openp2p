@@ -8,7 +8,7 @@
 
 using namespace OpenP2P;
 
-int main(){
+int main() {
 	/*UDP::Socket socket(46667);
 	
 	Crypt::AutoSeededRandomPool rand;

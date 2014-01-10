@@ -32,7 +32,7 @@ namespace OpenP2P {
 			
 			void post(boost::function<void ()> function);
 			
-			operator boost::asio::io_service&();
+			operator boost::asio::io_service& ();
 			
 		private:
 			boost::asio::io_service internalIOService_;

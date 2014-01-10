@@ -6,14 +6,14 @@
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
 #include <OpenP2P/RootNetwork/Parameters.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
+	namespace RootNetwork {
+	
 		typedef Kademlia::Node<Endpoint, IdSize> Node;
-
+		
 	}
-
+	
 }
 
 #endif

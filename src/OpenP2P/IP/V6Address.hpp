@@ -5,13 +5,13 @@
 #include <boost/array.hpp>
 #include <boost/asio.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace IP{
+	namespace IP {
 	
 		typedef boost::asio::ip::address_v6 V6AddressImplType;
 		
-		struct V6Address{
+		struct V6Address {
 			boost::array<uint8_t, 16> data;
 			
 			static V6AddressImplType ToImpl(const V6Address&);

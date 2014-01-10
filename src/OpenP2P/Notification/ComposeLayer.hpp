@@ -11,38 +11,38 @@
 #include <OpenP2P/Notification/LayerPtr.hpp>
 #include <OpenP2P/Notification/Notifier.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Notification{
-
+	namespace Notification {
+	
 		template <typename In, typename Out>
-		class ComposeLayer: public Layer<Out>, public Handler, public boost::noncopyable{
+		class ComposeLayer: public Layer<Out>, public Handler, public boost::noncopyable {
 			public:
-				ComposeLayer(LayerPtr<In> layer, boost::function<Out (In)> transform)
-					: hasValue_(false), layer_(layer), transform_(transform)
-					{
-						layer_->addHandler(this);
-					}
-					
-				~ComposeLayer(){
+				ComposeLayer(LayerPtr<In> layer, boost::function<Out(In)> transform)
+					: hasValue_(false), layer_(layer), transform_(transform) {
+					layer_->addHandler(this);
+				}
+				
+				~ComposeLayer() {
 					layer_->removeHandler(this);
 				}
 				
-				void notify(){
+				void notify() {
 					notifier_.notify();
 				}
 				
-				void addHandler(Handler * handler){
+				void addHandler(Handler* handler) {
 					notifier_.addHandler(handler);
 				}
 				
-				void removeHandler(Handler * handler){
+				void removeHandler(Handler* handler) {
 					notifier_.removeHandler(handler);
 				}
 				
-				Out getValue(){
+				Out getValue() {
 					Lock lock(mutex_);
-					if(!hasValue_){
+					
+					if (!hasValue_) {
 						memoizedValue_ = transform_(layer_->getValue());
 						hasValue_ = true;
 					}
@@ -56,8 +56,8 @@ namespace OpenP2P{
 				bool hasValue_;
 				Out memoizedValue_;
 				LayerPtr<In> layer_;
-				boost::function<Out (In)> transform_;
-			
+				boost::function<Out(In)> transform_;
+				
 		};
 		
 	}

@@ -6,32 +6,32 @@
 #include <OpenP2P/Lock.hpp>
 #include <OpenP2P/Timeout.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	class Condition{
+	class Condition {
 		public:
-			inline void notifyOne(){
+			inline void notifyOne() {
 				internalCondition_.notify_one();
 			}
-
-			inline void notifyAll(){
+			
+			inline void notifyAll() {
 				internalCondition_.notify_all();
 			}
-
-			inline bool wait(Lock& lock, Timeout timeout = Timeout::Infinite()){
-				if(timeout.isInfinite()){
+			
+			inline bool wait(Lock& lock, Timeout timeout = Timeout::Infinite()) {
+				if (timeout.isInfinite()) {
 					internalCondition_.wait(lock);
 					return true;
-				}else{
+				} else {
 					return internalCondition_.timed_wait(lock, boost::posix_time::milliseconds(timeout.seconds() * 1000));
 				}
 			}
-
+			
 		private:
 			boost::condition_variable internalCondition_;
-
+			
 	};
-
+	
 }
 
 #endif

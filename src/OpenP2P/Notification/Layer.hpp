@@ -3,19 +3,19 @@
 
 #include <OpenP2P/Notification/Handler.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace Notification{
-
-		template <typename T>
-		class Layer{
-			public:
-				virtual void addHandler(Handler * handler) = 0;
-			
-				virtual void removeHandler(Handler * handler) = 0;
-			
-				virtual T getValue() = 0;
+	namespace Notification {
 	
+		template <typename T>
+		class Layer {
+			public:
+				virtual void addHandler(Handler* handler) = 0;
+				
+				virtual void removeHandler(Handler* handler) = 0;
+				
+				virtual T getValue() = 0;
+				
 		};
 		
 	}

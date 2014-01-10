@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <iostream>
+#include <stdio.h>
 
 #include <OpenP2P.hpp>
 #include <boost/asio.hpp>
@@ -9,8 +9,11 @@ using namespace OpenP2P;
 int main(int argc, char* argv[]) {
 	int a = -4000, b = 42, c = 1;
 	
-	std::cout << "Writing (" << a << ", " << b << ", " << c << ") to a buffer" << std::endl;
-	
+	printf("Writing (%lld, %llu, %llu) to a buffer.\n",
+		   (long long) a,
+		   (unsigned long long) b,
+		   (unsigned long long) c);
+		   
 	Buffer buffer;
 	BufferBuilder builder(buffer);
 	BinaryOStream outputStream(builder);
@@ -20,9 +23,9 @@ int main(int argc, char* argv[]) {
 	writeSuccess &= Binary::WriteUint32(outputStream, b);
 	writeSuccess &= Binary::WriteUint8(outputStream, c);
 	
-	if(!writeSuccess){
-		std::cout << "Failed to write values" << std::endl;
-		return 0;
+	if (!writeSuccess) {
+		printf("Failed to write values.\n");
+		return -1;
 	}
 	
 	int64_t d;
@@ -37,12 +40,16 @@ int main(int argc, char* argv[]) {
 	readSuccess &= Binary::ReadUint32(inputStream, &e);
 	readSuccess &= Binary::ReadUint8(inputStream, &f);
 	
-	if(!readSuccess){
-		std::cout << "Failed to read values" << std::endl;
+	if (!readSuccess) {
+		printf("Failed to read values.\n");
+		return -1;
 	}
 	
-	std::cout << "Read (" << d << ", " << e << ", " << f << ") from buffer" << std::endl;
-	
+	printf("Read (%lld, %llu, %llu) from buffer.\n",
+		   (long long) d,
+		   (unsigned long long) e,
+		   (unsigned long long) f);
+		   
 	return 0;
 }
 

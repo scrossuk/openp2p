@@ -6,34 +6,34 @@
 #include <OpenP2P/RootNetwork/Id.hpp>
 #include <OpenP2P/RootNetwork/RPCType.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
+	namespace RootNetwork {
+	
 		//Frame for all rpc requests and replies
 		template <typename RPC>
-		struct RPCWrapper{
+		struct RPCWrapper {
 			Id senderId;
 			RPCType type;
 			RPC rpc;
-
-			inline RPCWrapper(){ }
-
-			inline RPCWrapper(const Id& i, RPCType t, const RPC& r) : senderId(i), type(t), rpc(r){ }
+			
+			inline RPCWrapper() { }
+			
+			inline RPCWrapper(const Id& i, RPCType t, const RPC& r) : senderId(i), type(t), rpc(r) { }
 		};
-
+		
 		template <typename RPCType>
-		BinaryIStream& operator>>(BinaryIStream& stream, RPCWrapper<RPCType>& wrapper){
+		BinaryIStream& operator>>(BinaryIStream& stream, RPCWrapper<RPCType>& wrapper) {
 			return stream >> wrapper.senderId >> wrapper.type >> wrapper.rpc;
 		}
-
+		
 		template <typename RPCType>
-		BinaryOStream& operator<<(BinaryOStream& stream, const RPCWrapper<RPCType>& wrapper){
+		BinaryOStream& operator<<(BinaryOStream& stream, const RPCWrapper<RPCType>& wrapper) {
 			return stream << wrapper.senderId << wrapper.type << wrapper.rpc;
 		}
-
+		
 	}
-
+	
 }
 
 #endif

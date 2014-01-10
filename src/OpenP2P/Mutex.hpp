@@ -3,10 +3,10 @@
 
 #include <boost/thread.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
 	typedef boost::mutex Mutex;
-
+	
 }
 
 #endif

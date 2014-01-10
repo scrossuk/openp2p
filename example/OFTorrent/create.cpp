@@ -5,47 +5,49 @@
 
 using namespace OpenP2P;
 
-class BlockGen: public OFTorrent::OutputStreamGenerator{
+class BlockGen: public OFTorrent::OutputStreamGenerator {
 	public:
-		BlockGen() : count_(0){ }
-
-		OutputStream& getNextOutputStream(){
+		BlockGen() : count_(0) { }
+		
+		OutputStream& getNextOutputStream() {
 			std::ostringstream s;
 			s << "out" << count_ << ".txt";
 			count_++;
 			fileStream.open(s.str());
 			return fileStream;
 		}
-
+		
 	private:
 		std::size_t count_;
 		FileOStream fileStream;
-
+		
 };
 
-int main(int argc, char *argv[]){
-	if(argc != 2){
+int main(int argc, char* argv[]) {
+	if (argc != 2) {
 		std::cout << "create [filename]" << std::endl;
 		return 0;
 	}
+	
 	FileIStream fileStream(argv[1]);
-	if(!fileStream.isOpen()){
+	
+	if (!fileStream.isOpen()) {
 		std::cout << "Failed to open file" << std::endl;
 	}
-
+	
 	NullIStream nullStream;
-
+	
 	OFTorrent::XORStream xorStream(fileStream, nullStream);
-
+	
 	BlockGen blockGen;
-
+	
 	OFTorrent::BlockStream blockStream(blockGen, OFTorrent::BLOCKSIZE_512KB);
-
+	
 	BinaryIStream binaryInStream(xorStream);
 	BinaryOStream binaryOutStream(blockStream);
 	
 	Binary::MoveData(binaryInStream, binaryOutStream);
-
+	
 	return 0;
 }
 

@@ -24,36 +24,36 @@
 namespace OpenP2P {
 
 	namespace RootNetwork {
-
+	
 		class DHT: boost::noncopyable {
-			class InternalThread: public Runnable{
-				public:
-					InternalThread(DHT& dht);
-
-					void run();
-
-					void cancel();
-
-				private:
-					DHT& dht_;
-
-			};
-
+				class InternalThread: public Runnable {
+					public:
+						InternalThread(DHT& dht);
+						
+						void run();
+						
+						void cancel();
+						
+					private:
+						DHT& dht_;
+						
+				};
+				
 			public:
 				DHT(Socket<Endpoint>& socket, const Id& id);
-
+				
 				boost::optional<Node> addEndpoint(const Endpoint& endpoint);
-
+				
 				std::vector<Node> findNearest(const Id& id, std::size_t numNodes = MaxGroupSize);
-
+				
 				boost::optional<Node> findNode(const Id& id);
-
+				
 				bool subscribe(const Id& subscriptionId);
-
+				
 				std::vector<Node> getSubscribers(const Id& subscriptionId, std::size_t numNodes = MaxGroupSize);
-
+				
 				void cancel();
-
+				
 			private:
 				Id id_;
 				RPCSocket rpcSocket_;
@@ -62,11 +62,11 @@ namespace OpenP2P {
 				Kademlia::BucketSet<Endpoint, IdSize, MaxBucketSize> bucketSet_;
 				InternalThread internalThread_;
 				Thread threadType_;
-
+				
 		};
-
+		
 	}
-
+	
 }
 
 #endif

@@ -9,7 +9,7 @@
 
 using namespace OpenP2P;
 
-int main(){
+int main() {
 	/*UDP::Socket socket(46668);
 	
 	Crypt::AutoSeededRandomPool rand;
@@ -19,10 +19,10 @@ int main(){
 	RootNetwork::PrivateIdentity privateIdentity(privateKey);
 	
 	RootNetwork::Service service(socket, privateIdentity);
-
+	
 	std::string str;
 	std::getline(std::cin, str);*/
-
+	
 	return 0;
 }
 

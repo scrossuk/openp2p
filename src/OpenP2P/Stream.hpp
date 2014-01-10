@@ -6,26 +6,26 @@
 
 #include <OpenP2P/Timeout.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	class InputStream{
+	class InputStream {
 		public:
 			virtual std::size_t waitForData(Timeout timeout) = 0;
 			
-			virtual bool read(uint8_t * data, std::size_t size, Timeout timeout) = 0;
-
+			virtual bool read(uint8_t* data, std::size_t size, Timeout timeout) = 0;
+			
 	};
-
-	class OutputStream{
+	
+	class OutputStream {
 		public:
 			virtual std::size_t waitForSpace(Timeout timeout) = 0;
 			
-			virtual bool write(const uint8_t * data, std::size_t size, Timeout timeout) = 0;
-
+			virtual bool write(const uint8_t* data, std::size_t size, Timeout timeout) = 0;
+			
 	};
-
-	class IOStream: public InputStream, public OutputStream{ };
-
+	
+	class IOStream: public InputStream, public OutputStream { };
+	
 }
 
 #endif

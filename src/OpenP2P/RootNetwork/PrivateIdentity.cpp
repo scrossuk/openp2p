@@ -6,14 +6,14 @@
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
-
+	namespace RootNetwork {
+	
 		PrivateIdentity::PrivateIdentity(const Crypt::ECDSA::PrivateKey& privateKey, uint64_t packetCount)
-			: privateKey_(privateKey), packetCount_(packetCount){ }
-
-		PacketSignature PrivateIdentity::sign(const Packet& packet){
+			: privateKey_(privateKey), packetCount_(packetCount) { }
+			
+		PacketSignature PrivateIdentity::sign(const Packet& packet) {
 			Crypt::AutoSeededRandomPool rand;
 			Crypt::ECDSA::SignStream signStream(rand, privateKey_);
 			BinaryOStream binStream(signStream);
@@ -25,8 +25,8 @@ namespace OpenP2P{
 			sig.publicKey = Crypt::ECDSA::PublicKey(privateKey_);
 			return sig;
 		}
-
+		
 	}
-
+	
 }
 

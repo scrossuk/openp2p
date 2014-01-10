@@ -3,12 +3,12 @@
 
 #include <OpenP2P/IP/Endpoint.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	namespace RootNetwork{
+	namespace RootNetwork {
 	
-		struct Endpoint{
-			enum Type{
+		struct Endpoint {
+			enum Type {
 				Local = 0,
 				UDPIPv4 = 1,
 				UDPIPv6 = 2,
@@ -16,13 +16,13 @@ namespace OpenP2P{
 				TCPIPv6 = 4
 			};
 			
-			union{
+			union {
 				IP::Endpoint ipEndpoint;
 			};
 		};
-
+		
 	}
-
+	
 }
 
 #endif

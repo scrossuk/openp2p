@@ -5,18 +5,18 @@
 
 using namespace OpenP2P;
 
-int main(){
+int main() {
 	UDP::Socket socket(45557);
 	
 	std::map<UDP::Endpoint, uint16_t> v_map;
 	
 	std::cout << "Start server" << std::endl;
 	
-	while(true){
+	while (true) {
 		UDP::Endpoint endpoint;
 		Buffer data;
 		
-		if(!socket.receive(endpoint, data)){
+		if (!socket.receive(endpoint, data)) {
 			std::cout << "receive failed" << std::endl;
 			continue;
 		}
@@ -33,13 +33,13 @@ int main(){
 		
 		std::cout << "Received: " << i << " from " << endpoint << std::endl;
 		
-		if(i != v){
+		if (i != v) {
 			std::cout << "Incorrect data received: " << i << " for endpoint " << endpoint << std::endl;
 			v = 0;
 			continue;
 		}
 		
-		if(i < 10000){
+		if (i < 10000) {
 			v += 2;
 			std::cout << "Sent: " << (i + 1) << std::endl;
 			Buffer buffer;
@@ -49,12 +49,12 @@ int main(){
 			socket.send(endpoint, buffer);
 		}
 		
-		if(i >= 9999){
+		if (i >= 9999) {
 			std::cout << "Completed Successfully for endpoint " << endpoint << std::endl;
 			v = 0;
 		}
 	}
-
+	
 	return 0;
 }
 

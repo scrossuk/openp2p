@@ -5,20 +5,20 @@
 
 #include <OpenP2P/Runnable.hpp>
 
-namespace OpenP2P{
+namespace OpenP2P {
 
-	class Thread{
+	class Thread {
 		public:
 			Thread(Runnable& runnable);
-
+			
 			~Thread();
-
+			
 		private:
-            		Runnable& runnable_;
+			Runnable& runnable_;
 			boost::thread internalThread_;
-
+			
 	};
-
+	
 }
 
 #endif

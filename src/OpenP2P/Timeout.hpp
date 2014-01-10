@@ -56,9 +56,9 @@ namespace OpenP2P {
 			}
 			
 		private:
-			inline Timeout(double seconds, bool isInfinite)
-				: timeout_(seconds),
-				  isInfinite_(isInfinite) { }
+			inline Timeout(double pSeconds, bool pIsInfinite)
+				: timeout_(pSeconds),
+				  isInfinite_(pIsInfinite) { }
 				  
 			double timeout_;
 			bool isInfinite_;

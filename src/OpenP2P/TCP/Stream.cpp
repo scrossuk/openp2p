@@ -27,7 +27,8 @@ namespace OpenP2P {
 				signal->activate();
 			}
 			
-			void writeCallback(Signal* signal, bool* writeResult, const boost::system::error_code& ec, std::size_t transferred) {
+			void writeCallback(Signal* signal, bool* writeResult, const boost::system::error_code& ec, size_t transferred) {
+				(void) transferred;
 				*writeResult = !bool(ec);
 				signal->activate();
 			}
@@ -71,10 +72,14 @@ namespace OpenP2P {
 		}
 		
 		std::size_t Stream::waitForData(Timeout timeout) {
+			(void) timeout;
 			return 0;
 		}
 		
 		bool Stream::read(uint8_t* data, std::size_t size, Timeout timeout) {
+			(void) data;
+			(void) size;
+			(void) timeout;
 			//boost::system::error_code ec;
 			//return internalSocket_.read_some(boost::asio::buffer(data, size), ec);
 			

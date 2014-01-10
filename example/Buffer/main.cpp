@@ -6,7 +6,7 @@
 
 using namespace OpenP2P;
 
-int main(int argc, char* argv[]) {
+int main() {
 	int a = -4000, b = 42, c = 1;
 	
 	printf("Writing (%lld, %llu, %llu) to a buffer.\n",

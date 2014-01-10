@@ -25,12 +25,12 @@ class StdOutStream: public OutputStream {
 			return 1000;
 		}
 		
-		bool write(const uint8_t* data, std::size_t size, Timeout) {
-			std::cout << "Write of size " << size << ": ";
-			output(data, size);
+		bool write(const uint8_t* data, std::size_t dataSize, Timeout) {
+			std::cout << "Write of size " << dataSize << ": ";
+			output(data, dataSize);
 			std::cout << std::endl;
-			size_ += size;
-			return size;
+			size_ += dataSize;
+			return dataSize;
 		}
 		
 	private:

@@ -2,7 +2,7 @@
 #include <OpenP2P.hpp>
 #include <boost/asio.hpp>
 
-void callback(const boost::system::error_code& error) {
+void callback(const boost::system::error_code&) {
 	std::cout << "Async Timer" << std::endl;
 }
 

@@ -32,7 +32,7 @@ namespace OpenP2P {
 				return std::numeric_limits<std::size_t>::max();
 			}
 			
-			inline bool write(const uint8_t* data, std::size_t size, Timeout) {
+			inline bool write(const uint8_t*, size_t, Timeout) {
 				return true;
 			}
 			

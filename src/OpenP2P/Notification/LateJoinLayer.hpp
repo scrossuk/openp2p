@@ -18,7 +18,7 @@ namespace OpenP2P {
 		class LateJoinLayer: public Layer< std::pair<T0, T1> >, public Handler, public boost::noncopyable {
 			public:
 				LateJoinLayer(const LayerPtr<T0>& layer0, const LayerPtr<T1>& layer1)
-					: hasValue_(false), notified_(false),
+					: notified_(false), hasValue_(false),
 					  layer0_(layer0), layer1_(layer1) {
 					  
 					layer0_->addHandler(this);

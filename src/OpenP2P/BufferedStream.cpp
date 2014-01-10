@@ -10,9 +10,9 @@
 
 namespace OpenP2P {
 
-	BufferedStream::BufferedStream(InputStream& stream, std::size_t bufferSize)
-		: stream_(stream), data_(new uint8_t[bufferSize]),
-		  bufferSize_(bufferSize), readPos_(0), writePos_(0) { }
+	BufferedStream::BufferedStream(InputStream& stream, std::size_t pBufferSize)
+		: stream_(stream), data_(new uint8_t[pBufferSize]),
+		  bufferSize_(pBufferSize), readPos_(0), writePos_(0) { }
 		  
 	std::size_t BufferedStream::read(std::size_t dataSize, Timeout timeout) {
 		TimeoutSequence sequence(timeout);

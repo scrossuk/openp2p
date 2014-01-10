@@ -1,13 +1,9 @@
 #ifndef OPENP2P_TCP_ACCEPTOR_HPP
 #define OPENP2P_TCP_ACCEPTOR_HPP
 
-#include <boost/asio.hpp>
-#include <boost/utility.hpp>
+#include <memory>
 
-#include <OpenP2P/Future.hpp>
-#include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Mutex.hpp>
-#include <OpenP2P/Timeout.hpp>
 
 #include <OpenP2P/TCP/Stream.hpp>
 
@@ -15,16 +11,19 @@ namespace OpenP2P {
 
 	namespace TCP {
 	
-		class Acceptor: boost::noncopyable {
+		class Acceptor {
 			public:
-				Acceptor();
+				Acceptor(uint16_t port);
+				~Acceptor();
 				
-				bool listen(unsigned short port);
-				
-				bool accept(Stream& stream, Timeout timeout = Timeout::Infinite());
+				bool accept(Stream& stream);
 				
 			private:
-				boost::asio::ip::tcp::acceptor internalAcceptor_;
+				// Non-copyable.
+				Acceptor(const Acceptor&) = delete;
+				Acceptor& operator=(Acceptor) = delete;
+				
+				std::unique_ptr<struct AcceptorImpl> impl_;
 				
 		};
 		

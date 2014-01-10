@@ -5,8 +5,8 @@
 
 namespace OpenP2P {
 
-	BufferIterator::BufferIterator(const Buffer& buffer, std::size_t position) : buffer_(buffer), position_(0) {
-		seek(position);
+	BufferIterator::BufferIterator(const Buffer& buffer, std::size_t pPosition) : buffer_(buffer), position_(0) {
+		seek(pPosition);
 	}
 	
 	std::size_t BufferIterator::position() {
@@ -21,12 +21,12 @@ namespace OpenP2P {
 		buffer_ = buffer;
 	}
 	
-	bool BufferIterator::seek(std::size_t position) {
-		if (position > buffer_.size()) {
+	bool BufferIterator::seek(std::size_t pPosition) {
+		if (pPosition > buffer_.size()) {
 			return false;
 		}
 		
-		position_ = position;
+		position_ = pPosition;
 		return true;
 	}
 	

@@ -2,7 +2,9 @@
 #define OPENP2P_IP_V4ADDRESS_HPP
 
 #include <stdint.h>
-#include <boost/array.hpp>
+
+#include <array>
+
 #include <boost/asio.hpp>
 
 namespace OpenP2P {
@@ -12,7 +14,7 @@ namespace OpenP2P {
 		typedef boost::asio::ip::address_v4 V4AddressImplType;
 		
 		struct V4Address {
-			boost::array<uint8_t, 4> data;
+			std::array<uint8_t, 4> data;
 			
 			static V4AddressImplType ToImpl(const V4Address&);
 			

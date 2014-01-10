@@ -29,6 +29,7 @@ class Container {
 class ClientThread: public Runnable {
 	public:
 		ClientThread() { }
+		virtual ~ClientThread() { }
 		
 		TCP::Stream& getTCPStream() {
 			return tcpStream_;
@@ -73,12 +74,7 @@ class ClientThread: public Runnable {
 };
 
 int main() {
-	TCP::Acceptor acceptor;
-	
-	if (!acceptor.listen(45556)) {
-		std::cout << "Error: Listen failed." << std::endl;
-		return 1;
-	}
+	TCP::Acceptor acceptor(45556);
 	
 	Container<ClientThread> clientThreads;
 	Container<Thread> threads;

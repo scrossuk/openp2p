@@ -21,7 +21,7 @@ namespace OpenP2P {
 					handler->notify();
 				}
 				
-				void removeHandler(Handler* handler) { }
+				void removeHandler(Handler*) { }
 				
 				T getValue() {
 					return value_;

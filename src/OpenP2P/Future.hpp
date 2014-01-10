@@ -58,7 +58,7 @@ namespace OpenP2P {
 				return *this;
 			}
 			
-			~Future() {
+			virtual ~Future() {
 				layer_->removeHandler(this);
 			}
 			

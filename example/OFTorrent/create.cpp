@@ -9,7 +9,7 @@ class BlockGen: public OFTorrent::OutputStreamGenerator {
 	public:
 		BlockGen() : count_(0) { }
 		
-		OutputStream& getNextOutputStream() {
+		OStream& getNextOutputStream() {
 			std::ostringstream s;
 			s << "out" << count_ << ".txt";
 			count_++;
@@ -18,7 +18,7 @@ class BlockGen: public OFTorrent::OutputStreamGenerator {
 		}
 		
 	private:
-		std::size_t count_;
+		size_t count_;
 		FileOStream fileStream;
 		
 };
@@ -43,10 +43,7 @@ int main(int argc, char* argv[]) {
 	
 	OFTorrent::BlockStream blockStream(blockGen, OFTorrent::BLOCKSIZE_512KB);
 	
-	BinaryIStream binaryInStream(xorStream);
-	BinaryOStream binaryOutStream(blockStream);
-	
-	Binary::MoveData(binaryInStream, binaryOutStream);
+	Binary::MoveData(xorStream, blockStream);
 	
 	return 0;
 }

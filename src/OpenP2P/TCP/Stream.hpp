@@ -2,14 +2,12 @@
 #define OPENP2P_TCP_STREAM_HPP
 
 #include <stdint.h>
-#include <cstddef>
-#include <vector>
+
+#include <memory>
 
 #include <boost/asio.hpp>
-#include <boost/utility.hpp>
 
 #include <OpenP2P/Stream.hpp>
-#include <OpenP2P/Timeout.hpp>
 
 #include <OpenP2P/IP/Endpoint.hpp>
 
@@ -17,28 +15,29 @@ namespace OpenP2P {
 
 	namespace TCP {
 	
-		class Stream: public OpenP2P::IOStream, boost::noncopyable {
+		class Stream: public OpenP2P::IOStream {
 			public:
 				Stream();
+				~Stream();
 				
-				bool connect(const IP::Endpoint& endpoint, Timeout timeout = Timeout::Infinite());
+				bool connect(const IP::Endpoint& endpoint);
 				
-				bool connect(const std::vector<IP::Endpoint>& endpointList, Timeout timeout = Timeout::Infinite());
+				bool connect(const std::vector<IP::Endpoint>& endpointList);
 				
 				boost::asio::ip::tcp::socket& getInternal();
 				
-				std::size_t waitForData(Timeout timeout);
+				bool isValid() const;
 				
-				bool read(uint8_t* data, std::size_t size, Timeout timeout);
+				size_t read(uint8_t* data, size_t size);
 				
-				std::size_t waitForSpace(Timeout timeout);
-				
-				bool write(const uint8_t* data, std::size_t size, Timeout timeout);
-				
-				void close();
+				size_t write(const uint8_t* data, size_t size);
 				
 			private:
-				boost::asio::ip::tcp::socket internalSocket_;
+				// Non-copyable.
+				Stream(const Stream&) = delete;
+				Stream& operator=(Stream) = delete;
+				
+				std::unique_ptr<struct StreamImpl> impl_;
 				
 				
 		};

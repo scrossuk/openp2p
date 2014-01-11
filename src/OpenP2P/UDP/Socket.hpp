@@ -25,9 +25,9 @@ namespace OpenP2P {
 				
 				bool bind(unsigned short port);
 				
-				std::size_t send(const IP::Endpoint& endpoint, const uint8_t* data, std::size_t size, Timeout timeout);
+				size_t send(const IP::Endpoint& endpoint, const uint8_t* data, size_t size, Timeout timeout);
 				
-				std::size_t receive(IP::Endpoint* endpoint, uint8_t* data, std::size_t size, Timeout timeout);
+				size_t receive(IP::Endpoint* endpoint, uint8_t* data, size_t size, Timeout timeout);
 				
 				void close();
 				

@@ -34,15 +34,15 @@ namespace OpenP2P {
 					rpcGroup_.execute();
 				}
 				
-				inline std::size_t size() const {
+				inline size_t size() const {
 					return NumProbes;
 				}
 				
-				inline bool hasReply(std::size_t i) {
+				inline bool hasReply(size_t i) {
 					return rpcGroup_.hasReply(i);
 				}
 				
-				inline Buffer getReply(std::size_t i) {
+				inline Buffer getReply(size_t i) {
 					return rpcGroup_.getReply(i);
 				}
 				

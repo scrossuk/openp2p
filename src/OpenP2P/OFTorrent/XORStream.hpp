@@ -1,6 +1,9 @@
 #ifndef OPENP2P_OFTORRENT_XORSTREAM_HPP
 #define OPENP2P_OFTORRENT_XORSTREAM_HPP
 
+#include <stdint.h>
+
+#include <OpenP2P/BufferedStream.hpp>
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P {
@@ -10,17 +13,17 @@ namespace OpenP2P {
 		/**
 		 * A stream that reads from two streams, and xors them together.
 		 */
-		class XORStream: public InputStream {
+		class XORStream: public IStream {
 			public:
-				XORStream(InputStream& source0, InputStream& source1);
+				XORStream(IStream& source0, IStream& source1);
 				
-				std::size_t waitForData(Timeout timeout);
+				bool isValid() const;
 				
-				bool read(uint8_t* data, std::size_t size, Timeout timeout);
+				size_t read(uint8_t* data, size_t size);
 				
 			private:
-				InputStream& source0_;
-				InputStream& source1_;
+				BufferedStream source0_;
+				BufferedStream source1_;
 				
 		};
 		

@@ -16,7 +16,7 @@ int main() {
 	std::vector<Test*> tests_;
 	tests_.push_back(&bufferTest);
 	
-	std::size_t failures = 0;
+	size_t failures = 0;
 	Output output;
 	
 	std::vector<Test*>::iterator i;

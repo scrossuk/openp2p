@@ -189,7 +189,7 @@ namespace OpenP2P {
 					if(packet.header.isRequest){
 						return stream << packet.data.getSubnetworkRequest.subnetworkId;
 					}else{
-						std::size_t size = packet.header.packetData;
+						size_t size = packet.header.packetData;
 						stream.write(packet.data.getSubnetworkReply.contactInfo, size);
 						return stream;
 					}
@@ -266,7 +266,7 @@ namespace OpenP2P {
 					if (packet.header.isRequest) {
 						return stream >> packet.data.getSubnetworkRequest.subnetworkId;
 					} else {
-						std::size_t size = packet.header.packetData;
+						size_t size = packet.header.packetData;
 						stream.read(packet.data.getSubnetworkReply.contactInfo, size);
 						return stream;
 					}
@@ -341,7 +341,7 @@ namespace OpenP2P {
 					if (packet.header.isRequest) {
 						return stream << packet.data.getSubnetworkRequest.subnetworkId;
 					} else {
-						std::size_t size = packet.header.packetData;
+						size_t size = packet.header.packetData;
 						stream.write(packet.data.getSubnetworkReply.contactInfo, size);
 						return stream;
 					}

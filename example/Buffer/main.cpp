@@ -18,32 +18,16 @@ int main() {
 	BufferBuilder builder(buffer);
 	BinaryOStream outputStream(builder);
 	
-	bool writeSuccess = true;
-	writeSuccess &= Binary::WriteInt64(outputStream, a);
-	writeSuccess &= Binary::WriteUint32(outputStream, b);
-	writeSuccess &= Binary::WriteUint8(outputStream, c);
-	
-	if (!writeSuccess) {
-		printf("Failed to write values.\n");
-		return -1;
-	}
-	
-	int64_t d;
-	uint32_t e;
-	uint8_t f;
+	Binary::WriteInt64(outputStream, a);
+	Binary::WriteUint32(outputStream, b);
+	Binary::WriteUint8(outputStream, c);
 	
 	BufferIterator iterator(buffer);
 	BinaryIStream inputStream(iterator);
 	
-	bool readSuccess = true;
-	readSuccess &= Binary::ReadInt64(inputStream, &d);
-	readSuccess &= Binary::ReadUint32(inputStream, &e);
-	readSuccess &= Binary::ReadUint8(inputStream, &f);
-	
-	if (!readSuccess) {
-		printf("Failed to read values.\n");
-		return -1;
-	}
+	const int64_t d = Binary::ReadInt64(inputStream);
+	const uint32_t e = Binary::ReadUint32(inputStream);
+	const uint8_t f = Binary::ReadUint8(inputStream);
 	
 	printf("Read (%lld, %llu, %llu) from buffer.\n",
 		   (long long) d,

@@ -156,7 +156,7 @@ namespace OpenP2P {
 			return boost::optional<Node>();
 		}
 		
-		std::vector<Node> DHT::findNearest(const Id& nodeId, std::size_t numNodes) {
+		std::vector<Node> DHT::findNearest(const Id& nodeId, size_t numNodes) {
 			Kademlia::NodeQueue<Endpoint, IdSize> queue(nodeId);
 			queue.add(bucketSet_.getNearest(nodeId, MaxGroupSize));
 			
@@ -169,7 +169,7 @@ namespace OpenP2P {
 				
 				probeGroup.execute();
 				
-				for (std::size_t i = 0; i < probeGroup.size(); i++) {
+				for (size_t i = 0; i < probeGroup.size(); i++) {
 					if (!probeGroup.hasReply(i)) {
 						continue;
 					}
@@ -186,7 +186,7 @@ namespace OpenP2P {
 		}
 		
 		boost::optional<Node> DHT::findNode(const Id& nodeId) {
-			const std::size_t numNodes = 1;
+			const size_t numNodes = 1;
 			std::vector<Node> nodeArray = findNearest(nodeId, numNodes);
 			
 			if (!nodeArray.empty()) {
@@ -207,7 +207,7 @@ namespace OpenP2P {
 			
 			RPC::Group<Endpoint, Id> rpcGroup(protocol_);
 			
-			for (std::size_t i = 0; i < nodeArray.size(); i++) {
+			for (size_t i = 0; i < nodeArray.size(); i++) {
 				rpcGroup.add(nodeArray[i].endpoint, toBuffer(requestWrapper));
 			}
 			
@@ -216,7 +216,7 @@ namespace OpenP2P {
 			return true;
 		}
 		
-		std::vector<Node> DHT::getSubscribers(const Id& subscriptionId, std::size_t numSubscribers) {
+		std::vector<Node> DHT::getSubscribers(const Id& subscriptionId, size_t numSubscribers) {
 			std::vector<Node> nodeArray = findNearest(subscriptionId);
 			
 			GetSubscribers::Request request;
@@ -226,7 +226,7 @@ namespace OpenP2P {
 			
 			RPC::Group<Endpoint, Id> rpcGroup(protocol_);
 			
-			for (std::size_t i = 0; i < nodeArray.size(); i++) {
+			for (size_t i = 0; i < nodeArray.size(); i++) {
 				rpcGroup.add(nodeArray[i].endpoint, toBuffer(requestWrapper));
 			}
 			
@@ -234,7 +234,7 @@ namespace OpenP2P {
 			
 			std::set<Node> subscribersSet;
 			
-			for (std::size_t i = 0; i < rpcGroup.size(); i++) {
+			for (size_t i = 0; i < rpcGroup.size(); i++) {
 				if (!rpcGroup.hasReply(i)) {
 					continue;
 				}

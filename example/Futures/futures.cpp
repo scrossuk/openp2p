@@ -31,12 +31,12 @@ class PromiseThread: public Runnable {
 		
 };
 
-std::size_t transform1(std::string string) {
+size_t transform1(std::string string) {
 	std::cout << "Transform 1" << std::endl;
 	return string.size();
 }
 
-std::string transform2(std::size_t size) {
+std::string transform2(size_t size) {
 	std::cout << "Transform 2" << std::endl;
 	std::ostringstream stream;
 	stream << size;
@@ -60,7 +60,7 @@ int main() {
 	
 	// Compose three times.
 	std::cout << "1" << std::endl;
-	Future<std::string>* interFuture = new Future<std::string>(Future<std::string>(promiseThread.promise1_).compose<std::size_t>(transform1).compose<std::string>(transform2));
+	Future<std::string>* interFuture = new Future<std::string>(Future<std::string>(promiseThread.promise1_).compose<size_t>(transform1).compose<std::string>(transform2));
 	
 	std::cout << "2" << std::endl;
 	

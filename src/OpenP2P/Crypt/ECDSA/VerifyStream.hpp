@@ -1,9 +1,7 @@
 #ifndef OPENP2P_CRYPT_ECDSA_VERIFYSTREAM_HPP
 #define OPENP2P_CRYPT_ECDSA_VERIFYSTREAM_HPP
 
-#include <cstddef>
-
-#include <boost/utility.hpp>
+#include <stdint.h>
 
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
@@ -16,7 +14,7 @@ namespace OpenP2P {
 	
 		namespace ECDSA {
 		
-			class VerifyStream: boost::noncopyable, public OutputStream {
+			class VerifyStream: public OStream {
 				public:
 					inline VerifyStream(const PublicKey& publicKey, const Buffer& signature)
 						: verifier_(publicKey), isValid_(false) {
@@ -32,16 +30,15 @@ namespace OpenP2P {
 						delete filter_;
 					}
 					
-					inline std::size_t waitForSpace(Timeout) {
-						// TODO: need to work this out properly.
-						return std::numeric_limits<std::size_t>::max();
+					inline bool isValid() const {
+						return true;
 					}
 					
-					inline bool write(const uint8_t* data, std::size_t size, Timeout) {
-						return filter_->Put((byte*) data, size) == size;
+					inline size_t write(const uint8_t* data, size_t size) {
+						return filter_->Put((byte*) data, size);
 					}
 					
-					inline bool isValid() {
+					inline bool isSignatureValid() {
 						filter_->MessageEnd();
 						return isValid_;
 					}

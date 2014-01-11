@@ -5,71 +5,44 @@
 #include <cstddef>
 
 #include <OpenP2P/Stream.hpp>
-#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P {
 
 	class BinaryIStream {
 		public:
-			inline BinaryIStream(InputStream& stream) : stream_(stream), isValid_(true) { }
+			inline BinaryIStream(IStream& stream) : stream_(stream) { }
 			
 			inline bool isValid() {
-				return isValid_;
-			}
-			
-			inline void setValid() {
-				isValid_ = true;
-			}
-			
-			inline void setInvalid() {
-				isValid_ = false;
+				return stream_.isValid();
 			}
 			
 			// Read as much as possible - failing to read all the data is NOT an error.
-			std::size_t tryRead(uint8_t* data, std::size_t size, Timeout timeout = Timeout::Infinite());
+			size_t readSome(uint8_t* data, size_t size);
 			
 			// Read as much as possible - failing to read all the data is an error.
-			bool read(uint8_t* data, std::size_t size, Timeout timeout = Timeout::Infinite());
-			
-			inline std::size_t waitForData(Timeout timeout = Timeout::Infinite()) {
-				return stream_.waitForData(timeout);
-			}
+			void readAll(uint8_t* data, size_t size);
 			
 		private:
-			InputStream& stream_;
-			bool isValid_;
+			IStream& stream_;
 			
 	};
 	
 	class BinaryOStream {
 		public:
-			inline BinaryOStream(OutputStream& stream) : stream_(stream), isValid_(true) { }
+			inline BinaryOStream(OStream& stream) : stream_(stream) { }
 			
 			inline bool isValid() {
-				return isValid_;
-			}
-			
-			inline void setValid() {
-				isValid_ = true;
-			}
-			
-			inline void setInvalid() {
-				isValid_ = false;
+				return stream_.isValid();
 			}
 			
 			// Write as much as possible - failing to write all the data is NOT an error.
-			std::size_t tryWrite(const uint8_t* data, std::size_t size, Timeout timeout = Timeout::Infinite());
+			size_t writeSome(const uint8_t* data, size_t size);
 			
 			// Write as much as possible - failing to write all the data is an error.
-			bool write(const uint8_t* data, std::size_t size, Timeout timeout = Timeout::Infinite());
-			
-			inline std::size_t waitForSpace(Timeout timeout = Timeout::Infinite()) {
-				return stream_.waitForSpace(timeout);
-			}
+			void writeAll(const uint8_t* data, size_t size);
 			
 		private:
-			OutputStream& stream_;
-			bool isValid_;
+			OStream& stream_;
 			
 	};
 	
@@ -82,11 +55,11 @@ namespace OpenP2P {
 				return inputStream_.isValid() && outputStream_.isValid();
 			}
 			
-			inline BinaryIStream& getInputStream() {
+			inline BinaryIStream& input() {
 				return inputStream_;
 			}
 			
-			inline BinaryOStream& getOutputStream() {
+			inline BinaryOStream& output() {
 				return outputStream_;
 			}
 			
@@ -98,41 +71,41 @@ namespace OpenP2P {
 	
 	namespace Binary {
 	
-		bool ReadUint8(BinaryIStream& stream, uint8_t* value, Timeout timeout = Timeout::Infinite());
+		uint8_t ReadUint8(BinaryIStream& stream);
 		
-		bool ReadInt8(BinaryIStream& stream, int8_t* value, Timeout timeout = Timeout::Infinite());
+		int8_t ReadInt8(BinaryIStream& stream);
 		
-		bool ReadUint16(BinaryIStream& stream, uint16_t* value, Timeout timeout = Timeout::Infinite());
+		uint16_t ReadUint16(BinaryIStream& stream);
 		
-		bool ReadInt16(BinaryIStream& stream, int16_t* value, Timeout timeout = Timeout::Infinite());
+		int16_t ReadInt16(BinaryIStream& stream);
 		
-		bool ReadUint32(BinaryIStream& stream, uint32_t* value, Timeout timeout = Timeout::Infinite());
+		uint32_t ReadUint32(BinaryIStream& stream);
 		
-		bool ReadInt32(BinaryIStream& stream, int32_t* value, Timeout timeout = Timeout::Infinite());
+		int32_t ReadInt32(BinaryIStream& stream);
 		
-		bool ReadUint64(BinaryIStream& stream, uint64_t* value, Timeout timeout = Timeout::Infinite());
+		uint64_t ReadUint64(BinaryIStream& stream);
 		
-		bool ReadInt64(BinaryIStream& stream, int64_t* value, Timeout timeout = Timeout::Infinite());
-		
-		
-		bool WriteUint8(BinaryOStream& stream, uint8_t value, Timeout timeout = Timeout::Infinite());
-		
-		bool WriteInt8(BinaryOStream& stream, int8_t value, Timeout timeout = Timeout::Infinite());
-		
-		bool WriteUint16(BinaryOStream& stream, uint16_t value, Timeout timeout = Timeout::Infinite());
-		
-		bool WriteInt16(BinaryOStream& stream, int16_t value, Timeout timeout = Timeout::Infinite());
-		
-		bool WriteUint32(BinaryOStream& stream, uint32_t value, Timeout timeout = Timeout::Infinite());
-		
-		bool WriteInt32(BinaryOStream& stream, int32_t value, Timeout timeout = Timeout::Infinite());
-		
-		bool WriteUint64(BinaryOStream& stream, uint64_t value, Timeout timeout = Timeout::Infinite());
-		
-		bool WriteInt64(BinaryOStream& stream, int64_t value, Timeout timeout = Timeout::Infinite());
+		int64_t ReadInt64(BinaryIStream& stream);
 		
 		
-		std::size_t MoveData(BinaryIStream& source, BinaryOStream& destination, Timeout timeout = Timeout::Infinite());
+		void WriteUint8(BinaryOStream& stream, uint8_t value);
+		
+		void WriteInt8(BinaryOStream& stream, int8_t value);
+		
+		void WriteUint16(BinaryOStream& stream, uint16_t value);
+		
+		void WriteInt16(BinaryOStream& stream, int16_t value);
+		
+		void WriteUint32(BinaryOStream& stream, uint32_t value);
+		
+		void WriteInt32(BinaryOStream& stream, int32_t value);
+		
+		void WriteUint64(BinaryOStream& stream, uint64_t value);
+		
+		void WriteInt64(BinaryOStream& stream, int64_t value);
+		
+		
+		void MoveData(IStream& source, OStream& destination);
 		
 	}
 	

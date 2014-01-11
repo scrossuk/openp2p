@@ -19,7 +19,7 @@ namespace OpenP2P {
 		namespace {
 		
 			void receiveCallback(Mutex* mutex, Condition* condition, boost::system::error_code* receiveResult,
-								 std::size_t* receiveLength, const boost::system::error_code& ec, std::size_t transferred) {
+								 size_t* receiveLength, const boost::system::error_code& ec, size_t transferred) {
 				Lock lock(*mutex);
 				*receiveResult = ec;
 				*receiveLength = transferred;
@@ -27,7 +27,7 @@ namespace OpenP2P {
 			}
 			
 			void sendCallback(Mutex* mutex, Condition* condition, boost::system::error_code* sendResult,
-							  std::size_t* sendLength, const boost::system::error_code& ec, std::size_t transferred) {
+							  size_t* sendLength, const boost::system::error_code& ec, size_t transferred) {
 				Lock lock(*mutex);
 				*sendResult = ec;
 				*sendLength = transferred;
@@ -71,11 +71,11 @@ namespace OpenP2P {
 			return !bool(ec);
 		}
 		
-		std::size_t Socket::send(const IP::Endpoint& endpoint, const uint8_t* data, std::size_t size, Timeout timeout) {
+		size_t Socket::send(const IP::Endpoint& endpoint, const uint8_t* data, size_t size, Timeout timeout) {
 			boost::asio::ip::udp::endpoint endpointImpl(IP::Address::ToImpl(endpoint.address), endpoint.port);
 			
 			boost::system::error_code sendResult;
-			std::size_t sendLength;
+			size_t sendLength;
 			
 			Condition condition;
 			Lock lock(mutex_);
@@ -105,11 +105,11 @@ namespace OpenP2P {
 			return 0;
 		}
 		
-		std::size_t Socket::receive(IP::Endpoint* endpoint, uint8_t* data, std::size_t size, Timeout timeout) {
+		size_t Socket::receive(IP::Endpoint* endpoint, uint8_t* data, size_t size, Timeout timeout) {
 			boost::asio::ip::udp::endpoint endpointImpl;
 			
 			boost::system::error_code receiveResult;
-			std::size_t receiveLength;
+			size_t receiveLength;
 			
 			Condition condition;
 			Lock lock(mutex_);

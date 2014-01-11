@@ -14,7 +14,7 @@ namespace OpenP2P {
 	
 		class AutoSeededRandomPool: public RandomPool {
 			public:
-				void generateBlock(uint8_t* data, std::size_t size);
+				void generateBlock(uint8_t* data, size_t size);
 				
 				operator CryptoPP::RandomPool& ();
 				

@@ -2,24 +2,24 @@
 #define OPENP2P_STRINGSTREAM_HPP
 
 #include <stdint.h>
-#include <cstddef>
+
 #include <string>
 
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P {
 
-	class StringIStream: public InputStream {
+	class StringIStream: public IStream {
 		public:
 			StringIStream(const std::string&);
 			
-			std::size_t waitForData(Timeout);
+			bool isValid() const;
 			
-			bool read(uint8_t* data, std::size_t size, Timeout);
+			size_t read(uint8_t* data, size_t size);
 			
 		private:
 			const std::string& string_;
-			std::size_t pos_;
+			size_t position_;
 			
 	};
 	

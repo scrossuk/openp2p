@@ -28,11 +28,11 @@ namespace OpenP2P {
 						}
 						
 						~IdArray() {
-							for (std::size_t i = 0; i < idArray_.size(); i++) {
+							for (size_t i = 0; i < idArray_.size(); i++) {
 								protocol_.removeReplyNotifier(idArray_[i]);
 							}
 							
-							for (std::size_t i = 0; i < replyNotifierArray_.size(); i++) {
+							for (size_t i = 0; i < replyNotifierArray_.size(); i++) {
 								delete replyNotifierArray_[i];
 							}
 						}
@@ -57,7 +57,7 @@ namespace OpenP2P {
 						
 					private:
 						Protocol<EndpointType, IdType>& protocol_;
-						std::size_t activeOpCount_;
+						size_t activeOpCount_;
 						std::vector<IdType> idArray_;
 						OpNotifier opNotifier_;
 						std::vector<ReplyNotifier*> replyNotifierArray_;
@@ -72,14 +72,14 @@ namespace OpenP2P {
 					replyArray_.push_back(boost::optional<Buffer>());
 				}
 				
-				std::size_t size() {
+				size_t size() {
 					return requestArray_.size();
 				}
 				
 				void execute() {
 					IdArray idArray(protocol_, signal_);
 					
-					for (std::size_t i = 0; i < requestArray_.size(); i++) {
+					for (size_t i = 0; i < requestArray_.size(); i++) {
 						IdType id = idArray.listen(replyArray_[i]);
 						
 						protocol_.sendRequest(requestArray_[i].first, id, *(requestArray_[i].second));
@@ -88,11 +88,11 @@ namespace OpenP2P {
 					signal_.wait();
 				}
 				
-				bool hasReply(std::size_t i) {
+				bool hasReply(size_t i) {
 					return replyArray_[i];
 				}
 				
-				const Buffer& getReply(std::size_t i) {
+				const Buffer& getReply(size_t i) {
 					return *(replyArray_[i]);
 				}
 				

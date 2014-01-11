@@ -44,13 +44,13 @@ namespace OpenP2P {
 				
 				boost::optional<Node> addEndpoint(const Endpoint& endpoint);
 				
-				std::vector<Node> findNearest(const Id& id, std::size_t numNodes = MaxGroupSize);
+				std::vector<Node> findNearest(const Id& id, size_t numNodes = MaxGroupSize);
 				
 				boost::optional<Node> findNode(const Id& id);
 				
 				bool subscribe(const Id& subscriptionId);
 				
-				std::vector<Node> getSubscribers(const Id& subscriptionId, std::size_t numNodes = MaxGroupSize);
+				std::vector<Node> getSubscribers(const Id& subscriptionId, size_t numNodes = MaxGroupSize);
 				
 				void cancel();
 				

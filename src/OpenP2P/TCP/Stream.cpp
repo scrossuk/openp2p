@@ -1,15 +1,13 @@
 #include <stdint.h>
-#include <cstddef>
-#include <cstring>
+
+#include <condition_variable>
+#include <mutex>
+#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include <boost/utility.hpp>
 
 #include <OpenP2P/IOService.hpp>
-#include <OpenP2P/Signal.hpp>
-#include <OpenP2P/Timeout.hpp>
-#include <OpenP2P/TimeoutSequence.hpp>
 
 #include <OpenP2P/IP/Address.hpp>
 #include <OpenP2P/IP/Endpoint.hpp>
@@ -20,46 +18,82 @@ namespace OpenP2P {
 
 	namespace TCP {
 	
+		struct StreamImpl {
+			boost::asio::ip::tcp::socket socket;
+			std::mutex mutex;
+			std::condition_variable condition;
+			bool isActiveConnect, isActiveRead, isActiveWrite;
+			bool isConnected;
+			std::vector<uint8_t> readBuffer, writeBuffer;
+			
+			inline StreamImpl(boost::asio::io_service& pIOService)
+				: socket(pIOService), isActiveConnect(false),
+				isActiveRead(false), isActiveWrite(false),
+				isConnected(false) { }
+		};
+		
 		namespace {
 		
-			void connectCallback(Signal* signal, bool* connectResult, const boost::system::error_code& ec) {
-				*connectResult = !bool(ec);
-				signal->activate();
+			const size_t STREAM_BUFFER_SIZE = 4096;
+			
+			void connectCallback(StreamImpl* impl, const boost::system::error_code& ec) {
+				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->isActiveConnect = false;
+				impl->isConnected = !bool(ec);
+				impl->condition.notify_all();
 			}
 			
-			void writeCallback(Signal* signal, bool* writeResult, const boost::system::error_code& ec, size_t transferred) {
-				(void) transferred;
-				*writeResult = !bool(ec);
-				signal->activate();
+			void readCallback(StreamImpl* impl, const boost::system::error_code& ec, size_t transferred) {
+				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->isActiveRead = false;
+				if (ec) impl->isConnected = false;
+				impl->condition.notify_all();
+				impl->readBuffer.resize(transferred);
+			}
+			
+			void writeCallback(StreamImpl* impl, const boost::system::error_code& ec, size_t transferred) {
+				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->isActiveWrite = false;
+				if (ec) impl->isConnected = false;
+				impl->condition.notify_all();
+				
+				// TODO: replace with circular buffer.
+				impl->writeBuffer.erase(impl->writeBuffer.begin(), impl->writeBuffer.begin() + transferred);
 			}
 			
 		}
 		
-		Stream::Stream() : internalSocket_(GetIOService()) { }
+		Stream::Stream() : impl_(new StreamImpl(GetIOService())) { }
 		
-		bool Stream::connect(const IP::Endpoint& endpoint, Timeout timeout) {
-			bool connectResult = false;
-			Signal signal;
+		Stream::~Stream() {
+			impl_->socket.close();
+			std::unique_lock<std::mutex> lock(impl_->mutex);
+			while (impl_->isActiveRead || impl_->isActiveWrite) {
+				impl_->condition.wait(lock);
+			}
+		}
+		
+		bool Stream::connect(const IP::Endpoint& endpoint) {
+			std::unique_lock<std::mutex> lock(impl_->mutex);
+			
+			impl_->socket.close();
+			impl_->isConnected = false;
 			
 			boost::asio::ip::tcp::endpoint endpointImpl(IP::Address::ToImpl(endpoint.address), endpoint.port);
+			impl_->socket.async_connect(endpointImpl, boost::bind(connectCallback, impl_.get(), _1));
 			
-			internalSocket_.close();
-			internalSocket_.async_connect(endpointImpl, boost::bind(connectCallback, &signal, &connectResult, _1));
+			impl_->isActiveConnect = true;
 			
-			if (signal.wait(timeout)) {
-				return connectResult;
-			} else {
-				internalSocket_.cancel();
-				signal.wait();
-				return false;
+			while (impl_->isActiveConnect) {
+				impl_->condition.wait(lock);
 			}
+			
+			return impl_->isConnected;
 		}
 		
-		bool Stream::connect(const std::vector<IP::Endpoint>& endpointList, Timeout timeout) {
-			TimeoutSequence sequence(timeout);
-			
-			for (std::vector<IP::Endpoint>::const_iterator i = endpointList.begin(); i != endpointList.end(); ++i) {
-				if (connect(*i, sequence.getTimeout())) {
+		bool Stream::connect(const std::vector<IP::Endpoint>& endpointList) {
+			for (const auto& endpoint: endpointList) {
+				if (connect(endpoint)) {
 					return true;
 				}
 			}
@@ -68,48 +102,63 @@ namespace OpenP2P {
 		}
 		
 		boost::asio::ip::tcp::socket& Stream::getInternal() {
-			return internalSocket_;
+			return impl_->socket;
 		}
 		
-		std::size_t Stream::waitForData(Timeout timeout) {
-			(void) timeout;
-			return 0;
+		bool Stream::isValid() const {
+			/*std::lock_guard<std::mutex> lock(impl_->mutex);
+			return impl_->isConnected;*/
+			return impl_->socket.is_open();
 		}
 		
-		bool Stream::read(uint8_t* data, std::size_t size, Timeout timeout) {
-			(void) data;
-			(void) size;
-			(void) timeout;
-			//boost::system::error_code ec;
-			//return internalSocket_.read_some(boost::asio::buffer(data, size), ec);
+		size_t Stream::read(uint8_t* data, size_t size) {
+			if (size == 0) return 0;
 			
-			return false;
-		}
-		
-		std::size_t Stream::waitForSpace(Timeout) {
-			boost::asio::socket_base::send_buffer_size option;
-			internalSocket_.get_option(option);
-			return option.value();
-		}
-		
-		bool Stream::write(const uint8_t* data, std::size_t size, Timeout timeout) {
-			Signal signal;
-			bool writeResult = false;
+			std::lock_guard<std::mutex> lock(impl_->mutex);
 			
-			boost::asio::async_write(internalSocket_, boost::asio::buffer(data, size),
-									 boost::bind(writeCallback, &signal, &writeResult, _1, _2));
-									 
-			if (signal.wait(timeout)) {
-				return writeResult;
-			} else {
-				internalSocket_.cancel();
-				signal.wait();
-				return false;
+			if (impl_->isActiveRead) return 0;
+			
+			auto& readBuffer = impl_->readBuffer;
+			
+			const size_t readSize = std::min<size_t>(size, readBuffer.size());
+			memcpy(data, readBuffer.data(), readSize);
+			
+			// TODO: replace with circular buffer.
+			readBuffer.erase(readBuffer.begin(), readBuffer.begin() + readSize);
+			
+			if (readBuffer.empty()) {
+				readBuffer.resize(STREAM_BUFFER_SIZE);
+				
+				impl_->socket.async_read_some(boost::asio::buffer(readBuffer.data(), readBuffer.size()),
+					boost::bind(readCallback, impl_.get(), _1, _2));
+				
+				impl_->isActiveRead = true;
 			}
+			
+			return readSize;
 		}
 		
-		void Stream::close() {
-			internalSocket_.close();
+		size_t Stream::write(const uint8_t* data, size_t size) {
+			if (size == 0) return 0;
+			
+			std::lock_guard<std::mutex> lock(impl_->mutex);
+			if (impl_->isActiveWrite) return 0;
+			
+			auto& writeBuffer = impl_->writeBuffer;
+			
+			assert(writeBuffer.size() <= STREAM_BUFFER_SIZE);
+			const size_t writeCapacity = STREAM_BUFFER_SIZE - writeBuffer.size();
+			const size_t writeSize = std::min<size_t>(size, writeCapacity);
+			writeBuffer.insert(writeBuffer.end(), data, data + writeSize);
+			
+			if (!writeBuffer.empty()) {
+				impl_->socket.async_write_some(boost::asio::buffer(writeBuffer.data(), writeBuffer.size()),
+					boost::bind(writeCallback, impl_.get(), _1, _2));
+				
+				impl_->isActiveWrite = true;
+			}
+			
+			return writeSize;
 		}
 		
 	}

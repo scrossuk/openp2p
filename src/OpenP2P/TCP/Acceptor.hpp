@@ -3,8 +3,6 @@
 
 #include <memory>
 
-#include <OpenP2P/Mutex.hpp>
-
 #include <OpenP2P/TCP/Stream.hpp>
 
 namespace OpenP2P {

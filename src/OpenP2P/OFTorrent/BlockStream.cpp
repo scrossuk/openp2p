@@ -12,23 +12,22 @@ namespace OpenP2P {
 			stream_ = &(generator_.getNextOutputStream());
 		}
 		
-		std::size_t BlockStream::waitForSpace(Timeout timeout) {
-			return stream_->waitForSpace(timeout);
+		bool BlockStream::isValid() const {
+			return stream_->isValid();
 		}
 		
-		bool BlockStream::write(const uint8_t* data, std::size_t size, Timeout timeout) {
-			if (!stream_->write(data, size, timeout)) {
-				return false;
-			}
+		size_t BlockStream::write(const uint8_t* data, size_t size) {
+			const size_t maxWriteSize = std::min(size, blockSize_ - blockPos_);
 			
-			blockPos_ += size;
+			const size_t writeSize = stream_->write(data, maxWriteSize);
 			
+			blockPos_ += writeSize;
 			if (blockPos_ == blockSize_) {
 				stream_ = &(generator_.getNextOutputStream());
 				blockPos_ = 0;
 			}
 			
-			return true;
+			return writeSize;
 		}
 		
 	}

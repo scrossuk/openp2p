@@ -42,7 +42,7 @@ namespace OpenP2P {
 					private:
 						Protocol<EndpointType, IdType>& protocol_;
 						IdType id_;
-						std::size_t activeOpCount_;
+						size_t activeOpCount_;
 						typename Protocol<EndpointType, IdType>::OpNotifier opNotifier_;
 						typename Protocol<EndpointType, IdType>::ReplyNotifier replyNotifier_;
 						

@@ -9,7 +9,7 @@ namespace OpenP2P {
 	
 		class OutputStreamGenerator {
 			public:
-				virtual OutputStream& getNextOutputStream() = 0;
+				virtual OStream& getNextOutputStream() = 0;
 				
 		};
 		

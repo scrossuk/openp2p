@@ -7,9 +7,9 @@
 
 namespace OpenP2P {
 
-	class FileIStream: public InputStream {
+	class FileIStream: public IStream {
 		public:
-			inline FileIStream() : handle_(0) { }
+			inline FileIStream() : handle_(NULL) { }
 			
 			inline FileIStream(const std::string& fileName) {
 				handle_ = fopen(fileName.c_str(), "rb");
@@ -25,35 +25,34 @@ namespace OpenP2P {
 				return isOpen();
 			}
 			
-			inline bool isOpen() {
-				return handle_ != 0;
+			inline bool isOpen() const {
+				return handle_ != NULL;
 			}
 			
-			inline std::size_t waitForData(Timeout) {
+			inline bool isValid() const {
+				if (!isOpen()) return false;
+				
+				const size_t currentPos = ftell(handle_);
+				fseek(handle_, 0, SEEK_END);
+				const size_t endPos = ftell(handle_);
+				fseek(handle_, currentPos, SEEK_SET);
+				
+				return endPos > currentPos;
+			}
+			
+			inline size_t read(uint8_t* data, size_t size) {
 				if (!isOpen()) {
 					return 0;
 				}
 				
-				const std::size_t currentPos = ftell(handle_);
-				fseek(handle_, 0, SEEK_END);
-				const std::size_t endPos = ftell(handle_);
-				fseek(handle_, currentPos, SEEK_SET);
-				return endPos - currentPos;
-			}
-			
-			inline bool read(uint8_t* data, std::size_t size, Timeout) {
-				if (!isOpen()) {
-					return false;
-				}
-				
-				return fread(data, 1, size, handle_) == size;
+				return fread(data, 1, size, handle_);
 			}
 			
 			inline void close() {
-				if (handle_ != 0) {
-					fclose(handle_);
-					handle_ = 0;
-				}
+				if (!isOpen()) return;
+				
+				fclose(handle_);
+				handle_ = NULL;
 			}
 			
 		private:
@@ -61,9 +60,9 @@ namespace OpenP2P {
 			
 	};
 	
-	class FileOStream: public OutputStream {
+	class FileOStream: public OStream {
 		public:
-			inline FileOStream() : handle_(0) { }
+			inline FileOStream() : handle_(NULL) { }
 			
 			inline FileOStream(const std::string& fileName) {
 				handle_ = fopen(fileName.c_str(), "wb");
@@ -79,31 +78,27 @@ namespace OpenP2P {
 				return isOpen();
 			}
 			
-			inline bool isOpen() {
-				return handle_ != 0;
+			inline bool isOpen() const {
+				return handle_ != NULL;
 			}
 			
-			inline std::size_t waitForSpace(Timeout) {
-				if (!isOpen()) {
-					return 0;
-				}
-				
-				return std::numeric_limits<std::size_t>::max() - ftell(handle_);
+			inline bool isValid() const {
+				return isOpen();
 			}
 			
-			inline bool write(const uint8_t* data, std::size_t size, Timeout) {
+			inline size_t write(const uint8_t* data, size_t size) {
 				if (!isOpen()) {
 					return false;
 				}
 				
-				return fwrite(data, 1, size, handle_) == size;
+				return fwrite(data, 1, size, handle_);
 			}
 			
 			inline void close() {
-				if (handle_ != 0) {
-					fclose(handle_);
-					handle_ = 0;
-				}
+				if (!isOpen()) return;
+				
+				fclose(handle_);
+				handle_ = NULL;
 			}
 			
 		private:

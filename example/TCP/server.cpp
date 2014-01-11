@@ -41,12 +41,7 @@ class ClientThread: public Runnable {
 			BinaryIOStream stream(tcpStream_);
 			
 			for (unsigned int i = 0; i < 1000; i += 2) {
-				uint32_t v = 0;
-				
-				if (!Binary::ReadUint32(stream.getInputStream(), &v)) {
-					std::cout << "---Failed to read from stream" << std::endl;
-					return;
-				}
+				const uint32_t v = Binary::ReadUint32(stream.input());
 				
 				if (v != i) {
 					std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << " - Terminating connection" << std::endl;
@@ -55,17 +50,16 @@ class ClientThread: public Runnable {
 				
 				std::cout << "Received: " << i << std::endl;
 				
-				if (!Binary::WriteUint32(stream.getOutputStream(), i + 1)) {
-					std::cout << "---Failed to write to stream" << std::endl;
-					return;
-				}
+				Binary::WriteUint32(stream.output(), i + 1);
+				
+				std::cout << "Sent: " << (i + 1) << std::endl;
 			}
 			
 			std::cout << "---Successfully completed transfer" << std::endl;
 		}
 		
 		void cancel() {
-			tcpStream_.close();
+			// tcpStream_.close();
 		}
 		
 	private:

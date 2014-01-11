@@ -4,7 +4,7 @@
 #include <OpenP2P/Kademlia.hpp>
 #include <OpenP2P/UDP.hpp>
 
-template <std::size_t IdSize>
+template <size_t IdSize>
 class TestDatabase: public OpenP2P::Kademlia::Database<IdSize> {
 	public:
 		TestDatabase() {

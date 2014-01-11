@@ -10,7 +10,7 @@ namespace OpenP2P {
 
 	namespace Crypt {
 	
-		void AutoSeededRandomPool::generateBlock(uint8_t* data, std::size_t size) {
+		void AutoSeededRandomPool::generateBlock(uint8_t* data, size_t size) {
 			return randPool_.GenerateBlock((byte*) data, size);
 		}
 		

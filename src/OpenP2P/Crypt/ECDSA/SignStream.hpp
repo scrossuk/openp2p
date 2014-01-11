@@ -1,10 +1,9 @@
 #ifndef OPENP2P_CRYPT_ECDSA_SIGNSTREAM_HPP
 #define OPENP2P_CRYPT_ECDSA_SIGNSTREAM_HPP
 
-#include <cstddef>
-#include <string>
+#include <stdint.h>
 
-#include <boost/utility.hpp>
+#include <string>
 
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/ecp.h>
@@ -26,7 +25,7 @@ namespace OpenP2P {
 	
 		namespace ECDSA {
 		
-			class SignStream: boost::noncopyable, public OutputStream {
+			class SignStream: public OStream {
 				public:
 					inline SignStream(RandomPool& pool, const PrivateKey& privateKey)
 						: signer_(privateKey) {
@@ -45,13 +44,12 @@ namespace OpenP2P {
 						return EventHandle::True;
 					}
 					
-					inline std::size_t waitForSpace(Timeout) {
-						// TODO: need to work this out properly.
-						return std::numeric_limits<std::size_t>::max();
+					inline bool isValid() const {
+						return true;
 					}
 					
-					inline bool write(const uint8_t* data, std::size_t size, Timeout) {
-						return filter_->Put((byte*) data, size) == size;
+					inline size_t write(const uint8_t* data, size_t size) {
+						return filter_->Put((byte*) data, size);
 					}
 					
 					inline Buffer signature() {
@@ -61,6 +59,9 @@ namespace OpenP2P {
 					}
 					
 				private:
+					SignStream(const SignStream&) = delete;
+					SignStream& operator=(SignStream) = delete;
+					
 					std::string signature_;
 					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer_;
 					CryptoPP::Filter* filter_;

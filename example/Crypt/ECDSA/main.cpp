@@ -16,10 +16,7 @@ int main() {
 	
 	std::cout << "Signing..." << std::endl;
 	
-	if (!OpenP2P::Binary::WriteUint32(binSign, 42)) {
-		std::cout << "Failed to write to SignStream" << std::endl;
-		return 0;
-	}
+	OpenP2P::Binary::WriteUint32(binSign, 42);
 	
 	OpenP2P::Buffer signature = signStream.signature();
 	
@@ -35,12 +32,9 @@ int main() {
 	
 	std::cout << "Verifying..." << std::endl;
 	
-	if (!OpenP2P::Binary::WriteUint32(binVerify, 42)) {
-		std::cout << "Failed to write to SignStream" << std::endl;
-		return 0;
-	}
+	OpenP2P::Binary::WriteUint32(binVerify, 42);
 	
-	std::cout << "Signature is " << (verifyStream.isValid() ? "valid" : "not valid") << std::endl;
+	std::cout << "Signature is " << (verifyStream.isSignatureValid() ? "valid" : "not valid") << std::endl;
 	
 	return 0;
 }

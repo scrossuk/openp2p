@@ -9,13 +9,13 @@
 
 namespace OpenP2P {
 
-	class BufferBuilder: public OutputStream {
+	class BufferBuilder: public OStream {
 		public:
 			BufferBuilder(Buffer&);
 			
-			std::size_t waitForSpace(Timeout);
+			bool isValid() const;
 			
-			bool write(const uint8_t* data, std::size_t size, Timeout);
+			size_t write(const uint8_t* data, size_t size);
 			
 		private:
 			Buffer& buffer_;

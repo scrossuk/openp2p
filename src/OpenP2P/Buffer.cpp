@@ -11,7 +11,7 @@ namespace OpenP2P {
 
 	/*Buffer::Buffer(){ }
 	
-	Buffer::Buffer(const uint8_t * data, std::size_t size)
+	Buffer::Buffer(const uint8_t * data, size_t size)
 			: data_(data, data + size){ }
 	
 	Buffer::Buffer(const Buffer& buffer)
@@ -21,7 +21,7 @@ namespace OpenP2P {
 		return data_;
 	}
 	
-	std::size_t Buffer::size() const {
+	size_t Buffer::size() const {
 		return data_.size();
 	}
 	

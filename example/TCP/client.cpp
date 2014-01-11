@@ -9,7 +9,7 @@ int main() {
 	TCP::Stream tcpStream;
 	std::cout << "---Connecting" << std::endl;
 	
-	if (!tcpStream.connect(IP::Endpoint(IP::V4Address::Localhost(), 45556), Timeout::Seconds(5.0))) {
+	if (!tcpStream.connect(IP::Endpoint(IP::V4Address::Localhost(), 45556))) {
 		std::cout << "---Failed to connect" << std::endl;
 		return 0;
 	}
@@ -19,17 +19,11 @@ int main() {
 	BinaryIOStream stream(tcpStream);
 	
 	for (unsigned int i = 0; i < 1000; i += 2) {
-		if (!Binary::WriteUint32(stream.getOutputStream(), i)) {
-			std::cout << "---Failed to write to stream" << std::endl;
-			return 0;
-		}
+		Binary::WriteUint32(stream.output(), i);
 		
-		uint32_t v = 0;
+		std::cout << "Sent: " << i << std::endl;
 		
-		if (!Binary::ReadUint32(stream.getInputStream(), &v)) {
-			std::cout << "---Failed to read from stream" << std::endl;
-			return 0;
-		}
+		const uint32_t v = Binary::ReadUint32(stream.input());
 		
 		if (v != (i + 1)) {
 			std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << std::endl;

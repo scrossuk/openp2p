@@ -1,29 +1,26 @@
 #include <stdint.h>
+#include <string.h>
+
 #include <algorithm>
-#include <cstddef>
 #include <string>
+
 #include <OpenP2P/StringStream.hpp>
 
 namespace OpenP2P {
 
-	StringIStream::StringIStream(const std::string& sourceString) : string_(sourceString), pos_(0) { }
+	StringIStream::StringIStream(const std::string& sourceString) : string_(sourceString), position_(0) { }
 	
-	std::size_t StringIStream::waitForData(Timeout) {
-		return string_.size() - pos_;
+	bool StringIStream::isValid() const {
+		return string_.size() > position_;
 	}
 	
-	bool StringIStream::read(uint8_t* data, std::size_t size, Timeout) {
-		if (size > (string_.size() - pos_)) {
-			return false;
-		}
+	size_t StringIStream::read(uint8_t* data, size_t size) {
+		const size_t readSize = std::min(size, string_.size() - position_);
 		
-		for (std::size_t i = 0; i < size; i++) {
-			data[i] = string_[pos_ + i];
-		}
+		memcpy(data, &(string_.c_str())[position_], readSize);
+		position_ += readSize;
 		
-		pos_ += size;
-		
-		return true;
+		return readSize;
 	}
 	
 }

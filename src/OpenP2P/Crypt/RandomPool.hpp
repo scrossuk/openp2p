@@ -12,7 +12,7 @@ namespace OpenP2P {
 	
 		class RandomPool {
 			public:
-				virtual void generateBlock(uint8_t* data, std::size_t size) = 0;
+				virtual void generateBlock(uint8_t* data, size_t size) = 0;
 				
 				virtual operator CryptoPP::RandomPool& () = 0;
 				

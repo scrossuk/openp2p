@@ -12,7 +12,7 @@ namespace OpenP2P {
 
 	namespace Kademlia {
 	
-		template <class EndpointType, std::size_t IdSize, std::size_t MaxBucketSize = 20>
+		template <class EndpointType, size_t IdSize, size_t MaxBucketSize = 20>
 		class BucketSet {
 				typedef Id<IdSize> IdType;
 				typedef Node<EndpointType, IdSize> NodeType;
@@ -32,7 +32,7 @@ namespace OpenP2P {
 					}
 					
 					Lock lock(mutex_);
-					std::size_t index = getBucket(node.id);
+					size_t index = getBucket(node.id);
 					
 					std::list<NodeType>& bucket = buckets_[index];
 					
@@ -51,13 +51,13 @@ namespace OpenP2P {
 					bucket.push_front(node);
 				}
 				
-				GroupType getNearest(const IdType& id, std::size_t number) {
+				GroupType getNearest(const IdType& id, size_t number) {
 					Lock lock(mutex_);
-					std::size_t index = getBucket(id);
+					size_t index = getBucket(id);
 					GroupType group;
 					
-					for (std::size_t dist = 0; dist < IdSize && group.size() < number; dist++) {
-						std::size_t l = index - dist;
+					for (size_t dist = 0; dist < IdSize && group.size() < number; dist++) {
+						size_t l = index - dist;
 						
 						if (l >= 0) {
 							const std::list<NodeType>& lbucket = buckets_[l];
@@ -68,7 +68,7 @@ namespace OpenP2P {
 						}
 						
 						
-						std::size_t r = index + dist + 1;
+						size_t r = index + dist + 1;
 						
 						if (r < IdSize) {
 							const std::list<NodeType>& rbucket = buckets_[r];
@@ -83,8 +83,8 @@ namespace OpenP2P {
 				}
 				
 			private:
-				std::size_t getBucket(const IdType& id) const {
-					for (std::size_t i = 0; i < IdSize; ++i) {
+				size_t getBucket(const IdType& id) const {
+					for (size_t i = 0; i < IdSize; ++i) {
 						uint8_t distance = id_.data[i] ^ id.data[i];
 						
 						if (distance != 0) {

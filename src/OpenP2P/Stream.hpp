@@ -8,23 +8,25 @@
 
 namespace OpenP2P {
 
-	class InputStream {
+	class BasicStream {
 		public:
-			virtual std::size_t waitForData(Timeout timeout) = 0;
-			
-			virtual bool read(uint8_t* data, std::size_t size, Timeout timeout) = 0;
+			virtual bool isValid() const = 0;
 			
 	};
 	
-	class OutputStream {
+	class IStream: public virtual BasicStream {
 		public:
-			virtual std::size_t waitForSpace(Timeout timeout) = 0;
-			
-			virtual bool write(const uint8_t* data, std::size_t size, Timeout timeout) = 0;
+			virtual size_t read(uint8_t* data, size_t size) = 0;
 			
 	};
 	
-	class IOStream: public InputStream, public OutputStream { };
+	class OStream: public virtual BasicStream {
+		public:
+			virtual size_t write(const uint8_t* data, size_t size) = 0;
+			
+	};
+	
+	class IOStream: public IStream, public OStream { };
 	
 }
 

@@ -7,25 +7,25 @@
 
 using namespace OpenP2P;
 
-void output(const uint8_t* data, std::size_t size) {
-	for (std::size_t i = 0; i < size; i++) {
+void output(const uint8_t* data, size_t size) {
+	for (size_t i = 0; i < size; i++) {
 		std::cout << (char) data[i];
 	}
 }
 
-class StdOutStream: public OutputStream {
+class StdOutStream: public OStream {
 	public:
 		StdOutStream() : size_(0) { }
 		
-		std::size_t size() {
+		size_t size() {
 			return size_;
 		}
 		
-		std::size_t waitForSpace(Timeout) {
-			return 1000;
+		bool isValid() const {
+			return true;
 		}
 		
-		bool write(const uint8_t* data, std::size_t dataSize, Timeout) {
+		size_t write(const uint8_t* data, size_t dataSize) {
 			std::cout << "Write of size " << dataSize << ": ";
 			output(data, dataSize);
 			std::cout << std::endl;
@@ -34,26 +34,26 @@ class StdOutStream: public OutputStream {
 		}
 		
 	private:
-		std::size_t size_;
+		size_t size_;
 		
 };
 
 class TextIOStream {
 	public:
-		TextIOStream(IOStream& stream) : binaryStream_(stream) { }
+		TextIOStream(IOStream& stream) : stream_(stream), binaryStream_(stream) { }
 		
 		TextIOStream& operator<<(const std::string& string) {
-			binaryStream_.getOutputStream().write((const uint8_t*) string.c_str(), string.size());
+			binaryStream_.output().writeAll((const uint8_t*) string.c_str(), string.size());
 			return *this;
 		}
 		
-		TextIOStream& operator>>(OutputStream& stream) {
-			BinaryOStream outStream(stream);
-			Binary::MoveData(binaryStream_.getInputStream(), outStream);
+		TextIOStream& operator>>(OStream& stream) {
+			Binary::MoveData(stream_, stream);
 			return *this;
 		}
 		
 	private:
+		IOStream& stream_;
 		BinaryIOStream binaryStream_;
 		
 };
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 	boost::optional< std::vector<IP::Endpoint> > endpointList = resolver.resolve(domain, "http", Timeout::Seconds(5.0));
 	
 	if (!endpointList) {
-		std::cout << "Failed to resolve" << std::endl;
+		std::cout << "Failed to resolve." << std::endl;
 		return 0;
 	}
 	
@@ -83,8 +83,8 @@ int main(int argc, char* argv[]) {
 	
 	TCP::Stream tcpStream;
 	
-	if (!tcpStream.connect(*endpointList, Timeout::Seconds(5.0))) {
-		std::cout << "Failed to connect" << std::endl;
+	if (!tcpStream.connect(*endpointList)) {
+		std::cout << "Failed to connect." << std::endl;
 		return 0;
 	}
 	

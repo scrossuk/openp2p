@@ -19,7 +19,7 @@ namespace OpenP2P {
 	 */
 	class BufferedStream {
 		public:
-			static const std::size_t DefaultBufferSize = 4096;
+			static const size_t DefaultBufferSize = 4096;
 			
 			/**
 			 * Constructs a buffered stream on top of an input stream.
@@ -27,7 +27,17 @@ namespace OpenP2P {
 			 * @param stream The stream from which data is to be read.
 			 * @param bufferSize Size of the internal buffer.
 			 */
-			BufferedStream(InputStream& stream, std::size_t bufferSize = DefaultBufferSize);
+			BufferedStream(IStream& stream, size_t bufferSize = DefaultBufferSize);
+			
+			/**
+			 * Query whether the stream is valid (i.e. read() operations
+			 * can still be performed on the stream).
+			 * 
+			 * @return Whether the stream is valid.
+			 */
+			inline bool isValid() const {
+				return size() > 0 || stream_.isValid();
+			}
 			
 			/**
 			 * Gets a pointer to the start of the internal buffer.
@@ -44,18 +54,17 @@ namespace OpenP2P {
 			 * @param pos Position in internal buffer to read.
 			 * @return Byte in internal buffer at position given.
 			 */
-			inline uint8_t operator[](std::size_t pos) const {
+			inline uint8_t operator[](size_t pos) const {
 				return data_[pos];
 			}
 			
 			/**
 			 * Reads as much data as possible from the underlying stream to the internal buffer.
-			 *
-			 * @param timeout Maximum amount of time this method can block.
-			 * @return Amount of data now in the internal buffer (0 if underlying stream has no more data, or timeout occurs).
+			 * 
+			 * @return Amount of data now in the internal buffer.
 			 */
-			inline std::size_t readAll(Timeout timeout) {
-				return read(bufferSize_, timeout);
+			inline size_t readMax() {
+				return read(bufferSize_);
 			}
 			
 			/**
@@ -64,10 +73,9 @@ namespace OpenP2P {
 			 * data specified.
 			 *
 			 * @param dataSize Amount of data to read into internal buffer.
-			 * @param timeout Maximum amount of time this method can block.
-			 * @return Amount of data now in the internal buffer (0 if underlying stream has no more data).
+			 * @return Amount of data now in the internal buffer.
 			 */
-			std::size_t read(std::size_t dataSize, Timeout timeout);
+			size_t read(size_t dataSize);
 			
 			/**
 			 * Consume a certain amount of data that has been read, indicating it is
@@ -75,14 +83,14 @@ namespace OpenP2P {
 			 *
 			 * @param consumeSize The amount of data to be consumed.
 			 */
-			void consume(std::size_t consumeSize);
+			void consume(size_t consumeSize);
 			
 			/**
 			 * Gets the amount of data that has been read, but has not yet been consumed.
 			 *
 			 * @return The data size.
 			 */
-			inline std::size_t size() const {
+			inline size_t size() const {
 				return writePos_ - readPos_;
 			}
 			
@@ -91,7 +99,7 @@ namespace OpenP2P {
 			 *
 			 * @return The internal buffer's capacity.
 			 */
-			inline std::size_t capacity() const {
+			inline size_t capacity() const {
 				return bufferSize_ - writePos_;
 			}
 			
@@ -100,15 +108,15 @@ namespace OpenP2P {
 			 *
 			 * @return The internal buffer's size.
 			 */
-			inline std::size_t bufferSize() const {
+			inline size_t bufferSize() const {
 				return bufferSize_;
 			}
 			
 		private:
-			InputStream& stream_;
+			IStream& stream_;
 			boost::scoped_array<uint8_t> data_;
-			const std::size_t bufferSize_;
-			std::size_t readPos_, writePos_;
+			const size_t bufferSize_;
+			size_t readPos_, writePos_;
 			
 	};
 	

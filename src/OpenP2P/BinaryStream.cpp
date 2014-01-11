@@ -1,163 +1,153 @@
 #include <stdint.h>
+#include <string.h>
+
 #include <algorithm>
-#include <cstddef>
-#include <cstring>
+#include <stdexcept>
 
 #include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/Stream.hpp>
-#include <OpenP2P/Timeout.hpp>
-#include <OpenP2P/TimeoutSequence.hpp>
 
 namespace OpenP2P {
 
-	bool BinaryIStream::read(uint8_t* data, std::size_t size, Timeout timeout) {
-		isValid_ = (tryRead(data, size, timeout) == size);
+	void BinaryIStream::readAll(uint8_t* data, size_t size) {
+		if (size == 0) return;
 		
-		if (!isValid_) {
-			memset((void*) data, 0, size);
+		size_t pos = 0;
+		
+		// TODO: Replace polling with wait() calls.
+		while (stream_.isValid()) {
+			pos += stream_.read(data + pos, size - pos);
+			if (pos == size) return;
 		}
 		
-		return isValid_;
+		throw std::runtime_error("readAll() failed; stream is invalid.");
 	}
 	
-	std::size_t BinaryIStream::tryRead(uint8_t* data, std::size_t size, Timeout timeout) {
-		TimeoutSequence sequence(timeout);
+	size_t BinaryIStream::readSome(uint8_t* data, size_t size) {
+		if (size == 0) return 0;
 		
-		std::size_t pos = 0;
-		
-		while (pos < size) {
-			const std::size_t availableDataSize = stream_.waitForData(sequence.getTimeout());
-			
-			if (availableDataSize == 0) {
-				return pos;
-			}
-			
-			const std::size_t readSize = std::min(availableDataSize, size - pos);
-			
-			if (readSize == 0) {
-				return pos;
-			}
-			
-			if (!stream_.read(data + pos, readSize, sequence.getTimeout())) {
-				return pos;
-			}
-			
-			pos += readSize;
+		// TODO: Replace polling with wait() calls.
+		while (stream_.isValid()) {
+			const size_t readSize = stream_.read(data, size);
+			if (readSize > 0) return readSize;
 		}
 		
-		return pos;
+		throw std::runtime_error("readSome() failed; stream is invalid.");
 	}
 	
-	bool BinaryOStream::write(const uint8_t* data, std::size_t size, Timeout timeout) {
-		return isValid_ = (tryWrite(data, size, timeout) == size);
-	}
-	
-	std::size_t BinaryOStream::tryWrite(const uint8_t* data, std::size_t size, Timeout timeout) {
-		TimeoutSequence sequence(timeout);
+	void BinaryOStream::writeAll(const uint8_t* data, size_t size) {
+		if (size == 0) return;
 		
-		std::size_t pos = 0;
+		size_t pos = 0;
 		
-		while (pos < size) {
-			const std::size_t availableCapacitySize = stream_.waitForSpace(sequence.getTimeout());
-			
-			if (availableCapacitySize == 0) {
-				return pos;
-			}
-			
-			const std::size_t writeSize = std::min(availableCapacitySize, size - pos);
-			
-			if (writeSize == 0) {
-				return pos;
-			}
-			
-			if (!stream_.write(data + pos, writeSize, sequence.getTimeout())) {
-				return pos;
-			}
-			
-			pos += writeSize;
+		// TODO: Replace polling with wait() calls.
+		while (stream_.isValid()) {
+			pos += stream_.write(data + pos, size - pos);
+			if (pos == size) return;
 		}
 		
-		return pos;
+		throw std::runtime_error("writeAll() failed; stream is invalid.");
+	}
+	
+	size_t BinaryOStream::writeSome(const uint8_t* data, size_t size) {
+		if (size == 0) return 0;
+		
+		// TODO: Replace polling with wait() calls.
+		while (stream_.isValid()) {
+			const size_t writeSize = stream_.write(data, size);
+			if (writeSize > 0) return writeSize;
+		}
+		
+		throw std::runtime_error("writeSome() failed; stream is invalid.");
 	}
 	
 	namespace Binary {
 	
-		bool ReadUint8(BinaryIStream& stream, uint8_t* value, Timeout timeout) {
-			return stream.read(value, 1, timeout);
+		uint8_t ReadUint8(BinaryIStream& stream) {
+			uint8_t value = 0;
+			stream.readAll(&value, sizeof(value));
+			return value;
 		}
 		
-		bool ReadInt8(BinaryIStream& stream, int8_t* value, Timeout timeout) {
-			return ReadUint8(stream, (uint8_t*) value, timeout);
+		int8_t ReadInt8(BinaryIStream& stream) {
+			return (int8_t) ReadUint8(stream);
 		}
 		
-		bool ReadUint16(BinaryIStream& stream, uint16_t* value, Timeout timeout) {
-			uint8_t s[2];
-			bool success = stream.read(s, 2, timeout);
-			*value = (s[0] << 8) | s[1];
-			return success;
+		uint16_t ReadUint16(BinaryIStream& stream) {
+			uint8_t data[2];
+			stream.readAll(data, sizeof(data));
+			return (uint16_t(data[0]) << 8) |
+				uint16_t(data[1]);
 		}
 		
-		bool ReadInt16(BinaryIStream& stream, int16_t* value, Timeout timeout) {
-			return ReadUint16(stream, (uint16_t*) value, timeout);
+		int16_t ReadInt16(BinaryIStream& stream) {
+			return (int16_t) ReadUint16(stream);
 		}
 		
-		bool ReadUint32(BinaryIStream& stream, uint32_t* value, Timeout timeout) {
-			uint8_t s[4];
-			bool success = stream.read(s, 4, timeout);
-			*value = (uint32_t(s[0]) << 24) | (uint32_t(s[1]) << 16) | (uint32_t(s[2]) << 8) | uint32_t(s[3]);
-			return success;
+		uint32_t ReadUint32(BinaryIStream& stream) {
+			uint8_t data[4];
+			stream.readAll(data, sizeof(data));
+			return (uint32_t(data[0]) << 24) |
+				(uint32_t(data[1]) << 16) |
+				(uint32_t(data[2]) << 8) |
+				uint32_t(data[3]);
 		}
 		
-		bool ReadInt32(BinaryIStream& stream, int32_t* value, Timeout timeout) {
-			return ReadUint32(stream, (uint32_t*) value, timeout);
+		int32_t ReadInt32(BinaryIStream& stream) {
+			return (int32_t) ReadUint32(stream);
 		}
 		
-		bool ReadUint64(BinaryIStream& stream, uint64_t* value, Timeout timeout) {
-			uint8_t s[8];
-			bool success = stream.read(s, 8, timeout);
-			*value = (uint64_t(s[0]) << 56) | (uint64_t(s[1]) << 48) | (uint64_t(s[2]) << 40) | (uint64_t(s[3]) << 32)
-					 | (uint64_t(s[4]) << 24) | (uint64_t(s[5]) << 16) | (uint64_t(s[6]) << 8) | uint64_t(s[7]);
-			return success;
+		uint64_t ReadUint64(BinaryIStream& stream) {
+			uint8_t data[8];
+			stream.readAll(data, sizeof(data));
+			return (uint64_t(data[0]) << 56) |
+				(uint64_t(data[1]) << 48) |
+				(uint64_t(data[2]) << 40) |
+				(uint64_t(data[3]) << 32) |
+				(uint64_t(data[4]) << 24) |
+				(uint64_t(data[5]) << 16) |
+				(uint64_t(data[6]) << 8) |
+				uint64_t(data[7]);
 		}
 		
-		bool ReadInt64(BinaryIStream& stream, int64_t* value, Timeout timeout) {
-			return ReadUint64(stream, (uint64_t*) value, timeout);
+		int64_t ReadInt64(BinaryIStream& stream) {
+			return (int64_t) ReadUint64(stream);
 		}
 		
 		
-		bool WriteUint8(BinaryOStream& stream, uint8_t value, Timeout timeout) {
-			return stream.write(&value, 1, timeout);
+		void WriteUint8(BinaryOStream& stream, uint8_t value) {
+			stream.writeAll(&value, 1);
 		}
 		
-		bool WriteInt8(BinaryOStream& stream, int8_t value, Timeout timeout) {
-			return WriteUint8(stream, value, timeout);
+		void WriteInt8(BinaryOStream& stream, int8_t value) {
+			WriteUint8(stream, value);
 		}
 		
-		bool WriteUint16(BinaryOStream& stream, uint16_t value, Timeout timeout) {
+		void WriteUint16(BinaryOStream& stream, uint16_t value) {
 			uint8_t s[2];
 			s[0] = (value >> 8) & 0xFF;
 			s[1] = value & 0xFF;
-			return stream.write(s, 2, timeout);
+			stream.writeAll(s, 2);
 		}
 		
-		bool WriteInt16(BinaryOStream& stream, int16_t value, Timeout timeout) {
-			return WriteUint16(stream, value, timeout);
+		void WriteInt16(BinaryOStream& stream, int16_t value) {
+			WriteUint16(stream, value);
 		}
 		
-		bool WriteUint32(BinaryOStream& stream, uint32_t value, Timeout timeout) {
+		void WriteUint32(BinaryOStream& stream, uint32_t value) {
 			uint8_t s[4];
 			s[0] = (value >> 24) & 0xFF;
 			s[1] = (value >> 16) & 0xFF;
 			s[2] = (value >> 8) & 0xFF;
 			s[3] = value & 0xFF;
-			return stream.write(s, 4, timeout);
+			stream.writeAll(s, 4);
 		}
 		
-		bool WriteInt32(BinaryOStream& stream, int32_t value, Timeout timeout) {
-			return WriteUint32(stream, value, timeout);
+		void WriteInt32(BinaryOStream& stream, int32_t value) {
+			WriteUint32(stream, value);
 		}
 		
-		bool WriteUint64(BinaryOStream& stream, uint64_t value, Timeout timeout) {
+		void WriteUint64(BinaryOStream& stream, uint64_t value) {
 			uint8_t s[8];
 			s[0] = (value >> 56) & 0xFF;
 			s[1] = (value >> 48) & 0xFF;
@@ -167,41 +157,26 @@ namespace OpenP2P {
 			s[5] = (value >> 16) & 0xFF;
 			s[6] = (value >> 8) & 0xFF;
 			s[7] = value & 0xFF;
-			return stream.write(s, 8, timeout);
+			stream.writeAll(s, 8);
 		}
 		
-		bool WriteInt64(BinaryOStream& stream, int64_t value, Timeout timeout) {
-			return WriteUint64(stream, value, timeout);
+		void WriteInt64(BinaryOStream& stream, int64_t value) {
+			WriteUint64(stream, value);
 		}
 		
+		static const size_t MOVE_BUFFER_SIZE = 256;
 		
-		std::size_t MoveData(BinaryIStream& source, BinaryOStream& destination, Timeout timeout) {
-			TimeoutSequence sequence(timeout);
+		void MoveData(IStream& source, OStream& destination) {
+			uint8_t buffer[MOVE_BUFFER_SIZE];
+			size_t pos = 0, bufferSize = 0;
 			
-			const std::size_t dataSize = 256;
-			uint8_t data[dataSize];
-			std::size_t dataMoved = 0;
-			
-			while (true) {
-				const std::size_t space = destination.waitForSpace(sequence.getTimeout());
-				
-				if (space == 0) {
-					return dataMoved;
+			while (source.isValid() && destination.isValid()) {
+				if (pos == bufferSize) {
+					pos = 0;
+					bufferSize = source.read(&buffer[0], MOVE_BUFFER_SIZE);
+				} else {
+					pos += destination.write(&buffer[pos], bufferSize - pos);
 				}
-				
-				const std::size_t transferSize = std::min(space, dataSize);
-				
-				const std::size_t readSize = source.tryRead(data, transferSize, sequence.getTimeout());
-				
-				if (readSize == 0) {
-					return dataMoved;
-				}
-				
-				if (!destination.write(data, readSize, sequence.getTimeout())) {
-					return dataMoved;
-				}
-				
-				dataMoved += readSize;
 			}
 		}
 		

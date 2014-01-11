@@ -33,7 +33,7 @@ namespace OpenP2P {
 				//Allows listening for multiple replies
 				struct OpNotifier {
 					Signal* signal;
-					std::size_t* activeOpCount;
+					size_t* activeOpCount;
 				};
 				
 				//Listening for a reply

@@ -1,27 +1,29 @@
 #include <stdint.h>
-#include <cstddef>
+#include <string.h>
+
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/BufferIterator.hpp>
 
 namespace OpenP2P {
 
-	BufferIterator::BufferIterator(const Buffer& buffer, std::size_t pPosition) : buffer_(buffer), position_(0) {
+	BufferIterator::BufferIterator(const Buffer& buffer, size_t pPosition) : buffer_(buffer), position_(0) {
 		seek(pPosition);
 	}
 	
-	std::size_t BufferIterator::position() {
+	size_t BufferIterator::position() const {
 		return position_;
 	}
 	
-	std::size_t BufferIterator::remaining() {
+	size_t BufferIterator::remaining() const {
 		return buffer_.size() - position_;
 	}
 	
 	void BufferIterator::set(const Buffer& buffer) {
 		buffer_ = buffer;
+		position_ = 0;
 	}
 	
-	bool BufferIterator::seek(std::size_t pPosition) {
+	bool BufferIterator::seek(size_t pPosition) {
 		if (pPosition > buffer_.size()) {
 			return false;
 		}
@@ -30,19 +32,17 @@ namespace OpenP2P {
 		return true;
 	}
 	
-	std::size_t BufferIterator::waitForData(Timeout) {
-		return buffer_.size() - position_;
+	bool BufferIterator::isValid() const {
+		return remaining() > 0;
 	}
 	
-	bool BufferIterator::read(uint8_t* data, std::size_t size, Timeout) {
-		const std::size_t readSize = std::min(size, buffer_.size() - position_);
+	size_t BufferIterator::read(uint8_t* data, size_t size) {
+		const size_t readSize = std::min(size, remaining());
 		
-		for (std::size_t i = 0; i < readSize; i++) {
-			data[i] = buffer_[position_ + i];
-		}
-		
+		memcpy(data, &buffer_[position_], readSize);
 		position_ += readSize;
-		return true;
+		
+		return readSize;
 	}
 	
 }

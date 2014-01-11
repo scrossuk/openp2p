@@ -13,7 +13,7 @@ namespace OpenP2P {
 
 	namespace Kademlia {
 	
-		template <class EndpointType, std::size_t IdSize>
+		template <class EndpointType, size_t IdSize>
 		class NodeQueue {
 				typedef Id<IdSize> IdType;
 				typedef Node<EndpointType, IdSize> NodeType;
@@ -47,7 +47,7 @@ namespace OpenP2P {
 					return distance_;
 				}
 				
-				std::size_t size() const {
+				size_t size() const {
 					return map_.size();
 				}
 				
@@ -66,7 +66,7 @@ namespace OpenP2P {
 					return map_.empty() ? true : (map_.begin())->second;
 				}
 				
-				std::vector<NodeType> getNearest(std::size_t maxSize) {
+				std::vector<NodeType> getNearest(size_t maxSize) {
 					std::vector<NodeType> nearestUnvisited;
 					
 					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && nearestUnvisited.size() < maxSize; ++i) {
@@ -76,7 +76,7 @@ namespace OpenP2P {
 					return nearestUnvisited;
 				}
 				
-				std::vector<NodeType> getNearestUnvisited(std::size_t maxSize) {
+				std::vector<NodeType> getNearestUnvisited(size_t maxSize) {
 					std::vector<NodeType> nearestUnvisited;
 					
 					for (typename std::map<NodeType, bool, Compare>::iterator i = map_.begin(); i != map_.end() && nearestUnvisited.size() < maxSize; ++i) {

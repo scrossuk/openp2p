@@ -283,8 +283,32 @@ static std::ofstream& logFile() {
 	return stream;
 }
 
-int fs_read(const char* path, char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
-	(void) info;
+int fs_open(const char* path, struct fuse_file_info *) {
+	logFile() << "open " << path << std::endl;
+	
+	// Will throw exception if file doesn't exist.
+	(void) root.getNode(path);
+	
+	return 0;
+}
+
+int fs_create(const char* path, mode_t mode, struct fuse_file_info*) {
+	try {
+		logFile() << "create " << path << std::endl;
+		
+		root.addNode(path, new File(mode));
+		return 0;
+	} catch (int e) {
+		return -e;
+	}
+}
+
+int fs_release(const char* path, struct fuse_file_info *) {
+	logFile() << "release " << path << std::endl;
+	return 0;
+}
+
+int fs_read(const char* path, char* buffer, size_t size, off_t offset, struct fuse_file_info*) {
 	try {
 		logFile() << "read " << path << " at offset " << offset << " with size " << size << std::endl;
 		return root.getNode(path)->read(buffer, size, offset);
@@ -293,8 +317,7 @@ int fs_read(const char* path, char* buffer, size_t size, off_t offset, struct fu
 	}
 }
 
-int fs_write(const char* path, const char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
-	(void) info;
+int fs_write(const char* path, const char* buffer, size_t size, off_t offset, struct fuse_file_info*) {
 	try {
 		logFile() << "write " << path << " at offset " << offset << " with size " << size << std::endl;
 		return root.getNode(path)->write(buffer, size, offset);
@@ -303,9 +326,7 @@ int fs_write(const char* path, const char* buffer, size_t size, off_t offset, st
 	}
 }
 
-int fs_readdir(const char* path, void* buffer, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info* fi) {
-	(void) offset;
-	(void) fi;
+int fs_readdir(const char* path, void* buffer, fuse_fill_dir_t filler, off_t, struct fuse_file_info*) {
 	try {
 		logFile() << "readdir " << path << std::endl;
 		
@@ -317,18 +338,6 @@ int fs_readdir(const char* path, void* buffer, fuse_fill_dir_t filler, off_t off
 			filler(buffer, node.first.c_str(), 0, 0);
 		}
 		
-		return 0;
-	} catch (int e) {
-		return -e;
-	}
-}
-
-int fs_create(const char* path, mode_t mode, struct fuse_file_info* info) {
-	(void) info;
-	try {
-		logFile() << "create " << path << std::endl;
-		
-		root.addNode(path, new File(mode));
 		return 0;
 	} catch (int e) {
 		return -e;
@@ -437,6 +446,8 @@ int main(int argc, char** argv) {
 	
 	memset(&operations, 0, sizeof(operations));
 	
+	operations.open = fs_open;
+	operations.release = fs_release;
 	operations.read = fs_read;
 	operations.write = fs_write;
 	operations.readdir = fs_readdir;

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <string>
 
-#include <OpenP2P/StringStream.hpp>
+#include <OpenP2P/Stream/StringStream.hpp>
 
 namespace OpenP2P {
 

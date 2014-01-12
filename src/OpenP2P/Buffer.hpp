@@ -1,15 +1,4 @@
-#ifndef OPENP2P_BUFFER_HPP
-#define OPENP2P_BUFFER_HPP
-
-#include <stdint.h>
-#include <vector>
-
-namespace OpenP2P {
-
-	typedef std::vector<uint8_t> Buffer;
-	
-	//void printBuffer(const Buffer&);
-	
-}
-
-#endif
+#include <OpenP2P/Buffer/Buffer.hpp>
+#include <OpenP2P/Buffer/BufferBuilder.hpp>
+#include <OpenP2P/Buffer/BufferedStream.hpp>
+#include <OpenP2P/Buffer/BufferIterator.hpp>

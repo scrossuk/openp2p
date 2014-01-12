@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <iostream>
 #include <OpenP2P.hpp>
+
+#include <OpenP2P/Stream/BinaryStream.hpp>
 #include <OpenP2P/TCP.hpp>
 
 int main() {

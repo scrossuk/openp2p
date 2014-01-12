@@ -1,11 +1,6 @@
 #ifndef OPENP2P_HPP
 #define OPENP2P_HPP
 
-#include <OpenP2P/BinaryStream.hpp>
-#include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/BufferBuilder.hpp>
-#include <OpenP2P/BufferedStream.hpp>
-#include <OpenP2P/BufferIterator.hpp>
 #include <OpenP2P/Condition.hpp>
 #include <OpenP2P/FileStream.hpp>
 #include <OpenP2P/IdGenerator.hpp>

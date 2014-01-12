@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/BufferIterator.hpp>
+#include <OpenP2P/Buffer/Buffer.hpp>
+#include <OpenP2P/Buffer/BufferIterator.hpp>
 
 namespace OpenP2P {
 
@@ -34,6 +34,10 @@ namespace OpenP2P {
 	
 	bool BufferIterator::isValid() const {
 		return remaining() > 0;
+	}
+	
+	Event::Source BufferIterator::eventSource() const {
+		return Event::Source();
 	}
 	
 	size_t BufferIterator::read(uint8_t* data, size_t size) {

@@ -16,6 +16,10 @@ namespace OpenP2P {
 			return stream_->isValid();
 		}
 		
+		Event::Source BlockStream::eventSource() const {
+			return stream_->eventSource();
+		}
+		
 		size_t BlockStream::write(const uint8_t* data, size_t size) {
 			const size_t maxWriteSize = std::min(size, blockSize_ - blockPos_);
 			

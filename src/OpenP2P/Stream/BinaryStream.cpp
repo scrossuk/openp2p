@@ -4,61 +4,79 @@
 #include <algorithm>
 #include <stdexcept>
 
-#include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/Stream.hpp>
+
+#include <OpenP2P/Event/Source.hpp>
+#include <OpenP2P/Event/Wait.hpp>
+
+#include <OpenP2P/Stream/BinaryStream.hpp>
 
 namespace OpenP2P {
 
 	void BinaryIStream::readAll(uint8_t* data, size_t size) {
-		if (size == 0) return;
-		
 		size_t pos = 0;
-		
-		// TODO: Replace polling with wait() calls.
-		while (stream_.isValid()) {
-			pos += stream_.read(data + pos, size - pos);
+		while (true) {
 			if (pos == size) return;
+			
+			const size_t readSize = stream_.read(data + pos, size - pos);
+			if (readSize == 0) {
+				if (!stream_.isValid()) {
+					throw std::runtime_error("readAll() failed; stream is invalid.");
+				}
+				Event::Wait(stream_.eventSource());
+			} else {
+				pos += readSize;
+			}
 		}
-		
-		throw std::runtime_error("readAll() failed; stream is invalid.");
 	}
 	
 	size_t BinaryIStream::readSome(uint8_t* data, size_t size) {
 		if (size == 0) return 0;
 		
-		// TODO: Replace polling with wait() calls.
-		while (stream_.isValid()) {
+		while (true) {
 			const size_t readSize = stream_.read(data, size);
-			if (readSize > 0) return readSize;
+			if (readSize == 0) {
+				if (!stream_.isValid()) {
+					throw std::runtime_error("readSome() failed; stream is invalid.");
+				}
+				Event::Wait(stream_.eventSource());
+			} else {
+				return readSize;
+			}
 		}
-		
-		throw std::runtime_error("readSome() failed; stream is invalid.");
 	}
 	
 	void BinaryOStream::writeAll(const uint8_t* data, size_t size) {
-		if (size == 0) return;
-		
 		size_t pos = 0;
-		
-		// TODO: Replace polling with wait() calls.
-		while (stream_.isValid()) {
-			pos += stream_.write(data + pos, size - pos);
+		while (true) {
 			if (pos == size) return;
+			
+			const size_t writeSize = stream_.write(data + pos, size - pos);
+			if (writeSize == 0) {
+				if (!stream_.isValid()) {
+					throw std::runtime_error("writeAll() failed; stream is invalid.");
+				}
+				Event::Wait(stream_.eventSource());
+			} else {
+				pos += writeSize;
+			}
 		}
-		
-		throw std::runtime_error("writeAll() failed; stream is invalid.");
 	}
 	
 	size_t BinaryOStream::writeSome(const uint8_t* data, size_t size) {
 		if (size == 0) return 0;
 		
-		// TODO: Replace polling with wait() calls.
-		while (stream_.isValid()) {
+		while (true) {
 			const size_t writeSize = stream_.write(data, size);
-			if (writeSize > 0) return writeSize;
+			if (writeSize == 0) {
+				if (!stream_.isValid()) {
+					throw std::runtime_error("writeSome() failed; stream is invalid.");
+				}
+				Event::Wait(stream_.eventSource());
+			} else {
+				return writeSize;
+			}
 		}
-		
-		throw std::runtime_error("writeSome() failed; stream is invalid.");
 	}
 	
 	namespace Binary {
@@ -170,6 +188,7 @@ namespace OpenP2P {
 			uint8_t buffer[MOVE_BUFFER_SIZE];
 			size_t pos = 0, bufferSize = 0;
 			
+			// TODO: replace polling with wait() calls.
 			while (source.isValid() && destination.isValid()) {
 				if (pos == bufferSize) {
 					pos = 0;

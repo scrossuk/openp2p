@@ -9,6 +9,8 @@
 
 #include <OpenP2P/Stream.hpp>
 
+#include <OpenP2P/Event/Source.hpp>
+
 #include <OpenP2P/IP/Endpoint.hpp>
 
 namespace OpenP2P {
@@ -27,6 +29,8 @@ namespace OpenP2P {
 				boost::asio::ip::tcp::socket& getInternal();
 				
 				bool isValid() const;
+				
+				Event::Source eventSource() const;
 				
 				size_t read(uint8_t* data, size_t size);
 				

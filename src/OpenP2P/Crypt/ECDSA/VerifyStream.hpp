@@ -34,6 +34,10 @@ namespace OpenP2P {
 						return true;
 					}
 					
+					inline Event::Source eventSource() const {
+						return Event::Source();
+					}
+					
 					inline size_t write(const uint8_t* data, size_t size) {
 						return filter_->Put((byte*) data, size);
 					}

@@ -2,8 +2,9 @@
 #include <algorithm>
 #include <cstddef>
 
-#include <OpenP2P/BufferedStream.hpp>
 #include <OpenP2P/Stream.hpp>
+
+#include <OpenP2P/Buffer/BufferedStream.hpp>
 
 namespace OpenP2P {
 

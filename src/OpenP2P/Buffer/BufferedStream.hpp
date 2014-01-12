@@ -39,6 +39,15 @@ namespace OpenP2P {
 			}
 			
 			/**
+			 * Get the underlying stream's event source.
+			 * 
+			 * @return The event source.
+			 */
+			inline Event::Source eventSource() const {
+				return stream_.eventSource();
+			}
+			
+			/**
 			 * Gets a pointer to the start of the internal buffer.
 			 *
 			 * @return Pointer to internal buffer.

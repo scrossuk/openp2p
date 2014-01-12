@@ -3,11 +3,15 @@
 
 #include <stdint.h>
 
-namespace OpenP2P {
+#include <OpenP2P/Event/Source.hpp>
 
+namespace OpenP2P {
+	
 	class BasicStream {
 		public:
 			virtual bool isValid() const = 0;
+			
+			virtual Event::Source eventSource() const = 0;
 			
 	};
 	

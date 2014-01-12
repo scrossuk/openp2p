@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 
-#include <OpenP2P/BufferedStream.hpp>
 #include <OpenP2P/Stream.hpp>
+
+#include <OpenP2P/Buffer/BufferedStream.hpp>
 
 namespace OpenP2P {
 
@@ -18,6 +19,8 @@ namespace OpenP2P {
 				XORStream(IStream& source0, IStream& source1);
 				
 				bool isValid() const;
+				
+				Event::Source eventSource() const;
 				
 				size_t read(uint8_t* data, size_t size);
 				

@@ -45,11 +45,11 @@ namespace OpenP2P {
 				public:
 					AddReceiver(Source source, Receiver& receiver)
 						: source_(source), receiver_(receiver) {
-						source_.impl()->addReceiver(receiver_);
+						if (source_.impl() != nullptr) source_.impl()->addReceiver(receiver_);
 					}
 					
 					~AddReceiver() {
-						source_.impl()->removeReceiver(receiver_);
+						if (source_.impl() != nullptr) source_.impl()->removeReceiver(receiver_);
 					}
 					
 				private:

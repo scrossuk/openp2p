@@ -3,6 +3,7 @@
 #include <vector>
 
 #include <OpenP2P.hpp>
+#include <OpenP2P/Stream/BinaryStream.hpp>
 #include <OpenP2P/TCP.hpp>
 
 using namespace OpenP2P;
@@ -36,26 +37,32 @@ class ClientThread: public Runnable {
 		}
 		
 		void run() {
-			std::cout << "---Started transfer" << std::endl;
-			
-			BinaryIOStream stream(tcpStream_);
-			
-			for (unsigned int i = 0; i < 1000; i += 2) {
-				const uint32_t v = Binary::ReadUint32(stream.input());
+			try {
+				std::cout << "---Started transfer" << std::endl;
 				
-				if (v != i) {
-					std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << " - Terminating connection" << std::endl;
-					return;
+				BinaryIOStream stream(tcpStream_);
+				
+				for (unsigned int i = 0; i < 1000; i += 2) {
+					const uint32_t v = Binary::ReadUint32(stream.input());
+					
+					if (v != i) {
+						std::cout << "Wrong number: " << v << ", Expected: " << (i + 1) << " - Terminating connection" << std::endl;
+						return;
+					}
+					
+					std::cout << "Received: " << i << std::endl;
+					
+					usleep(10000);
+					
+					Binary::WriteUint32(stream.output(), i + 1);
+					
+					std::cout << "Sent: " << (i + 1) << std::endl;
 				}
 				
-				std::cout << "Received: " << i << std::endl;
-				
-				Binary::WriteUint32(stream.output(), i + 1);
-				
-				std::cout << "Sent: " << (i + 1) << std::endl;
+				std::cout << "---Successfully completed transfer" << std::endl;
+			} catch (const std::exception& e) {
+				std::cout << "Failed with error: " << e.what() << std::endl;
 			}
-			
-			std::cout << "---Successfully completed transfer" << std::endl;
 		}
 		
 		void cancel() {

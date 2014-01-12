@@ -40,6 +40,10 @@ namespace OpenP2P {
 				return endPos > currentPos;
 			}
 			
+			inline Event::Source eventSource() const {
+				return Event::Source();
+			}
+			
 			inline size_t read(uint8_t* data, size_t size) {
 				if (!isOpen()) {
 					return 0;
@@ -84,6 +88,10 @@ namespace OpenP2P {
 			
 			inline bool isValid() const {
 				return isOpen();
+			}
+			
+			inline Event::Source eventSource() const {
+				return Event::Source();
 			}
 			
 			inline size_t write(const uint8_t* data, size_t size) {

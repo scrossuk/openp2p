@@ -9,6 +9,9 @@
 
 #include <OpenP2P/IOService.hpp>
 
+#include <OpenP2P/Event/Generator.hpp>
+#include <OpenP2P/Event/Source.hpp>
+
 #include <OpenP2P/IP/Address.hpp>
 #include <OpenP2P/IP/Endpoint.hpp>
 
@@ -22,14 +25,18 @@ namespace OpenP2P {
 			boost::asio::ip::tcp::socket socket;
 			std::mutex mutex;
 			std::condition_variable condition;
+			Event::Generator eventGenerator;
 			bool isActiveConnect, isActiveRead, isActiveWrite;
-			bool isConnected;
 			std::vector<uint8_t> readBuffer, writeBuffer;
 			
 			inline StreamImpl(boost::asio::io_service& pIOService)
 				: socket(pIOService), isActiveConnect(false),
-				isActiveRead(false), isActiveWrite(false),
-				isConnected(false) { }
+				isActiveRead(false), isActiveWrite(false) { }
+			
+			inline void close() {
+				boost::system::error_code ec;
+				socket.close(ec);
+			}
 		};
 		
 		namespace {
@@ -38,23 +45,26 @@ namespace OpenP2P {
 			
 			void connectCallback(StreamImpl* impl, const boost::system::error_code& ec) {
 				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->eventGenerator.activate();
 				impl->isActiveConnect = false;
-				impl->isConnected = !bool(ec);
+				if (ec) impl->close();
 				impl->condition.notify_all();
 			}
 			
 			void readCallback(StreamImpl* impl, const boost::system::error_code& ec, size_t transferred) {
 				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->eventGenerator.activate();
 				impl->isActiveRead = false;
-				if (ec) impl->isConnected = false;
+				if (ec) impl->close();
 				impl->condition.notify_all();
 				impl->readBuffer.resize(transferred);
 			}
 			
 			void writeCallback(StreamImpl* impl, const boost::system::error_code& ec, size_t transferred) {
 				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->eventGenerator.activate();
 				impl->isActiveWrite = false;
-				if (ec) impl->isConnected = false;
+				if (ec) impl->close();
 				impl->condition.notify_all();
 				
 				// TODO: replace with circular buffer.
@@ -66,7 +76,7 @@ namespace OpenP2P {
 		Stream::Stream() : impl_(new StreamImpl(GetIOService())) { }
 		
 		Stream::~Stream() {
-			impl_->socket.close();
+			impl_->close();
 			std::unique_lock<std::mutex> lock(impl_->mutex);
 			while (impl_->isActiveRead || impl_->isActiveWrite) {
 				impl_->condition.wait(lock);
@@ -77,7 +87,6 @@ namespace OpenP2P {
 			std::unique_lock<std::mutex> lock(impl_->mutex);
 			
 			impl_->socket.close();
-			impl_->isConnected = false;
 			
 			boost::asio::ip::tcp::endpoint endpointImpl(IP::Address::ToImpl(endpoint.address), endpoint.port);
 			impl_->socket.async_connect(endpointImpl, boost::bind(connectCallback, impl_.get(), _1));
@@ -88,7 +97,7 @@ namespace OpenP2P {
 				impl_->condition.wait(lock);
 			}
 			
-			return impl_->isConnected;
+			return impl_->socket.is_open();
 		}
 		
 		bool Stream::connect(const std::vector<IP::Endpoint>& endpointList) {
@@ -106,9 +115,11 @@ namespace OpenP2P {
 		}
 		
 		bool Stream::isValid() const {
-			/*std::lock_guard<std::mutex> lock(impl_->mutex);
-			return impl_->isConnected;*/
 			return impl_->socket.is_open();
+		}
+		
+		Event::Source Stream::eventSource() const {
+			return impl_->eventGenerator.eventSource();
 		}
 		
 		size_t Stream::read(uint8_t* data, size_t size) {

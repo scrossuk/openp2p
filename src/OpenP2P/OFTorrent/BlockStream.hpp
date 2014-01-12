@@ -18,6 +18,8 @@ namespace OpenP2P {
 				
 				bool isValid() const;
 				
+				Event::Source eventSource() const;
+				
 				size_t write(const uint8_t* data, size_t dataSize);
 				
 			private:

@@ -14,6 +14,10 @@ namespace OpenP2P {
 				return true;
 			}
 			
+			inline Event::Source eventSource() const {
+				return Event::Source();
+			}
+			
 			inline size_t read(uint8_t* data, size_t size) {
 				// Return zeroes.
 				memset(data, 0, size);
@@ -26,6 +30,10 @@ namespace OpenP2P {
 		public:
 			inline bool isValid() const {
 				return true;
+			}
+			
+			inline Event::Source eventSource() const {
+				return Event::Source();
 			}
 			
 			inline size_t write(const uint8_t*, size_t size) {

@@ -1,11 +1,4 @@
-#include <sstream>
-#include <string>
-#include <iostream>
-#include <stdint.h>
-#include <cstddef>
-#include <boost/enable_shared_from_this.hpp>
-#include <boost/shared_ptr.hpp>
-#include <OpenP2P/Buffer.hpp>
+#include <OpenP2P/Buffer/Buffer.hpp>
 
 namespace OpenP2P {
 

@@ -25,6 +25,10 @@ class StdOutStream: public OStream {
 			return true;
 		}
 		
+		Event::Source eventSource() const {
+			return Event::Source();
+		}
+		
 		size_t write(const uint8_t* data, size_t dataSize) {
 			std::cout << "Write of size " << dataSize << ": ";
 			output(data, dataSize);

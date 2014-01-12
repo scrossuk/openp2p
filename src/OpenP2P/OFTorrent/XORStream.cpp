@@ -2,8 +2,9 @@
 
 #include <algorithm>
 
-#include <OpenP2P/BufferedStream.hpp>
 #include <OpenP2P/Stream.hpp>
+
+#include <OpenP2P/Buffer/BufferedStream.hpp>
 
 #include <OpenP2P/OFTorrent/XORStream.hpp>
 
@@ -15,6 +16,11 @@ namespace OpenP2P {
 		
 		bool XORStream::isValid() const {
 			return source0_.isValid() && source1_.isValid();
+		}
+		
+		Event::Source XORStream::eventSource() const {
+			// TODO: get events from both source streams!
+			return source0_.eventSource();
 		}
 		
 		size_t XORStream::read(uint8_t* data, size_t size) {

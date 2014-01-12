@@ -2,9 +2,10 @@
 #define OPENP2P_BUFFERITERATOR_HPP
 
 #include <stdint.h>
-#include <cstddef>
-#include <OpenP2P/Buffer.hpp>
+
 #include <OpenP2P/Stream.hpp>
+
+#include <OpenP2P/Buffer/Buffer.hpp>
 
 namespace OpenP2P {
 
@@ -21,6 +22,8 @@ namespace OpenP2P {
 			bool seek(size_t position);
 			
 			bool isValid() const;
+			
+			Event::Source eventSource() const;
 			
 			size_t read(uint8_t* data, size_t size);
 			

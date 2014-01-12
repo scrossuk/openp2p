@@ -1,8 +1,7 @@
 #include <stdint.h>
-#include <cstddef>
 
-#include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/BufferBuilder.hpp>
+#include <OpenP2P/Buffer/Buffer.hpp>
+#include <OpenP2P/Buffer/BufferBuilder.hpp>
 
 namespace OpenP2P {
 
@@ -10,6 +9,10 @@ namespace OpenP2P {
 	
 	bool BufferBuilder::isValid() const {
 		return true;
+	}
+	
+	Event::Source BufferBuilder::eventSource() const {
+		return Event::Source();
 	}
 	
 	size_t BufferBuilder::write(const uint8_t* data, size_t size) {

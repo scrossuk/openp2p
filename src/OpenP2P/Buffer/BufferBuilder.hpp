@@ -4,8 +4,8 @@
 #include <stdint.h>
 #include <cstddef>
 
-#include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
+#include <OpenP2P/Buffer/Buffer.hpp>
 
 namespace OpenP2P {
 
@@ -14,6 +14,8 @@ namespace OpenP2P {
 			BufferBuilder(Buffer&);
 			
 			bool isValid() const;
+			
+			Event::Source eventSource() const;
 			
 			size_t write(const uint8_t* data, size_t size);
 			

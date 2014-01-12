@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 #include <OpenP2P.hpp>
-#include <boost/asio.hpp>
+#include <OpenP2P/Stream/BinaryStream.hpp>
 
 using namespace OpenP2P;
 

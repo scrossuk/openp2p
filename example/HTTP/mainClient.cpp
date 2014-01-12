@@ -4,6 +4,7 @@
 #include <iostream>
 #include <OpenP2P.hpp>
 #include <OpenP2P/TCP.hpp>
+#include <OpenP2P/Stream/BinaryStream.hpp>
 
 using namespace OpenP2P;
 

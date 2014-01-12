@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <OpenP2P.hpp>
+#include <OpenP2P/Stream/BinaryStream.hpp>
 #include <OpenP2P/OFTorrent.hpp>
 
 using namespace OpenP2P;

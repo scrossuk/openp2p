@@ -74,3 +74,6 @@ add_subdirectory(src)
 # Tests.
 add_subdirectory(tests)
 
+# Tools.
+add_subdirectory(tools)
+

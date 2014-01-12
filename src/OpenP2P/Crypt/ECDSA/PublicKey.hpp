@@ -7,6 +7,7 @@
 #include <cryptopp/ecp.h>
 #include <cryptopp/sha.h>
 
+#include <OpenP2P/Crypt/RandomPool.hpp>
 #include <OpenP2P/Crypt/ECDSA/PrivateKey.hpp>
 
 namespace OpenP2P {
@@ -17,8 +18,12 @@ namespace OpenP2P {
 		
 			class PublicKey {
 				public:
-					inline PublicKey(PrivateKey& privateKey) {
+					inline PublicKey(RandomPool& pool, PrivateKey& privateKey) {
 						((CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey&) privateKey).MakePublicKey(publicKey_);
+						
+						if (!publicKey_.Validate(pool, 3)) {
+							throw std::runtime_error("Generated private key is invalid.");
+						}
 					}
 					
 					inline operator CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& () {

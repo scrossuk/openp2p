@@ -39,7 +39,10 @@ namespace OpenP2P {
 					}
 					
 					inline size_t write(const uint8_t* data, size_t size) {
-						return filter_->Put((byte*) data, size);
+						// Apparently this always returns 0,
+						// which means success...
+						(void) filter_->Put((byte*) data, size);
+						return size;
 					}
 					
 					inline bool isSignatureValid() {

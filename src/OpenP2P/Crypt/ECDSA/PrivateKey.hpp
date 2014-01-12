@@ -1,7 +1,9 @@
 #ifndef OPENP2P_CRYPT_ECDSA_PRIVATEKEY_HPP
 #define OPENP2P_CRYPT_ECDSA_PRIVATEKEY_HPP
 
-#include <cstddef>
+#include <stdint.h>
+
+#include <stdexcept>
 
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/ecp.h>
@@ -35,6 +37,10 @@ namespace OpenP2P {
 						}
 						
 						privateKey_.Initialize(pool, oid);
+						
+						if (!privateKey_.Validate(pool, 3)) {
+							throw std::runtime_error("Generated private key is invalid.");
+						}
 					}
 					
 					inline operator CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey& () {

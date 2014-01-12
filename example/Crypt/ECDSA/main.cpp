@@ -1,6 +1,7 @@
 #include <iostream>
 #include <OpenP2P.hpp>
 #include <OpenP2P/Crypt.hpp>
+#include <OpenP2P/Stream/BinaryStream.hpp>
 
 using namespace OpenP2P::Crypt;
 
@@ -23,7 +24,7 @@ int main() {
 	std::cout << "Signed: size = " << signature.size() << " bytes" << std::endl;
 	
 	std::cout << "Make public key from private key" << std::endl;
-	ECDSA::PublicKey publicKey(privateKey);
+	ECDSA::PublicKey publicKey(rand, privateKey);
 	
 	std::cout << "Create verify stream" << std::endl;
 	ECDSA::VerifyStream verifyStream(publicKey, signature);

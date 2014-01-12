@@ -7,16 +7,12 @@
 #include <OpenP2P/BufferedStream.hpp>
 #include <OpenP2P/BufferIterator.hpp>
 #include <OpenP2P/Condition.hpp>
-#include <OpenP2P/EventDispatcher.hpp>
-#include <OpenP2P/EventHandle.hpp>
 #include <OpenP2P/FileStream.hpp>
-#include <OpenP2P/Future.hpp>
 #include <OpenP2P/IdGenerator.hpp>
 #include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Lock.hpp>
 #include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/NullStream.hpp>
-#include <OpenP2P/Promise.hpp>
 #include <OpenP2P/Signal.hpp>
 #include <OpenP2P/Socket.hpp>
 #include <OpenP2P/Stream.hpp>

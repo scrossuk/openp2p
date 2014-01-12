@@ -10,10 +10,6 @@ namespace OpenP2P {
 
 	class NullIStream: public IStream {
 		public:
-			inline EventHandle readEvent() {
-				return EventHandle::True;
-			}
-			
 			inline bool isValid() const {
 				return true;
 			}

@@ -6,7 +6,6 @@
 
 #include <boost/scoped_array.hpp>
 
-#include <OpenP2P/EventDispatcher.hpp>
 #include <OpenP2P/Stream.hpp>
 
 namespace OpenP2P {

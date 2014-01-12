@@ -2,9 +2,6 @@
 #define OPENP2P_STREAM_HPP
 
 #include <stdint.h>
-#include <cstddef>
-
-#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P {
 

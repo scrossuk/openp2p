@@ -10,11 +10,8 @@
 #include <cryptopp/filters.h>
 #include <cryptopp/sha.h>
 
-#include <OpenP2P/BinaryStream.hpp>
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/BufferBuilder.hpp>
 #include <OpenP2P/Stream.hpp>
-#include <OpenP2P/StringStream.hpp>
 
 #include <OpenP2P/Crypt/RandomPool.hpp>
 #include <OpenP2P/Crypt/ECDSA/PrivateKey.hpp>
@@ -30,18 +27,11 @@ namespace OpenP2P {
 					inline SignStream(RandomPool& pool, const PrivateKey& privateKey)
 						: signer_(privateKey) {
 						
-						filter_ = new CryptoPP::SignerFilter(pool,
-															 signer_,
-															 new CryptoPP::StringSink(signature_)
-															);
+						filter_ = new CryptoPP::SignerFilter(pool, signer_, new CryptoPP::StringSink(signature_));
 					}
 					
 					inline ~SignStream() {
 						delete filter_;
-					}
-					
-					inline EventHandle writeEvent() {
-						return EventHandle::True;
 					}
 					
 					inline bool isValid() const {

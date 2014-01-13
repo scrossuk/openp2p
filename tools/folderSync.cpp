@@ -10,6 +10,8 @@
 #include <set>
 #include <string>
 
+#include <unistd.h>
+
 #include <fuse.h>
 
 static std::ofstream& logFile() {
@@ -49,7 +51,7 @@ PathComponentPair splitFirstComponent(const std::string& path) {
 
 class Node {
 	public:
-		Node(mode_t mode) : m_mode(mode), m_atime(time(0)), m_mtime(time(0)), m_uid(0), m_gid(0) { }
+		Node(mode_t mode) : m_mode(mode), m_atime(time(0)), m_mtime(time(0)), m_uid(geteuid()), m_gid(getegid()) { }
 		
 		virtual ~Node() { }
 		

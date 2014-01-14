@@ -11,6 +11,8 @@ add_subdirectory(Crypt)
 
 add_subdirectory(Event)
 
+add_subdirectory(FolderSync)
+
 add_subdirectory(IP)
 
 add_subdirectory(OFTorrent)

@@ -13,10 +13,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <OpenP2P/FolderSync/Block.hpp>
+#include <OpenP2P/FolderSync/BlockId.hpp>
+#include <OpenP2P/FolderSync/Database.hpp>
+#include <OpenP2P/FolderSync/MemDatabase.hpp>
+
+using namespace OpenP2P;
+
 #include "FileSystem.hpp"
 #include "Path.hpp"
-
-static const size_t BLOCK_SIZE = 4096;
 
 std::ofstream& logFile() {
 	static std::ofstream stream("logFile.txt");
@@ -106,9 +111,16 @@ class Node {
 		gid_t m_gid;
 };
 
+FolderSync::Block ZeroBlock() {
+	FolderSync::Block zeroBlock;
+	zeroBlock.fill(0x00);
+	return zeroBlock;
+}
+
 class File : public Node {
 	public:
-		File(mode_t mode) : Node(mode), size_(0) { }
+		File(FolderSync::Database& database, mode_t mode) : Node(mode),
+			database_(database), size_(0) { }
 		
 		~File() { }
 		
@@ -122,10 +134,13 @@ class File : public Node {
 			const size_t readSize = std::min<size_t>(size, size_ - offset);
 			
 			for (size_t pos = 0; pos < readSize; ) {
-				const size_t blockIndex = (offset + pos) / BLOCK_SIZE;
-				const size_t blockPosition = (offset + pos) % BLOCK_SIZE;
-				const size_t blockReadSize = std::min<size_t>(readSize - pos, BLOCK_SIZE - blockPosition);
-				memcpy(&buffer[pos], &(data_.at(blockIndex))[blockPosition], blockReadSize);
+				const size_t blockIndex = (offset + pos) / FolderSync::BLOCK_SIZE;
+				const size_t blockPosition = (offset + pos) % FolderSync::BLOCK_SIZE;
+				
+				const auto block = database_.loadBlock(blockIds_.at(blockIndex));
+				
+				const size_t blockReadSize = std::min<size_t>(readSize - pos, FolderSync::BLOCK_SIZE - blockPosition);
+				memcpy(&buffer[pos], &block[blockPosition], blockReadSize);
 				pos += blockReadSize;
 			}
 			
@@ -145,10 +160,18 @@ class File : public Node {
 			const size_t writeSize = size;
 			
 			for (size_t pos = 0; pos < writeSize; ) {
-				const size_t blockIndex = (offset + pos) / BLOCK_SIZE;
-				const size_t blockPosition = (offset + pos) % BLOCK_SIZE;
-				const size_t blockWriteSize = std::min<size_t>(writeSize - pos, BLOCK_SIZE - blockPosition);
-				memcpy(&(data_.at(blockIndex))[blockPosition], &buffer[pos], blockWriteSize);
+				const size_t blockIndex = (offset + pos) / FolderSync::BLOCK_SIZE;
+				const size_t blockPosition = (offset + pos) % FolderSync::BLOCK_SIZE;
+				
+				auto block = database_.loadBlock(blockIds_.at(blockIndex));
+				
+				const size_t blockWriteSize = std::min<size_t>(writeSize - pos, FolderSync::BLOCK_SIZE - blockPosition);
+				memcpy(&block[blockPosition], &buffer[pos], blockWriteSize);
+				
+				const auto blockId = FolderSync::BlockId::Generate(block);
+				database_.storeBlock(blockId, block);
+				blockIds_.at(blockIndex) = blockId;
+				
 				pos += blockWriteSize;
 			}
 			
@@ -163,17 +186,21 @@ class File : public Node {
 		
 		void resize(size_t size) {
 			const size_t newSize = size;
-			const size_t numBlocks = (newSize + (BLOCK_SIZE - 1)) / BLOCK_SIZE;
+			const size_t numBlocks = (newSize + (FolderSync::BLOCK_SIZE - 1)) / FolderSync::BLOCK_SIZE;
 			
-			if (numBlocks > data_.size()) {
+			if (numBlocks > blockIds_.size()) {
 				// Add new blocks required.
-				for (size_t i = data_.size(); i < numBlocks; i++) {
-					data_.emplace_back(BLOCK_SIZE, 0x00);
+				const auto zeroBlock = ZeroBlock();
+				const auto zeroBlockId = FolderSync::BlockId::Generate(zeroBlock);
+				database_.storeBlock(zeroBlockId, zeroBlock);
+				
+				for (size_t i = blockIds_.size(); i < numBlocks; i++) {
+					blockIds_.push_back(zeroBlockId);
 				}
 			} else {
 				// Remove blocks no longer required.
-				for (size_t i = numBlocks; i < data_.size(); i++) {
-					data_.pop_back();
+				for (size_t i = numBlocks; i < blockIds_.size(); i++) {
+					blockIds_.pop_back();
 				}
 			}
 			
@@ -185,11 +212,12 @@ class File : public Node {
 			s.st_size = size_;
 			s.st_nlink = 1;
 			s.st_mode |= S_IFREG;
-			s.st_blksize = BLOCK_SIZE;
+			s.st_blksize = FolderSync::BLOCK_SIZE;
 		}
 		
+		FolderSync::Database& database_;
 		size_t size_;
-		std::vector< std::vector<uint8_t> > data_;
+		std::vector<FolderSync::BlockId> blockIds_;
 		
 };
 
@@ -330,7 +358,7 @@ class DemoFileSystem: public FUSE::FileSystem {
 			const auto parentPath = getParentPath(path);
 			const auto parentNode = lookup(parentPath);
 			
-			File* node = new File(mode);
+			File* node = new File(database_, mode);
 			parentNode->addNode(path.back(), node);
 			
 			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile(*node));
@@ -425,6 +453,7 @@ class DemoFileSystem: public FUSE::FileSystem {
 		}
 		
 	private:
+		FolderSync::MemDatabase database_;
 		Directory root_;
 	
 };

@@ -21,8 +21,8 @@ namespace OpenP2P {
 			return data_.at(id);
 		}
 		
-		void MemDatabase::storeBlock(const Block& data) {
-			data_.insert(std::make_pair(BlockId::Generate(data), data));
+		void MemDatabase::storeBlock(const BlockId& id, const Block& data) {
+			data_.insert(std::make_pair(id, data));
 		}
 		
 	}

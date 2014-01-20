@@ -7,6 +7,13 @@ add_executable(folderSync
 	)
 
 target_link_libraries(folderSync
+	openp2p-foldersync
+	openp2p-crypt
+	openp2p-stream
+	openp2p-event
+	openp2p
 	fuse
+	cryptopp
+	pthread
 	)
 

@@ -14,7 +14,7 @@ namespace OpenP2P {
 				
 				virtual Block loadBlock(const BlockId& id) const = 0;
 				
-				virtual void storeBlock(const Block& data) = 0;
+				virtual void storeBlock(const BlockId& id, const Block& data) = 0;
 			
 		};
 		

@@ -37,9 +37,9 @@ namespace FUSE {
 		public:
 			inline virtual ~OpenedFile() { }
 			
-			virtual int read(uint8_t* buffer, size_t size, off_t offset) const = 0;
+			virtual size_t read(size_t offset, uint8_t* buffer, size_t size) const = 0;
 			
-			virtual int write(const uint8_t* buffer, size_t size, off_t offset) = 0;
+			virtual size_t write(size_t offset, const uint8_t* buffer, size_t size) = 0;
 			
 	};
 	

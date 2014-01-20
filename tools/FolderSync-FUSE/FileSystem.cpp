@@ -1,9 +1,9 @@
 #define FUSE_USE_VERSION 30
 
-#include <climits>
-#include <cstdarg>
-#include <cstring>
-#include <ctime>
+#include <assert.h>
+#include <limits.h>
+#include <string.h>
+#include <time.h>
 
 #include <fstream>
 #include <map>
@@ -101,13 +101,26 @@ namespace FUSE {
 		int fs_read(const char* path, char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
 			try {
 				ctx().log << "read " << path << " at offset " << offset << " with size " << size << std::endl;
+				
+				if (offset < 0) {
+					ctx().log << "ERROR: Invalid offset." << std::endl;
+					return EINVAL;
+				}
+				
+				if (size > INT_MAX) {
+					ctx().log << "ERROR: Invalid size (greater than INT_MAX)." << std::endl;
+					return EINVAL;
+				}
+				
 				const auto it = ctx().openedFiles.find(info->fh);
 				if (it == ctx().openedFiles.end()) {
 					ctx().log << "ERROR: Invalid file handle." << std::endl;
 					return ENOENT;
 				}
 				
-				return (it->second)->read((uint8_t*) buffer, size, offset);
+				const size_t result = (it->second)->read(static_cast<size_t>(offset), reinterpret_cast<uint8_t*>(buffer), size);
+				assert(result <= size);
+				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
 			}
@@ -116,13 +129,26 @@ namespace FUSE {
 		int fs_write(const char* path, const char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
 			try {
 				ctx().log << "write " << path << " at offset " << offset << " with size " << size << std::endl;
+				
+				if (offset < 0) {
+					ctx().log << "ERROR: Invalid offset." << std::endl;
+					return EINVAL;
+				}
+				
+				if (size > INT_MAX) {
+					ctx().log << "ERROR: Invalid size (greater than INT_MAX)." << std::endl;
+					return EINVAL;
+				}
+				
 				const auto it = ctx().openedFiles.find(info->fh);
 				if (it == ctx().openedFiles.end()) {
 					ctx().log << "ERROR: Invalid file handle." << std::endl;
 					return ENOENT;
 				}
 				
-				return (it->second)->write((const uint8_t*) buffer, size, offset);
+				const size_t result = (it->second)->write(static_cast<size_t>(offset), reinterpret_cast<const uint8_t*>(buffer), size);
+				assert(result <= size);
+				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
 			}

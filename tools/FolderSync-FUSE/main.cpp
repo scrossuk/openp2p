@@ -16,6 +16,8 @@
 #include "FileSystem.hpp"
 #include "Path.hpp"
 
+static const size_t BLOCK_SIZE = 4096;
+
 std::ofstream& logFile() {
 	static std::ofstream stream("logFile.txt");
 	return stream;
@@ -106,56 +108,94 @@ class Node {
 
 class File : public Node {
 	public:
-		File(mode_t mode) : Node(mode), m_size(0), m_blocksize(4096) {
-		}
+		File(mode_t mode) : Node(mode), size_(0) { }
 		
 		~File() { }
 		
-		int read(char* buffer, size_t size, off_t offset) {
-			if ((size > INT_MAX) || (offset < 0) || ((size_t)offset > m_size)) {
+		size_t read(size_t offset, uint8_t* buffer, size_t size) {
+			if (offset > size_) {
 				throw FUSE::ErrorException(EINVAL);
 			}
 			
 			updateTime(false);
 			
-			const size_t readSize = std::min<size_t>(size, m_size - offset);
-			memset(buffer, 0, readSize);
+			const size_t readSize = std::min<size_t>(size, size_ - offset);
+			
+			for (size_t pos = 0; pos < readSize; ) {
+				const size_t blockIndex = (offset + pos) / BLOCK_SIZE;
+				const size_t blockPosition = (offset + pos) % BLOCK_SIZE;
+				const size_t blockReadSize = std::min<size_t>(readSize - pos, BLOCK_SIZE - blockPosition);
+				memcpy(&buffer[pos], &(data_.at(blockIndex))[blockPosition], blockReadSize);
+				pos += blockReadSize;
+			}
+			
 			return readSize;
 		}
 		
-		int write(const char* buffer, size_t size, off_t offset) {
+		size_t write(size_t offset, const uint8_t* buffer, size_t size) {
+			if (offset > size_) {
+				throw FUSE::ErrorException(EINVAL);
+			}
+			
 			updateTime(true);
 			
-			(void) buffer;
-			
 			// Make sure the file is big enough.
-			m_size = std::max<size_t>(m_size, size + offset);
+			resize(std::max<size_t>(size_, size + offset));
 			
-			return size;
+			const size_t writeSize = size;
+			
+			for (size_t pos = 0; pos < writeSize; ) {
+				const size_t blockIndex = (offset + pos) / BLOCK_SIZE;
+				const size_t blockPosition = (offset + pos) % BLOCK_SIZE;
+				const size_t blockWriteSize = std::min<size_t>(writeSize - pos, BLOCK_SIZE - blockPosition);
+				memcpy(&(data_.at(blockIndex))[blockPosition], &buffer[pos], blockWriteSize);
+				pos += blockWriteSize;
+			}
+			
+			return writeSize;
 		}
 		
 		void truncate(size_t size) {
 			updateTime(true);
 			
-			m_size = size;
+			resize(size);
+		}
+		
+		void resize(size_t size) {
+			const size_t newSize = size;
+			const size_t numBlocks = (newSize + (BLOCK_SIZE - 1)) / BLOCK_SIZE;
+			
+			if (numBlocks > data_.size()) {
+				// Add new blocks required.
+				for (size_t i = data_.size(); i < numBlocks; i++) {
+					data_.emplace_back(BLOCK_SIZE, 0x00);
+				}
+			} else {
+				// Remove blocks no longer required.
+				for (size_t i = numBlocks; i < data_.size(); i++) {
+					data_.pop_back();
+				}
+			}
+			
+			size_ = newSize;
 		}
 		
 	private:
 		void getSubclassAttr(struct stat& s) {
-			s.st_size = m_size;
+			s.st_size = size_;
 			s.st_nlink = 1;
 			s.st_mode |= S_IFREG;
-			s.st_blksize = m_blocksize;
+			s.st_blksize = BLOCK_SIZE;
 		}
 		
-		size_t m_size;
-		const size_t m_blocksize;
+		size_t size_;
+		std::vector< std::vector<uint8_t> > data_;
+		
 };
 
 class Directory : public Node {
 	public:
-		Directory(mode_t mode) : Node(mode) {
-		}
+		Directory(mode_t mode) : Node(mode) { }
 		
 		~Directory() {
 			for (auto node : m_nodes) {
@@ -245,13 +285,19 @@ class DemoOpenedDirectory: public FUSE::OpenedDirectory {
 
 class DemoOpenedFile: public FUSE::OpenedFile {
 	public:
-		int read(uint8_t*, size_t size, off_t) const {
-			return size;
+		DemoOpenedFile(File& file)
+			: file_(file) { }
+		
+		size_t read(size_t offset, uint8_t* buffer, size_t size) const {
+			return file_.read(offset, buffer, size);
 		}
 			
-		int write(const uint8_t*, size_t size, off_t) {
-			return size;
+		size_t write(size_t offset, const uint8_t* buffer, size_t size) {
+			return file_.write(offset, buffer, size);
 		}
+		
+	private:
+		File& file_;
 			
 };
 
@@ -283,13 +329,22 @@ class DemoFileSystem: public FUSE::FileSystem {
 			
 			const auto parentPath = getParentPath(path);
 			const auto parentNode = lookup(parentPath);
-			parentNode->addNode(path.back(), new File(mode));
 			
-			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile());
+			File* node = new File(mode);
+			parentNode->addNode(path.back(), node);
+			
+			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile(*node));
 		}
 		
-		std::unique_ptr<FUSE::OpenedFile> openFile(const FUSE::Path&) {
-			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile());
+		std::unique_ptr<FUSE::OpenedFile> openFile(const FUSE::Path& path) {
+			// TODO: remove this cast!
+			File* file = dynamic_cast<File*>(lookup(path));
+			
+			if (file == NULL) {
+				throw FUSE::ErrorException(EISDIR);
+			}
+			
+			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile(*file));
 		}
 		
 		void unlink(const FUSE::Path& path) {
@@ -361,6 +416,11 @@ class DemoFileSystem: public FUSE::FileSystem {
 		std::unique_ptr<FUSE::OpenedDirectory> openDirectory(const FUSE::Path& path) {
 			// TODO: remove this cast!
 			Directory* dir = dynamic_cast<Directory*>(lookup(path));
+			
+			if (dir == NULL) {
+				throw FUSE::ErrorException(ENOTDIR);
+			}
+			
 			return std::unique_ptr<FUSE::OpenedDirectory>(new DemoOpenedDirectory(*dir));
 		}
 		

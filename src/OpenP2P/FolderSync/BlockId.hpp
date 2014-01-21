@@ -11,7 +11,7 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		constexpr size_t BLOCK_ID_SIZE = 32;
+		constexpr size_t BLOCK_ID_SIZE = 16;
 		
 		class BlockId {
 			public:

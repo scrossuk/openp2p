@@ -4,7 +4,7 @@
 
 #include <array>
 
-#include <OpenP2P/Crypt/Hash/SHA256Stream.hpp>
+#include <OpenP2P/Crypt/Hash/MD5Stream.hpp>
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/Stream/BinaryStream.hpp>
@@ -20,7 +20,7 @@ namespace OpenP2P {
 		BlockId BlockId::Generate(const Block& data) {
 			// Perform a hash on the block to
 			// generate its ID.
-			Crypt::Hash::SHA256Stream hashStream;
+			Crypt::Hash::MD5Stream hashStream;
 			BinaryOStream blockingStream(hashStream);
 			blockingStream.writeAll(data.data(), data.size());
 			const auto digest = hashStream.calculateDigest();

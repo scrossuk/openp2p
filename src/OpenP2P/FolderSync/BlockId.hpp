@@ -6,6 +6,7 @@
 #include <array>
 
 #include <OpenP2P/FolderSync/Block.hpp>
+#include <OpenP2P/Stream/BinaryStream.hpp>
 
 namespace OpenP2P {
 	
@@ -16,9 +17,13 @@ namespace OpenP2P {
 		class BlockId {
 			public:
 				BlockId();
-				explicit BlockId(const std::array<uint8_t, BLOCK_ID_SIZE>& data);
+				
+				static BlockId ZeroBlockId();
+				static BlockId FromReader(BlockingReader& reader);
 				
 				static BlockId Generate(const Block& data);
+				
+				void writeTo(BlockingWriter& writer) const;
 				
 				bool operator==(const BlockId&) const;
 				bool operator<(const BlockId&) const;

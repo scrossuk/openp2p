@@ -17,8 +17,17 @@ namespace OpenP2P {
 			(void) memset(data_.data(), 0, data_.size());
 		}
 		
-		BlockId::BlockId(const std::array<uint8_t, BLOCK_ID_SIZE>& data)
-			: data_(data) { }
+		BlockId BlockId::ZeroBlockId() {
+			Block zeroBlock;
+			zeroBlock.fill(0x00);
+			return BlockId::Generate(zeroBlock);
+		}
+		
+		BlockId BlockId::FromReader(BlockingReader& reader) {
+			BlockId blockId;
+			reader.readAll(blockId.data_.data(), blockId.data_.size());
+			return blockId;
+		}
 		
 		BlockId BlockId::Generate(const Block& data) {
 			// Perform a hash on the block to
@@ -32,6 +41,10 @@ namespace OpenP2P {
 			BlockId id;
 			memcpy(id.data_.data(), digest.data(), BLOCK_ID_SIZE);
 			return id;
+		}
+		
+		void BlockId::writeTo(BlockingWriter& writer) const {
+			writer.writeAll(data_.data(), data_.size());
 		}
 		
 		bool BlockId::operator==(const BlockId& other) const {

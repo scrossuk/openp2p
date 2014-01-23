@@ -295,37 +295,46 @@ class Directory : public Node {
 
 class DemoOpenedDirectory: public FUSE::OpenedDirectory {
 	public:
-		DemoOpenedDirectory(Directory& directory) : directory_(directory) { }
+		DemoOpenedDirectory(const FUSE::Path& path, FolderSync::Database& database, const FolderSync::BlockId& blockId) 
+			: path_(path), database_(database), node_(database, blockId), directory_(node_) { }
 		
 		std::vector<std::string> read() const {
-			std::vector<std::string> children;
-			const auto nodes = directory_.readDir();
-			for (const auto& it: nodes) {
-				children.push_back(it.first);
-			}
-			return children;
+			return directory_.childNames();
 		}
 	
 	private:
-		Directory& directory_;
+		FUSE::Path path_;
+		FolderSync::Database& database_;
+		FolderSync::Node node_;
+		FolderSync::Directory directory_;
 			
 };
 
 class DemoOpenedFile: public FUSE::OpenedFile {
 	public:
-		DemoOpenedFile(File& file)
-			: file_(file) { }
+		DemoOpenedFile(const FUSE::Path& path, FolderSync::Database& database, const FolderSync::BlockId& blockId)
+			: path_(path), database_(database), node_(database, blockId) { }
 		
 		size_t read(size_t offset, uint8_t* buffer, size_t size) const {
-			return file_.read(offset, buffer, size);
+			if (offset > node_.size()) {
+				throw FUSE::ErrorException(EINVAL);
+			}
+			
+			return node_.read(offset, buffer, size);
 		}
 		
 		size_t write(size_t offset, const uint8_t* buffer, size_t size) {
-			return file_.write(offset, buffer, size);
+			if (offset > node_.size()) {
+				throw FUSE::ErrorException(EINVAL);
+			}
+			
+			return node_.write(offset, buffer, size);
 		}
 		
 	private:
-		File& file_;
+		FUSE::Path path_;
+		FolderSync::Database& database_;
+		FolderSync::Node node_;
 			
 };
 
@@ -341,12 +350,27 @@ class DemoFileSystem: public FUSE::FileSystem {
 	public:
 		DemoFileSystem() : root_(0755) { }
 		
-		Node* lookup(const FUSE::Path& path) const {
-			Node* node = (Node*) &root_;
+		FolderSync::BlockId lookup(const FUSE::Path& path) const {
+			BlockId currentId = rootId_;
+			
 			for (size_t i = 0; i < path.size(); i++) {
-				node = node->getNode(path.at(i));
+				const std::string& pathComponent = path.at(i);
+				FolderSync::Node node(database, currentId);
+				
+				if (node.type() != FolderSync::TYPE_DIRECTORY) {
+					throw FUSE::ErrorException(ENOTDIR);
+				}
+				
+				FolderSync::Directory directory(node);
+				
+				if (!directory.hasChild(pathComponent)) {
+					throw FUSE::ErrorException(ENOENT);
+				}
+				
+				currentId = directory.getChild(pathComponent);
 			}
-			return node;
+			
+			return currentId;
 		}
 		
 		std::unique_ptr<FUSE::OpenedFile> createFile(const FUSE::Path& path, mode_t mode) {
@@ -407,15 +431,18 @@ class DemoFileSystem: public FUSE::FileSystem {
 		}
 		
 		void resize(const FUSE::Path& path, size_t size) {
+			FolderSync::Node node
 			lookup(path)->truncate(size);
 		}
 		
 		void changeMode(const FUSE::Path& path, mode_t mode) {
-			lookup(path)->chmod(mode);
+			// Not implemented.
+			throw FUSE::ErrorException(ENOSYS);
 		}
 		
 		void changeOwner(const FUSE::Path& path, uid_t user, gid_t group) {
-			lookup(path)->chown(user, group);
+			// Not implemented.
+			throw FUSE::ErrorException(ENOSYS);
 		}
 		
 		void createDirectory(const FUSE::Path& path, mode_t mode) {
@@ -454,7 +481,7 @@ class DemoFileSystem: public FUSE::FileSystem {
 		
 	private:
 		FolderSync::MemDatabase database_;
-		Directory root_;
+		FolderSync::BlockId rootId_;
 	
 };
 

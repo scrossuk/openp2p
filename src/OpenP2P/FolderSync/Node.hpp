@@ -1,8 +1,9 @@
 #ifndef OPENP2P_FOLDERSYNC_NODE_HPP
 #define OPENP2P_FOLDERSYNC_NODE_HPP
 
-#include <vector>
+#include <stdint.h>
 
+#include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
 
@@ -10,39 +11,60 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		// Size of the metadata stored in the node.
-		constexpr size_t METADATA_SIZE = 16;
-		
-		// Maximum node (i.e. file) size in blocks.
-		constexpr size_t MAX_NODE_BLOCKS = (BLOCK_SIZE - METADATA_SIZE) / BLOCK_ID_SIZE;
-		
 		typedef uint64_t NodeSize;
+		
+		enum NodeType {
+			TYPE_DIRECTORY = 0,
+			TYPE_FILE
+		};
 		
 		class Node {
 			public:
 				Node(Database& database, const BlockId& blockId);
+				
+				static Node Empty(Database& database, NodeType type);
+				
 				~Node();
+				
+				/**
+				 * \brief Generate the node's block ID.
+				 *
+				 * If the node hasn't been modified (by a call
+				 * to 'write'), this will return the same ID as
+				 * passed in the constructor.
+				 */
+				BlockId blockId() const;
 				
 				/**
 				 * \brief Get node size (in bytes).
 				 */
 				NodeSize size() const;
 				
-				inline size_t blockCount() const {
-					return size() / BLOCK_SIZE;
-				}
+				/**
+				 * \brief Get node type.
+				 */
+				NodeType type() const;
 				
 				/**
-				 * \brief Get ID of a block with the given offset.
+				 * \brief Sync node changes.
 				 * 
-				 * NOTE: Will throw if blockOffset exceeds 
+				 * Writes the new node blocks to the database.
+				 * This will be called automatically when the
+				 * node is destroyed.
 				 */
-				BlockId getBlockId(size_t blockOffset) const;
+				void sync();
+				
+				void resize(NodeSize size);
+				
+				size_t read(size_t offset, uint8_t* buffer, size_t bufferSize) const;
+				
+				size_t write(size_t offset, const uint8_t* buffer, size_t bufferSize);
 				
 			private:
 				Database& database_;
 				BlockId nodeBlockId_;
 				Block nodeBlock_;
+				NodeSize size_;
 			
 		};
 		

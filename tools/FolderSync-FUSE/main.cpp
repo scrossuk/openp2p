@@ -319,7 +319,7 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 		size_t read(size_t offset, uint8_t* buffer, size_t size) const {
 			return file_.read(offset, buffer, size);
 		}
-			
+		
 		size_t write(size_t offset, const uint8_t* buffer, size_t size) {
 			return file_.write(offset, buffer, size);
 		}

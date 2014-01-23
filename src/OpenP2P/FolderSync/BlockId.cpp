@@ -17,6 +17,9 @@ namespace OpenP2P {
 			(void) memset(data_.data(), 0, data_.size());
 		}
 		
+		BlockId::BlockId(const std::array<uint8_t, BLOCK_ID_SIZE>& data)
+			: data_(data) { }
+		
 		BlockId BlockId::Generate(const Block& data) {
 			// Perform a hash on the block to
 			// generate its ID.

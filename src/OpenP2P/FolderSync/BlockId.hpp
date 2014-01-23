@@ -16,6 +16,7 @@ namespace OpenP2P {
 		class BlockId {
 			public:
 				BlockId();
+				explicit BlockId(const std::array<uint8_t, BLOCK_ID_SIZE>& data);
 				
 				static BlockId Generate(const Block& data);
 				

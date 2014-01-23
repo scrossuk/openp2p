@@ -81,28 +81,28 @@ namespace OpenP2P {
 	
 	namespace Binary {
 	
-		uint8_t ReadUint8(BinaryIStream& stream) {
+		uint8_t ReadUint8(BlockingReader& stream) {
 			uint8_t value = 0;
 			stream.readAll(&value, sizeof(value));
 			return value;
 		}
 		
-		int8_t ReadInt8(BinaryIStream& stream) {
+		int8_t ReadInt8(BlockingReader& stream) {
 			return (int8_t) ReadUint8(stream);
 		}
 		
-		uint16_t ReadUint16(BinaryIStream& stream) {
+		uint16_t ReadUint16(BlockingReader& stream) {
 			uint8_t data[2];
 			stream.readAll(data, sizeof(data));
 			return (uint16_t(data[0]) << 8) |
 				uint16_t(data[1]);
 		}
 		
-		int16_t ReadInt16(BinaryIStream& stream) {
+		int16_t ReadInt16(BlockingReader& stream) {
 			return (int16_t) ReadUint16(stream);
 		}
 		
-		uint32_t ReadUint32(BinaryIStream& stream) {
+		uint32_t ReadUint32(BlockingReader& stream) {
 			uint8_t data[4];
 			stream.readAll(data, sizeof(data));
 			return (uint32_t(data[0]) << 24) |
@@ -111,11 +111,11 @@ namespace OpenP2P {
 				uint32_t(data[3]);
 		}
 		
-		int32_t ReadInt32(BinaryIStream& stream) {
+		int32_t ReadInt32(BlockingReader& stream) {
 			return (int32_t) ReadUint32(stream);
 		}
 		
-		uint64_t ReadUint64(BinaryIStream& stream) {
+		uint64_t ReadUint64(BlockingReader& stream) {
 			uint8_t data[8];
 			stream.readAll(data, sizeof(data));
 			return (uint64_t(data[0]) << 56) |
@@ -128,31 +128,31 @@ namespace OpenP2P {
 				uint64_t(data[7]);
 		}
 		
-		int64_t ReadInt64(BinaryIStream& stream) {
+		int64_t ReadInt64(BlockingReader& stream) {
 			return (int64_t) ReadUint64(stream);
 		}
 		
 		
-		void WriteUint8(BinaryOStream& stream, uint8_t value) {
+		void WriteUint8(BlockingWriter& stream, uint8_t value) {
 			stream.writeAll(&value, 1);
 		}
 		
-		void WriteInt8(BinaryOStream& stream, int8_t value) {
+		void WriteInt8(BlockingWriter& stream, int8_t value) {
 			WriteUint8(stream, value);
 		}
 		
-		void WriteUint16(BinaryOStream& stream, uint16_t value) {
+		void WriteUint16(BlockingWriter& stream, uint16_t value) {
 			uint8_t s[2];
 			s[0] = (value >> 8) & 0xFF;
 			s[1] = value & 0xFF;
 			stream.writeAll(s, 2);
 		}
 		
-		void WriteInt16(BinaryOStream& stream, int16_t value) {
+		void WriteInt16(BlockingWriter& stream, int16_t value) {
 			WriteUint16(stream, value);
 		}
 		
-		void WriteUint32(BinaryOStream& stream, uint32_t value) {
+		void WriteUint32(BlockingWriter& stream, uint32_t value) {
 			uint8_t s[4];
 			s[0] = (value >> 24) & 0xFF;
 			s[1] = (value >> 16) & 0xFF;
@@ -161,11 +161,11 @@ namespace OpenP2P {
 			stream.writeAll(s, 4);
 		}
 		
-		void WriteInt32(BinaryOStream& stream, int32_t value) {
+		void WriteInt32(BlockingWriter& stream, int32_t value) {
 			WriteUint32(stream, value);
 		}
 		
-		void WriteUint64(BinaryOStream& stream, uint64_t value) {
+		void WriteUint64(BlockingWriter& stream, uint64_t value) {
 			uint8_t s[8];
 			s[0] = (value >> 56) & 0xFF;
 			s[1] = (value >> 48) & 0xFF;
@@ -178,7 +178,7 @@ namespace OpenP2P {
 			stream.writeAll(s, 8);
 		}
 		
-		void WriteInt64(BinaryOStream& stream, int64_t value) {
+		void WriteInt64(BlockingWriter& stream, int64_t value) {
 			WriteUint64(stream, value);
 		}
 		

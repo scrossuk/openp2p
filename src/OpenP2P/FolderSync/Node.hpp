@@ -20,14 +20,14 @@ namespace OpenP2P {
 		
 		class Node {
 			public:
-				Node(Database& database, const BlockId& blockId);
+				Node(Database& database, const BlockId& initialBlockId);
 				
 				static Node Empty(Database& database, NodeType type);
 				
 				~Node();
 				
 				/**
-				 * \brief Generate the node's block ID.
+				 * \brief Get the node's block ID.
 				 *
 				 * If the node hasn't been modified (by a call
 				 * to 'write'), this will return the same ID as

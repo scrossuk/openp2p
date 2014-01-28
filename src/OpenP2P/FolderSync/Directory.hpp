@@ -20,6 +20,8 @@ namespace OpenP2P {
 				
 				void addChild(const std::string& name, const BlockId& blockId);
 				
+				void updateChild(const std::string& name, const BlockId& blockId);
+				
 				void removeChild(const std::string& name);
 				
 				bool hasChild(const std::string& name) const;

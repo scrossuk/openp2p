@@ -16,7 +16,9 @@
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
+#include <OpenP2P/FolderSync/Directory.hpp>
 #include <OpenP2P/FolderSync/MemDatabase.hpp>
+#include <OpenP2P/FolderSync/Node.hpp>
 
 using namespace OpenP2P;
 
@@ -28,270 +30,66 @@ std::ofstream& logFile() {
 	return stream;
 }
 
-class Node {
-	public:
-		Node(mode_t mode) : m_mode(mode), m_atime(time(0)), m_mtime(time(0)), m_uid(geteuid()), m_gid(getegid()) { }
-		
-		virtual ~Node() { }
-		
-		struct stat GetAttr() {
-			struct stat s;
-			memset(&s, 0, sizeof(s));
-			
-			s.st_mode = m_mode;
-			s.st_uid = m_uid;
-			s.st_gid = m_gid;
-			s.st_atime = m_atime;
-			s.st_mtime = m_mtime;
-			
-			getSubclassAttr(s);
-			return s;
-		}
-		
-		void chmod(mode_t mode) {
-			m_mode = mode;
-		}
-		
-		void chown(uid_t uid, gid_t gid) {
-			m_uid = uid;
-			m_gid = gid;
-		}
-		
-		virtual int read(char*, size_t, off_t) {
-			throw FUSE::ErrorException(EISDIR);
-		}
-		
-		virtual int write(const char*, size_t, off_t) {
-			throw FUSE::ErrorException(EISDIR);
-		}
-		
-		virtual void truncate(size_t) {
-			throw FUSE::ErrorException(EISDIR);
-		}
-		
-		virtual std::map<std::string, Node*> readDir() {
-			throw FUSE::ErrorException(ENOTDIR);
-		}
-		
-		virtual Node* getNode(const std::string&) {
-			throw FUSE::ErrorException(ENOTDIR);
-		}
-		
-		virtual void addNode(const std::string&, Node*) {
-			throw FUSE::ErrorException(ENOTDIR);
-		}
-		
-		virtual Node* removeNode(const std::string&) {
-			throw FUSE::ErrorException(ENOTDIR);
-		}
-		
-		virtual void ReadLink(char*, size_t) {
-			throw FUSE::ErrorException(ERANGE);
-		}
-		
-	protected:
-		void updateTime(bool mod) {
-			if (mod) {
-				m_mtime = time(0);
-			} else {
-				m_atime = time(0);
-			}
-		}
-		
-	private:
-		Node(const Node&) = delete;
-		Node& operator=(const Node&) = delete;
-		
-		virtual void getSubclassAttr(struct stat&) = 0;
-		
-		mode_t m_mode;
-		time_t m_atime;
-		time_t m_mtime;
-		uid_t m_uid;
-		gid_t m_gid;
-};
-
-FolderSync::Block ZeroBlock() {
-	FolderSync::Block zeroBlock;
-	zeroBlock.fill(0x00);
-	return zeroBlock;
+FolderSync::BlockId calculateNewId(FolderSync::Database& database, const FolderSync::BlockId& oldId, const FolderSync::BlockId& endNodeId, const FUSE::Path& path, size_t position = 0) {
+	if (position == path.size()) {
+		return endNodeId;
+	}
+	
+	const std::string& pathComponent = path.at(position);
+	
+	FolderSync::Node node(database, oldId);
+	
+	if (node.type() != FolderSync::TYPE_DIRECTORY) {
+		throw FUSE::ErrorException(ENOTDIR);
+	}
+	
+	FolderSync::Directory directory(node);
+	
+	if (!directory.hasChild(pathComponent)) {
+		throw FUSE::ErrorException(ENOENT);
+	}
+	
+	const auto childOldId = directory.getChild(pathComponent);
+	const auto childNewId = calculateNewId(database, childOldId, endNodeId, path, position + 1);
+	
+	directory.updateChild(pathComponent, childNewId);
+	
+	return node.blockId();
 }
 
-class File : public Node {
-	public:
-		File(FolderSync::Database& database, mode_t mode) : Node(mode),
-			database_(database), size_(0) { }
-		
-		~File() { }
-		
-		size_t read(size_t offset, uint8_t* buffer, size_t size) {
-			if (offset > size_) {
-				throw FUSE::ErrorException(EINVAL);
-			}
-			
-			updateTime(false);
-			
-			const size_t readSize = std::min<size_t>(size, size_ - offset);
-			
-			for (size_t pos = 0; pos < readSize; ) {
-				const size_t blockIndex = (offset + pos) / FolderSync::BLOCK_SIZE;
-				const size_t blockPosition = (offset + pos) % FolderSync::BLOCK_SIZE;
-				
-				const auto block = database_.loadBlock(blockIds_.at(blockIndex));
-				
-				const size_t blockReadSize = std::min<size_t>(readSize - pos, FolderSync::BLOCK_SIZE - blockPosition);
-				memcpy(&buffer[pos], &block[blockPosition], blockReadSize);
-				pos += blockReadSize;
-			}
-			
-			return readSize;
-		}
-		
-		size_t write(size_t offset, const uint8_t* buffer, size_t size) {
-			if (offset > size_) {
-				throw FUSE::ErrorException(EINVAL);
-			}
-			
-			updateTime(true);
-			
-			// Make sure the file is big enough.
-			resize(std::max<size_t>(size_, size + offset));
-			
-			const size_t writeSize = size;
-			
-			for (size_t pos = 0; pos < writeSize; ) {
-				const size_t blockIndex = (offset + pos) / FolderSync::BLOCK_SIZE;
-				const size_t blockPosition = (offset + pos) % FolderSync::BLOCK_SIZE;
-				
-				auto block = database_.loadBlock(blockIds_.at(blockIndex));
-				
-				const size_t blockWriteSize = std::min<size_t>(writeSize - pos, FolderSync::BLOCK_SIZE - blockPosition);
-				memcpy(&block[blockPosition], &buffer[pos], blockWriteSize);
-				
-				const auto blockId = FolderSync::BlockId::Generate(block);
-				database_.storeBlock(blockId, block);
-				blockIds_.at(blockIndex) = blockId;
-				
-				pos += blockWriteSize;
-			}
-			
-			return writeSize;
-		}
-		
-		void truncate(size_t size) {
-			updateTime(true);
-			
-			resize(size);
-		}
-		
-		void resize(size_t size) {
-			const size_t newSize = size;
-			const size_t numBlocks = (newSize + (FolderSync::BLOCK_SIZE - 1)) / FolderSync::BLOCK_SIZE;
-			
-			if (numBlocks > blockIds_.size()) {
-				// Add new blocks required.
-				const auto zeroBlock = ZeroBlock();
-				const auto zeroBlockId = FolderSync::BlockId::Generate(zeroBlock);
-				database_.storeBlock(zeroBlockId, zeroBlock);
-				
-				for (size_t i = blockIds_.size(); i < numBlocks; i++) {
-					blockIds_.push_back(zeroBlockId);
-				}
-			} else {
-				// Remove blocks no longer required.
-				for (size_t i = numBlocks; i < blockIds_.size(); i++) {
-					blockIds_.pop_back();
-				}
-			}
-			
-			size_ = newSize;
-		}
-		
-	private:
-		void getSubclassAttr(struct stat& s) {
-			s.st_size = size_;
+struct stat getNodeAttr(const FolderSync::Node& node) {
+	struct stat s;
+	memset(&s, 0, sizeof(s));
+	
+	// Mode = 755.
+	s.st_mode = (S_IRGRP | S_IWGRP | S_IXGRP) | (S_IRGRP | S_IXGRP) | (S_IROTH | S_IXOTH);
+	
+	s.st_uid = geteuid();
+	s.st_gid = getegid();
+	s.st_atime = time(0);
+	s.st_mtime = time(0);
+	
+	switch (node.type()) {
+		case FolderSync::TYPE_FILE:
+		{
+			s.st_size = node.size();
 			s.st_nlink = 1;
 			s.st_mode |= S_IFREG;
 			s.st_blksize = FolderSync::BLOCK_SIZE;
+			break;
 		}
-		
-		FolderSync::Database& database_;
-		size_t size_;
-		std::vector<FolderSync::BlockId> blockIds_;
-		
-};
-
-class Directory : public Node {
-	public:
-		Directory(mode_t mode) : Node(mode) { }
-		
-		~Directory() {
-			for (auto node : m_nodes) {
-				delete node.second;
-			}
-		}
-		
-		std::map<std::string, Node*> readDir() {
-			updateTime(false);
-			return m_nodes;
-		}
-		
-		Node* getNode(const std::string& name) {
-			logFile() << "=== Getting node '" << name << "'." << std::endl;
-			
-			const auto it = m_nodes.find(name);
-			
-			if (it == m_nodes.end()) {
-				// No such file.
-				throw FUSE::ErrorException(ENOENT);
-			}
-			
-			updateTime(false);
-			
-			return it->second;
-		}
-		
-		void addNode(const std::string& name, Node* node) {
-			logFile() << "=== Adding node '" << name << "'." << std::endl;
-			
-			if (m_nodes.count(name) != 0) {
-				// Node already exists.
-				logFile() << "=== Node already exists." << std::endl;
-				throw FUSE::ErrorException(EEXIST);
-			}
-			
-			updateTime(true);
-			m_nodes[name] = node;
-		}
-		
-		Node* removeNode(const std::string& name) {
-			logFile() << "=== Removing node '" << name << "'." << std::endl;
-			
-			const auto it = m_nodes.find(name);
-			
-			// Removing from self.
-			if (it == m_nodes.end()) {
-				// Node doesn't exist.
-				logFile() << "=== Node doesn't exist." << std::endl;
-				throw FUSE::ErrorException(ENOENT);
-			}
-			
-			updateTime(true);
-			
-			const auto node = it->second;
-			m_nodes.erase(it);
-			return node;
-		}
-		
-	private:
-		void getSubclassAttr(struct stat& s) {
+		case FolderSync::TYPE_DIRECTORY:
+		{
 			s.st_nlink = 2;
 			s.st_mode |= S_IFDIR;
+			break;
 		}
-		
-		std::map<std::string, Node*> m_nodes;
-		
-};
+		default:
+			throw FUSE::ErrorException(EINVAL);
+	}
+	
+	return s;
+}
 
 class DemoOpenedDirectory: public FUSE::OpenedDirectory {
 	public:
@@ -301,7 +99,7 @@ class DemoOpenedDirectory: public FUSE::OpenedDirectory {
 		std::vector<std::string> read() const {
 			return directory_.childNames();
 		}
-	
+		
 	private:
 		FUSE::Path path_;
 		FolderSync::Database& database_;
@@ -310,10 +108,21 @@ class DemoOpenedDirectory: public FUSE::OpenedDirectory {
 			
 };
 
+class FileSystemJournal {
+	public:
+		virtual void updateRootId(const FUSE::Path& path, const FolderSync::BlockId& newId) = 0;
+	
+};
+
 class DemoOpenedFile: public FUSE::OpenedFile {
 	public:
-		DemoOpenedFile(const FUSE::Path& path, FolderSync::Database& database, const FolderSync::BlockId& blockId)
-			: path_(path), database_(database), node_(database, blockId) { }
+		DemoOpenedFile(FileSystemJournal& journal, const FUSE::Path& path, FolderSync::Database& database, const FolderSync::BlockId& blockId)
+			: journal_(journal), path_(path), database_(database), node_(database, blockId) { }
+		
+		~DemoOpenedFile() {
+			node_.sync();
+			journal_.updateRootId(path_, node_.blockId());
+		}
 		
 		size_t read(size_t offset, uint8_t* buffer, size_t size) const {
 			if (offset > node_.size()) {
@@ -332,6 +141,7 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 		}
 		
 	private:
+		FileSystemJournal& journal_;
 		FUSE::Path path_;
 		FolderSync::Database& database_;
 		FolderSync::Node node_;
@@ -346,16 +156,19 @@ FUSE::Path getParentPath(const FUSE::Path& path) {
 	return parent;
 }
 
-class DemoFileSystem: public FUSE::FileSystem {
+class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 	public:
-		DemoFileSystem() : root_(0755) { }
+		DemoFileSystem() {
+			auto emptyNode = FolderSync::Node::Empty(database_, FolderSync::TYPE_DIRECTORY);
+			rootId_ = emptyNode.blockId();
+		}
 		
 		FolderSync::BlockId lookup(const FUSE::Path& path) const {
-			BlockId currentId = rootId_;
+			FolderSync::BlockId currentId = rootId_;
 			
 			for (size_t i = 0; i < path.size(); i++) {
-				const std::string& pathComponent = path.at(i);
-				FolderSync::Node node(database, currentId);
+				const auto& pathComponent = path.at(i);
+				FolderSync::Node node(database_, currentId);
 				
 				if (node.type() != FolderSync::TYPE_DIRECTORY) {
 					throw FUSE::ErrorException(ENOTDIR);
@@ -373,30 +186,33 @@ class DemoFileSystem: public FUSE::FileSystem {
 			return currentId;
 		}
 		
-		std::unique_ptr<FUSE::OpenedFile> createFile(const FUSE::Path& path, mode_t mode) {
+		void updateRootId(const FUSE::Path& path, const FolderSync::BlockId& newId) {
+			rootId_ = calculateNewId(database_, rootId_, newId, path);
+		}
+		
+		void createFile(const FUSE::Path& path, mode_t) {
 			if (path.empty()) {
 				// Can't create root.
 				throw FUSE::ErrorException(ENOENT);
 			}
 			
-			const auto parentPath = getParentPath(path);
-			const auto parentNode = lookup(parentPath);
+			auto emptyNode = FolderSync::Node::Empty(database_, FolderSync::TYPE_FILE);
 			
-			File* node = new File(database_, mode);
-			parentNode->addNode(path.back(), node);
+			// Add to parent directory.
+			FolderSync::Node parentNode(database_, lookup(getParentPath(path)));
+			FolderSync::Directory parentDirectory(parentNode);
 			
-			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile(*node));
+			if (parentDirectory.hasChild(path.back())) {
+				throw FUSE::ErrorException(EEXIST);
+			}
+			
+			parentDirectory.addChild(path.back(), emptyNode.blockId());
+			
+			updateRootId(getParentPath(path), parentNode.blockId());
 		}
 		
 		std::unique_ptr<FUSE::OpenedFile> openFile(const FUSE::Path& path) {
-			// TODO: remove this cast!
-			File* file = dynamic_cast<File*>(lookup(path));
-			
-			if (file == NULL) {
-				throw FUSE::ErrorException(EISDIR);
-			}
-			
-			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile(*file));
+			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile(*this, path, database_, lookup(path)));
 		}
 		
 		void unlink(const FUSE::Path& path) {
@@ -405,82 +221,86 @@ class DemoFileSystem: public FUSE::FileSystem {
 				throw FUSE::ErrorException(ENOENT);
 			}
 			
-			const auto parentPath = getParentPath(path);
-			const auto parentNode = lookup(parentPath);
-			const auto node = parentNode->removeNode(path.back());
-			delete node;
+			// Remove from parent directory.
+			FolderSync::Node parentNode(database_, lookup(getParentPath(path)));
+			
+			FolderSync::Directory parentDirectory(parentNode);
+			
+			if (!parentDirectory.hasChild(path.back())) {
+				throw FUSE::ErrorException(ENOENT);
+			}
+			
+			parentDirectory.removeChild(path.back());
+			
+			updateRootId(getParentPath(path), parentNode.blockId());
 		}
 		
 		void rename(const FUSE::Path& sourcePath, const FUSE::Path& destPath) {
-			// Remove any existing file at destination.
-			try {
-				unlink(destPath);
-			} catch (const FUSE::ErrorException&) { }
+			(void) sourcePath;
+			(void) destPath;
 			
-			const auto sourceParentPath = getParentPath(sourcePath);
-			const auto sourceParentNode = lookup(sourceParentPath);
-			const auto node = sourceParentNode->removeNode(sourcePath.back());
-			
-			const auto destParentPath = getParentPath(destPath);
-			const auto destParentNode = lookup(destParentPath);
-			destParentNode->addNode(destPath.back(), node);
+			// Not implemented.
+			throw FUSE::ErrorException(ENOSYS);
 		}
 		
 		struct stat getAttributes(const FUSE::Path& path) const {
-			return lookup(path)->GetAttr();
+			FolderSync::Node node(database_, lookup(path));
+			return getNodeAttr(node);
 		}
 		
 		void resize(const FUSE::Path& path, size_t size) {
-			FolderSync::Node node
-			lookup(path)->truncate(size);
+			FolderSync::Node node(database_, lookup(path));
+			
+			if (node.type() != FolderSync::TYPE_FILE) {
+				throw FUSE::ErrorException(EISDIR);
+			}
+			
+			node.resize(size);
+			
+			updateRootId(path, node.blockId());
 		}
 		
-		void changeMode(const FUSE::Path& path, mode_t mode) {
+		void changeMode(const FUSE::Path&, mode_t) {
 			// Not implemented.
 			throw FUSE::ErrorException(ENOSYS);
 		}
 		
-		void changeOwner(const FUSE::Path& path, uid_t user, gid_t group) {
+		void changeOwner(const FUSE::Path&, uid_t, gid_t) {
 			// Not implemented.
 			throw FUSE::ErrorException(ENOSYS);
 		}
 		
-		void createDirectory(const FUSE::Path& path, mode_t mode) {
+		void createDirectory(const FUSE::Path& path, mode_t) {
 			if (path.empty()) {
 				// Can't create root.
 				throw FUSE::ErrorException(ENOENT);
 			}
 			
-			const auto parentPath = getParentPath(path);
-			const auto parentNode = lookup(parentPath);
-			parentNode->addNode(path.back(), new Directory(mode));
+			auto emptyNode = FolderSync::Node::Empty(database_, FolderSync::TYPE_DIRECTORY);
+			
+			// Add to parent directory.
+			FolderSync::Node parentNode(database_, lookup(getParentPath(path)));
+			FolderSync::Directory parentDirectory(parentNode);
+			
+			if (parentDirectory.hasChild(path.back())) {
+				throw FUSE::ErrorException(EEXIST);
+			}
+			
+			parentDirectory.addChild(path.back(), emptyNode.blockId());
+			
+			updateRootId(getParentPath(path), parentNode.blockId());
 		}
 		
 		void removeDirectory(const FUSE::Path& path) {
-			if (path.empty()) {
-				// Can't delete root.
-				throw FUSE::ErrorException(ENOENT);
-			}
-			
-			const auto parentPath = getParentPath(path);
-			const auto parentNode = lookup(parentPath);
-			const auto node = parentNode->removeNode(path.back());
-			delete node;
+			unlink(path);
 		}
 		
 		std::unique_ptr<FUSE::OpenedDirectory> openDirectory(const FUSE::Path& path) {
-			// TODO: remove this cast!
-			Directory* dir = dynamic_cast<Directory*>(lookup(path));
-			
-			if (dir == NULL) {
-				throw FUSE::ErrorException(ENOTDIR);
-			}
-			
-			return std::unique_ptr<FUSE::OpenedDirectory>(new DemoOpenedDirectory(*dir));
+			return std::unique_ptr<FUSE::OpenedDirectory>(new DemoOpenedDirectory(path, database_, lookup(path)));
 		}
 		
 	private:
-		FolderSync::MemDatabase database_;
+		mutable FolderSync::MemDatabase database_;
 		FolderSync::BlockId rootId_;
 	
 };

@@ -84,6 +84,11 @@ namespace OpenP2P {
 				}
 			}
 			
+			void setType(Block& block, NodeType type) {
+				BlockWriter writer(block, TYPE_OFFSET);
+				return Binary::WriteUint8(writer, type == TYPE_DIRECTORY ? 0 : 1);
+			}
+			
 			size_t blockCount(NodeSize size) {
 				return (size + (BLOCK_SIZE - 1)) / BLOCK_ID_SIZE;
 			}
@@ -120,10 +125,27 @@ namespace OpenP2P {
 			
 		}
 		
-		Node::Node(Database& database, const BlockId& blockId)
-			: database_(database), nodeBlockId_(blockId),
-			nodeBlock_(database.loadBlock(blockId)),
+		Node::Node(Database& database, const BlockId& initialBlockId)
+			: database_(database), nodeBlockId_(initialBlockId),
+			nodeBlock_(database.loadBlock(initialBlockId)),
 			size_(getSize(nodeBlock_)) { }
+		
+		Node Node::Empty(Database& database, NodeType type) {
+			Block emptyBlock;
+			emptyBlock.fill(0x00);
+			setSize(emptyBlock, 0);
+			setType(emptyBlock, type);
+			
+			const auto zeroBlockId = BlockId::ZeroBlockId();
+			for (size_t i = 0; i < MAX_NODE_BLOCKS; i++) {
+				setBlockId(emptyBlock, i, zeroBlockId);
+			}
+			
+			const auto emptyBlockId = BlockId::Generate(emptyBlock);
+			database.storeBlock(emptyBlockId, emptyBlock);
+			
+			return Node(database, emptyBlockId);
+		}
 		
 		Node::~Node() {
 			sync();

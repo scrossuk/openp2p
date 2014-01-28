@@ -7,6 +7,7 @@
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
+#include <OpenP2P/FolderSync/Directory.hpp>
 #include <OpenP2P/FolderSync/Node.hpp>
 
 namespace OpenP2P {
@@ -31,15 +32,22 @@ namespace OpenP2P {
 			(void) blockId;
 		}
 		
+		void Directory::updateChild(const std::string& name, const BlockId& blockId) {
+			(void) name;
+			(void) blockId;
+		}
+		
 		void Directory::removeChild(const std::string& name) {
 			(void) name;
 		}
 		
 		bool Directory::hasChild(const std::string& name) const {
+			(void) name;
 			return false;
 		}
 		
 		BlockId Directory::getChild(const std::string& name) const {
+			(void) name;
 			throw std::runtime_error("Not implemented...");
 		}
 		

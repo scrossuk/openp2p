@@ -38,7 +38,11 @@ namespace FUSE {
 			try {
 				ctx().log << "create " << path << std::endl;
 				
-				auto openedFile = ctx().fileSystem.createFile(ParsePath(path), mode);
+				const auto parsedPath = ParsePath(path);
+				
+				ctx().fileSystem.createFile(parsedPath, mode);
+				
+				auto openedFile = ctx().fileSystem.openFile(parsedPath);
 				info->fh = ctx().nextHandle++;
 				ctx().openedFiles.insert(std::make_pair(info->fh, openedFile.release()));
 				

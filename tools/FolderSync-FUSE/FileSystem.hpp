@@ -48,12 +48,9 @@ namespace FUSE {
 			inline virtual ~FileSystem() { }
 			
 			/**
-			 * \brief Create (and OPEN) a file.
-			 *
-			 * This method should create a new file node and
-			 * open it for writing.
+			 * \brief Create a file.
 			 */
-			virtual std::unique_ptr<OpenedFile> createFile(const Path& path, mode_t mode) = 0;
+			virtual void createFile(const Path& path, mode_t mode) = 0;
 			
 			/**
 			 * \brief Open a file.

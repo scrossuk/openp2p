@@ -10,6 +10,8 @@ namespace FUSE {
 	
 	Path ParsePath(const std::string& rawPath);
 	
+	std::string PathToString(const Path& path);
+	
 }
 
 #endif

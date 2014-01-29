@@ -27,5 +27,15 @@ namespace FUSE {
 		return path;
 	}
 	
+	std::string PathToString(const Path& path) {
+		std::string s = "Path(";
+		for (size_t i = 0; i < path.size(); i++) {
+			if (i != 0) s += ", ";
+			s += "'" + path.at(i) + "'";
+		}
+		s += ")";
+		return s;
+	}
+	
 }
 

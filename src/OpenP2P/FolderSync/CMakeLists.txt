@@ -4,5 +4,7 @@ add_library(openp2p-foldersync STATIC
 	Journal.cpp
 	MemDatabase.cpp
 	Node.cpp
+	NodeReader.cpp
+	NodeWriter.cpp
 	)
 

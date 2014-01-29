@@ -40,12 +40,14 @@ FolderSync::BlockId calculateNewId(FolderSync::Database& database, const FolderS
 	FolderSync::Node node(database, oldId);
 	
 	if (node.type() != FolderSync::TYPE_DIRECTORY) {
+		logFile() << "Parent is not a directory!" << std::endl;
 		throw FUSE::ErrorException(ENOTDIR);
 	}
 	
 	FolderSync::Directory directory(node);
 	
 	if (!directory.hasChild(pathComponent)) {
+		logFile() << "Expected child '" << pathComponent << "' not found!" << std::endl;
 		throw FUSE::ErrorException(ENOENT);
 	}
 	
@@ -62,7 +64,7 @@ struct stat getNodeAttr(const FolderSync::Node& node) {
 	memset(&s, 0, sizeof(s));
 	
 	// Mode = 755.
-	s.st_mode = (S_IRGRP | S_IWGRP | S_IXGRP) | (S_IRGRP | S_IXGRP) | (S_IROTH | S_IXOTH);
+	s.st_mode = (S_IRUSR | S_IWUSR | S_IXUSR) | (S_IRGRP | S_IXGRP) | (S_IROTH | S_IXOTH);
 	
 	s.st_uid = geteuid();
 	s.st_gid = getegid();
@@ -171,12 +173,14 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 				FolderSync::Node node(database_, currentId);
 				
 				if (node.type() != FolderSync::TYPE_DIRECTORY) {
+					logFile() << "LOOKUP: Not a directory!" << std::endl;
 					throw FUSE::ErrorException(ENOTDIR);
 				}
 				
 				FolderSync::Directory directory(node);
 				
 				if (!directory.hasChild(pathComponent)) {
+					logFile() << "LOOKUP: Expected child '" << pathComponent << "' not found!" << std::endl;
 					throw FUSE::ErrorException(ENOENT);
 				}
 				
@@ -244,6 +248,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		}
 		
 		struct stat getAttributes(const FUSE::Path& path) const {
+			logFile() << "getAttributes " << FUSE::PathToString(path) << std::endl;
 			FolderSync::Node node(database_, lookup(path));
 			return getNodeAttr(node);
 		}
@@ -271,9 +276,12 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		}
 		
 		void createDirectory(const FUSE::Path& path, mode_t) {
+			logFile() << "createDirectory " << FUSE::PathToString(path) << std::endl;
+			
 			if (path.empty()) {
 				// Can't create root.
-				throw FUSE::ErrorException(ENOENT);
+				logFile() << "Tried to create empty directory." << std::endl;
+				throw FUSE::ErrorException(EEXIST);
 			}
 			
 			auto emptyNode = FolderSync::Node::Empty(database_, FolderSync::TYPE_DIRECTORY);
@@ -289,6 +297,8 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			parentDirectory.addChild(path.back(), emptyNode.blockId());
 			
 			updateRootId(getParentPath(path), parentNode.blockId());
+			
+			logFile() << "Created directory..." << std::endl;
 		}
 		
 		void removeDirectory(const FUSE::Path& path) {

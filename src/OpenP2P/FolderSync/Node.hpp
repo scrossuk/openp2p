@@ -12,6 +12,7 @@ namespace OpenP2P {
 	namespace FolderSync {
 		
 		typedef uint64_t NodeSize;
+		typedef uint64_t NodeOffset;
 		
 		enum NodeType {
 			TYPE_DIRECTORY = 0,
@@ -56,9 +57,9 @@ namespace OpenP2P {
 				
 				void resize(NodeSize size);
 				
-				size_t read(size_t offset, uint8_t* buffer, size_t bufferSize) const;
+				size_t read(NodeOffset offset, uint8_t* buffer, size_t bufferSize) const;
 				
-				size_t write(size_t offset, const uint8_t* buffer, size_t bufferSize);
+				size_t write(NodeOffset offset, const uint8_t* buffer, size_t bufferSize);
 				
 			private:
 				Database& database_;

@@ -184,7 +184,7 @@ namespace OpenP2P {
 			}
 		}
 		
-		size_t Node::read(size_t offset, uint8_t* buffer, size_t bufferSize) const {
+		size_t Node::read(NodeOffset offset, uint8_t* buffer, size_t bufferSize) const {
 			if (offset > size()) {
 				throw std::runtime_error("Offset exceeds size.");
 			}
@@ -205,7 +205,7 @@ namespace OpenP2P {
 			return readSize;
 		}
 		
-		size_t Node::write(size_t offset, const uint8_t* buffer, size_t bufferSize) {
+		size_t Node::write(NodeOffset offset, const uint8_t* buffer, size_t bufferSize) {
 			if (offset > size()) {
 				throw std::runtime_error("Offset exceeds size.");
 			}

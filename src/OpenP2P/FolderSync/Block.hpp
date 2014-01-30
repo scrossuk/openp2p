@@ -10,7 +10,7 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		constexpr size_t BLOCK_SIZE = 4096;
+		constexpr size_t BLOCK_SIZE = 65536;
 		
 		typedef std::array<uint8_t, BLOCK_SIZE> Block;
 		

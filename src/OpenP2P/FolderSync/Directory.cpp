@@ -1,8 +1,12 @@
+#include <assert.h>
 #include <stdint.h>
 #include <string.h>
 
 #include <array>
+#include <map>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
@@ -16,9 +20,65 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		constexpr size_t ENTRY_NAME_SIZE = 16;
+		constexpr size_t ENTRY_NAME_SIZE = 48;
 		
 		constexpr size_t ENTRY_SIZE = ENTRY_NAME_SIZE + BLOCK_ID_SIZE;
+		
+		namespace {
+			
+			std::map<std::string, BlockId> readChildren(const Node& node) {
+				std::map<std::string, BlockId> children;
+				
+				assert((node.size() % ENTRY_SIZE) == 0);
+				
+				const size_t childCount = node.size() / ENTRY_SIZE;
+				
+				NodeReader reader(node);
+				for (size_t entryPos = 0; entryPos < childCount; entryPos++) {
+					std::array<uint8_t, ENTRY_NAME_SIZE> entryNameData;
+					reader.readAll(entryNameData.data(), entryNameData.size());
+					
+					std::string entryName;
+					for (size_t i = 0; i < entryNameData.size(); i++) {
+						if (entryNameData.at(i) == 0x00) break;
+						entryName += (char) entryNameData.at(i);
+					}
+					
+					const auto entryBlockId = BlockId::FromReader(reader);
+					
+					children.insert(std::make_pair(entryName, entryBlockId));
+				}
+				
+				assert(node.size() == (children.size() * ENTRY_SIZE));
+				
+				return children;
+			}
+			
+			void writeChildren(Node& node, const std::map<std::string, BlockId>& children) {
+				node.resize(0);
+				
+				NodeWriter writer(node);
+				for (const auto& child: children) {
+					std::array<uint8_t, ENTRY_NAME_SIZE> entryNameData;
+					entryNameData.fill(0x00);
+					
+					if (child.first.size() > ENTRY_NAME_SIZE) {
+						throw std::runtime_error("Child name exceeds maximum name size.");
+					}
+					
+					for (size_t i = 0; i < child.first.size(); i++) {
+						entryNameData.at(i) = static_cast<uint8_t>(child.first.at(i));
+					}
+					
+					writer.writeAll(entryNameData.data(), entryNameData.size());
+					
+					child.second.writeTo(writer);
+				}
+				
+				assert(node.size() == (children.size() * ENTRY_SIZE));
+			}
+			
+		}
 		
 		Directory::Directory(Node& node)
 			: node_(node) { }
@@ -38,74 +98,100 @@ namespace OpenP2P {
 				throw std::runtime_error("Name is too long.");
 			}
 			
-			std::array<uint8_t, ENTRY_NAME_SIZE> nameData;
-			nameData.fill(0x00);
-			for (size_t i = 0; i < name.size(); i++) {
-				nameData.at(i) = (uint8_t) name.at(i);
-			}
-			
-			std::map<std::string, BlockId> children;
-			
-			NodeReader reader(node_);
-			for (size_t entryPos = 0; entryPos < childCount(); entryPos++) {
-				std::array<uint8_t, ENTRY_NAME_SIZE> entryNameData;
-				reader.readAll(entryNameData.data(), entryNameData.size());
-				
-				std::string entryName;
-				for (size_t i = 0; i < entryNameData.size(); i++) {
-					if (entryNameData.at(i) == 0x00) break;
-					entryName += (char) entryNameData.at(i);
-				}
-				
-				const auto entryBlockId = BlockId::FromReader(reader);
-				
-				children.insert(std::make_pair(entryName, entryBlockId));
-			}
+			auto children = readChildren(node_);
 			
 			if (children.find(name) != children.end()) {
 				throw std::runtime_error("Entry already exists.");
 			}
 			
-			children[name] = blockId;
+			children.insert(std::make_pair(name, blockId));
 			
-			NodeWriter writer(node_);
-			for (const auto& child: children) {
-				std::array<uint8_t, ENTRY_NAME_SIZE> entryNameData;
-				reader.writeAll(entryNameData.data(), entryNameData.size());
-				
-				std::string entryName;
-				for (size_t i = 0; i < entryNameData.size(); i++) {
-					if (entryNameData.at(i) == 0x00) break;
-					entryName += (char) entryNameData.at(i);
-				}
-				
-				const auto entryBlockId = BlockId::FromReader(reader);
-				
-				children.insert(std::make_pair(entryName, entryBlockId));
-			}
+			writeChildren(node_, children);
 		}
 		
 		void Directory::updateChild(const std::string& name, const BlockId& blockId) {
-			(void) name;
-			(void) blockId;
+			if (name.empty()) {
+				throw std::runtime_error("Name is empty.");
+			}
+			
+			if (name.size() > ENTRY_NAME_SIZE) {
+				throw std::runtime_error("Name is too long.");
+			}
+			
+			auto children = readChildren(node_);
+			
+			if (children.find(name) == children.end()) {
+				throw std::runtime_error("Entry does not already exist.");
+			}
+			
+			children[name] = blockId;
+			
+			writeChildren(node_, children);
 		}
 		
 		void Directory::removeChild(const std::string& name) {
-			(void) name;
+			if (name.empty()) {
+				throw std::runtime_error("Name is empty.");
+			}
+			
+			if (name.size() > ENTRY_NAME_SIZE) {
+				throw std::runtime_error("Name is too long.");
+			}
+			
+			auto children = readChildren(node_);
+			
+			if (children.find(name) == children.end()) {
+				throw std::runtime_error("Entry does not already exist.");
+			}
+			
+			children.erase(name);
+			
+			writeChildren(node_, children);
 		}
 		
 		bool Directory::hasChild(const std::string& name) const {
-			(void) name;
-			return false;
+			if (name.empty()) {
+				throw std::runtime_error("Name is empty.");
+			}
+			
+			if (name.size() > ENTRY_NAME_SIZE) {
+				throw std::runtime_error("Name is too long.");
+			}
+			
+			const auto children = readChildren(node_);
+			
+			return children.find(name) != children.end();
 		}
 		
 		BlockId Directory::getChild(const std::string& name) const {
-			(void) name;
-			throw std::runtime_error("Not implemented...");
+			if (name.empty()) {
+				throw std::runtime_error("Name is empty.");
+			}
+			
+			if (name.size() > ENTRY_NAME_SIZE) {
+				throw std::runtime_error("Name is too long.");
+			}
+			
+			auto children = readChildren(node_);
+			
+			const auto iterator = children.find(name);
+			
+			if (iterator == children.end()) {
+				throw std::runtime_error("Entry does not already exist.");
+			}
+			
+			return iterator->second;
 		}
 		
 		std::vector<std::string> Directory::childNames() const {
-			return std::vector<std::string>();
+			const auto children = readChildren(node_);
+			
+			std::vector<std::string> names;
+			for (const auto& child: children) {
+				names.push_back(child.first);
+			}
+			
+			return names;
 		}
 		
 	}

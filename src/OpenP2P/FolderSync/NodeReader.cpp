@@ -15,21 +15,21 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		NodeReader::NodeReader(Node& node, NodeOffset position)
+		NodeReader::NodeReader(const Node& node, NodeOffset initialPosition)
 			: node_(node), position_(0) {
-				seek(position);
+				seek(initialPosition);
 		}
 		
 		NodeOffset NodeReader::position() const {
 			return position_;
 		}
 		
-		void NodeReader::seek(NodeOffset position) {
-			if (position > node_.size()) {
+		void NodeReader::seek(NodeOffset newPosition) {
+			if (newPosition > node_.size()) {
 				throw std::runtime_error("Seek position exceeds node size.");
 			}
 			
-			position_ = position;
+			position_ = newPosition;
 		}
 		
 		void NodeReader::readAll(uint8_t* data, size_t size) {

@@ -59,7 +59,14 @@ FolderSync::BlockId calculateNewId(FolderSync::Database& database, const FolderS
 	return node.blockId();
 }
 
-struct stat getNodeAttr(const FolderSync::Node& node) {
+struct Metadata {
+	time_t accessTime, modifyTime;
+	
+	inline Metadata()
+		: accessTime(time(0)), modifyTime(time(0)) { }
+};
+
+struct stat getNodeAttr(const Metadata& metadata, const FolderSync::Node& node) {
 	struct stat s;
 	memset(&s, 0, sizeof(s));
 	
@@ -68,8 +75,8 @@ struct stat getNodeAttr(const FolderSync::Node& node) {
 	
 	s.st_uid = geteuid();
 	s.st_gid = getegid();
-	s.st_atime = time(0);
-	s.st_mtime = time(0);
+	s.st_atime = metadata.accessTime;
+	s.st_mtime = metadata.modifyTime;
 	
 	switch (node.type()) {
 		case FolderSync::TYPE_FILE:
@@ -113,6 +120,10 @@ class DemoOpenedDirectory: public FUSE::OpenedDirectory {
 class FileSystemJournal {
 	public:
 		virtual void updateRootId(const FUSE::Path& path, const FolderSync::BlockId& newId) = 0;
+		
+		virtual void updateAccessTime(const FUSE::Path& path) = 0;
+		
+		virtual void updateModifyTime(const FUSE::Path& path) = 0;
 	
 };
 
@@ -131,6 +142,8 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 				throw FUSE::ErrorException(EINVAL);
 			}
 			
+			journal_.updateAccessTime(path_);
+			
 			return node_.read(offset, buffer, size);
 		}
 		
@@ -138,6 +151,8 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 			if (offset > node_.size()) {
 				throw FUSE::ErrorException(EINVAL);
 			}
+			
+			journal_.updateModifyTime(path_);
 			
 			return node_.write(offset, buffer, size);
 		}
@@ -163,6 +178,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		DemoFileSystem() {
 			auto emptyNode = FolderSync::Node::Empty(database_, FolderSync::TYPE_DIRECTORY);
 			rootId_ = emptyNode.blockId();
+			metadata_[FUSE::Path()] = Metadata();
 		}
 		
 		FolderSync::BlockId lookup(const FUSE::Path& path) const {
@@ -194,6 +210,14 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			rootId_ = calculateNewId(database_, rootId_, newId, path);
 		}
 		
+		void updateAccessTime(const FUSE::Path& path) {
+			metadata_[path].accessTime = time(0);
+		}
+		
+		void updateModifyTime(const FUSE::Path& path) {
+			metadata_[path].modifyTime = time(0);
+		}
+		
 		void createFile(const FUSE::Path& path, mode_t) {
 			if (path.empty()) {
 				// Can't create root.
@@ -213,9 +237,13 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			parentDirectory.addChild(path.back(), emptyNode.blockId());
 			
 			updateRootId(getParentPath(path), parentNode.blockId());
+			
+			metadata_[path] = Metadata();
+			updateModifyTime(getParentPath(path));
 		}
 		
 		std::unique_ptr<FUSE::OpenedFile> openFile(const FUSE::Path& path) {
+			updateAccessTime(path);
 			return std::unique_ptr<FUSE::OpenedFile>(new DemoOpenedFile(*this, path, database_, lookup(path)));
 		}
 		
@@ -237,6 +265,8 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			parentDirectory.removeChild(path.back());
 			
 			updateRootId(getParentPath(path), parentNode.blockId());
+			
+			updateModifyTime(getParentPath(path));
 		}
 		
 		void rename(const FUSE::Path& sourcePath, const FUSE::Path& destPath) {
@@ -250,7 +280,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		struct stat getAttributes(const FUSE::Path& path) const {
 			logFile() << "getAttributes " << FUSE::PathToString(path) << std::endl;
 			FolderSync::Node node(database_, lookup(path));
-			return getNodeAttr(node);
+			return getNodeAttr(metadata_.at(path), node);
 		}
 		
 		void resize(const FUSE::Path& path, size_t size) {
@@ -263,6 +293,8 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			node.resize(size);
 			
 			updateRootId(path, node.blockId());
+			
+			updateModifyTime(path);
 		}
 		
 		void changeMode(const FUSE::Path&, mode_t) {
@@ -294,11 +326,16 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 				throw FUSE::ErrorException(EEXIST);
 			}
 			
+			logFile() << "Adding child '" << path.back() << "'." << std::endl;
+			
 			parentDirectory.addChild(path.back(), emptyNode.blockId());
 			
 			updateRootId(getParentPath(path), parentNode.blockId());
 			
 			logFile() << "Created directory..." << std::endl;
+			
+			metadata_[path] = Metadata();
+			updateModifyTime(getParentPath(path));
 		}
 		
 		void removeDirectory(const FUSE::Path& path) {
@@ -306,11 +343,13 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		}
 		
 		std::unique_ptr<FUSE::OpenedDirectory> openDirectory(const FUSE::Path& path) {
+			updateAccessTime(path);
 			return std::unique_ptr<FUSE::OpenedDirectory>(new DemoOpenedDirectory(path, database_, lookup(path)));
 		}
 		
 	private:
 		mutable FolderSync::MemDatabase database_;
+		std::map<FUSE::Path, Metadata> metadata_;
 		FolderSync::BlockId rootId_;
 	
 };

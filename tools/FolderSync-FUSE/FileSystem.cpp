@@ -49,6 +49,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -59,6 +62,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -69,6 +75,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -81,6 +90,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -90,7 +102,7 @@ namespace FUSE {
 				const auto it = ctx().openedFiles.find(info->fh);
 				if (it == ctx().openedFiles.end()) {
 					ctx().log << "ERROR: Invalid file handle." << std::endl;
-					return ENOENT;
+					return -ENOENT;
 				}
 				
 				const auto openedFile = it->second;
@@ -99,27 +111,30 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
 		int fs_read(const char* path, char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
 			try {
-				ctx().log << "read " << path << " at offset " << offset << " with size " << size << std::endl;
+				// ctx().log << "read " << path << " at offset " << offset << " with size " << size << std::endl;
 				
 				if (offset < 0) {
 					ctx().log << "ERROR: Invalid offset." << std::endl;
-					return EINVAL;
+					return -EINVAL;
 				}
 				
 				if (size > INT_MAX) {
 					ctx().log << "ERROR: Invalid size (greater than INT_MAX)." << std::endl;
-					return EINVAL;
+					return -EINVAL;
 				}
 				
 				const auto it = ctx().openedFiles.find(info->fh);
 				if (it == ctx().openedFiles.end()) {
 					ctx().log << "ERROR: Invalid file handle." << std::endl;
-					return ENOENT;
+					return -ENOENT;
 				}
 				
 				const size_t result = (it->second)->read(static_cast<size_t>(offset), reinterpret_cast<uint8_t*>(buffer), size);
@@ -127,27 +142,30 @@ namespace FUSE {
 				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
 		int fs_write(const char* path, const char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
 			try {
-				ctx().log << "write " << path << " at offset " << offset << " with size " << size << std::endl;
+				// ctx().log << "write " << path << " at offset " << offset << " with size " << size << std::endl;
 				
 				if (offset < 0) {
 					ctx().log << "ERROR: Invalid offset." << std::endl;
-					return EINVAL;
+					return -EINVAL;
 				}
 				
 				if (size > INT_MAX) {
 					ctx().log << "ERROR: Invalid size (greater than INT_MAX)." << std::endl;
-					return EINVAL;
+					return -EINVAL;
 				}
 				
 				const auto it = ctx().openedFiles.find(info->fh);
 				if (it == ctx().openedFiles.end()) {
 					ctx().log << "ERROR: Invalid file handle." << std::endl;
-					return ENOENT;
+					return -ENOENT;
 				}
 				
 				const size_t result = (it->second)->write(static_cast<size_t>(offset), reinterpret_cast<const uint8_t*>(buffer), size);
@@ -155,6 +173,9 @@ namespace FUSE {
 				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -165,6 +186,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -173,13 +197,16 @@ namespace FUSE {
 				ctx().log << "truncate " << path << " to size " << size << std::endl;
 				
 				if (size < 0) {
-					throw EINVAL;
+					return -EINVAL;
 				}
 				
-				ctx().fileSystem.resize(ParsePath(path), (size_t) size);
+				ctx().fileSystem.resize(ParsePath(path), static_cast<size_t>(size));
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -200,6 +227,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -210,6 +240,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -220,6 +253,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -240,6 +276,9 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
+			} catch (const std::exception& e) {
+				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
+				return -EIO;
 			}
 		}
 		
@@ -267,11 +306,12 @@ namespace FUSE {
 	}
 	
 	int run(const std::string& mountPoint, FileSystem& fileSystem) {
-		const int argc = 3;
-		const char* argv[3];
+		constexpr int argc = 4;
+		const char* argv[argc];
 		argv[0] = "runFUSE";
 		argv[1] = "-s";
-		argv[2] = mountPoint.c_str();
+		argv[2] = "-f";
+		argv[3] = mountPoint.c_str();
 		
 		const auto operations = fsFuseOperations();
 		

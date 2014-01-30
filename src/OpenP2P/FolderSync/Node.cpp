@@ -90,7 +90,7 @@ namespace OpenP2P {
 			}
 			
 			size_t blockCount(NodeSize size) {
-				return (size + (BLOCK_SIZE - 1)) / BLOCK_ID_SIZE;
+				return (size + (BLOCK_SIZE - 1)) / BLOCK_SIZE;
 			}
 			
 			size_t blockIdPosition(size_t blockOffset) {
@@ -102,10 +102,6 @@ namespace OpenP2P {
 					throw std::runtime_error("Block offset exceeds maximum value.");
 				}
 				
-				if (blockOffset >= blockCount(getSize(block))) {
-					throw std::runtime_error("Block offset exceeds size.");
-				}
-				
 				BlockReader reader(block, blockIdPosition(blockOffset));
 				return BlockId::FromReader(reader);
 			}
@@ -115,12 +111,14 @@ namespace OpenP2P {
 					throw std::runtime_error("Block offset exceeds maximum value.");
 				}
 				
-				if (blockOffset >= blockCount(getSize(block))) {
-					throw std::runtime_error("Block offset exceeds size.");
-				}
-				
 				BlockWriter writer(block, blockIdPosition(blockOffset));
 				blockId.writeTo(writer);
+			}
+			
+			Block zeroBlock() {
+				Block emptyBlock;
+				emptyBlock.fill(0x00);
+				return emptyBlock;
 			}
 			
 		}
@@ -128,7 +126,9 @@ namespace OpenP2P {
 		Node::Node(Database& database, const BlockId& initialBlockId)
 			: database_(database), nodeBlockId_(initialBlockId),
 			nodeBlock_(database.loadBlock(initialBlockId)),
-			size_(getSize(nodeBlock_)) { }
+			size_(getSize(nodeBlock_)) {
+				database_.storeBlock(BlockId::ZeroBlockId(), zeroBlock());
+			}
 		
 		Node Node::Empty(Database& database, NodeType type) {
 			Block emptyBlock;

@@ -13,11 +13,11 @@ namespace OpenP2P {
 		
 		class NodeReader: public BlockingReader {
 			public:
-				NodeReader(const Node& node, NodeOffset position = 0);
+				NodeReader(const Node& node, NodeOffset initialPosition = 0);
 				
 				NodeOffset position() const;
 				
-				void seek(NodeOffset position);
+				void seek(NodeOffset newPosition);
 				
 				void readAll(uint8_t* data, size_t size);
 				

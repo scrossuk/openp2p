@@ -13,11 +13,11 @@ namespace OpenP2P {
 		
 		class NodeWriter: public BlockingWriter {
 			public:
-				NodeWriter(Node& node, NodeOffset position = 0);
+				NodeWriter(Node& node, NodeOffset initialPosition = 0);
 				
 				NodeOffset position() const;
 				
-				void seek(NodeOffset position);
+				void seek(NodeOffset newPosition);
 				
 				void writeAll(const uint8_t* data, size_t size);
 				

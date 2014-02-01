@@ -1,6 +1,7 @@
 #ifndef OPENP2P_FOLDERSYNC_BLOCKPATH_HPP
 #define OPENP2P_FOLDERSYNC_BLOCKPATH_HPP
 
+#include <assert.h>
 #include <stddef.h>
 
 #include <vector>
@@ -16,7 +17,7 @@ namespace OpenP2P {
 		namespace {
 			
 			size_t indirectOffset(size_t blockIndex, size_t level) {
-				size_t value = blockIndex - NODE_MAX_ROOT_REFS;
+				size_t value = blockIndex - NODE_ROOT_MAX_DIRECT_REFS;
 				for (size_t i = 0; i < level; i++) {
 					value /= NODE_MAX_INDIRECT_REFS;
 				}
@@ -32,20 +33,19 @@ namespace OpenP2P {
 				}
 				
 				static inline BlockPath Index(size_t blockIndex) {
-					BlockPath path;
-					auto& components = path.components_;
+					std::vector<size_t> components;
 					
 					if (blockIndex < BLOCK_COUNT(0)) {
 						// Direct reference.
 						components.push_back(blockIndex);
-						return path;
+						return BlockPath(std::move(components));
 					}
 					
 					if (blockIndex < BLOCK_COUNT(1)) {
 						// Single indirect.
 						components.push_back(NODE_SINGLE_INDIRECT_INDEX);
 						components.push_back(indirectOffset(blockIndex, 0));
-						return path;
+						return BlockPath(std::move(components));
 					}
 					
 					if (blockIndex < BLOCK_COUNT(2)) {
@@ -53,7 +53,7 @@ namespace OpenP2P {
 						components.push_back(NODE_DOUBLE_INDIRECT_INDEX);
 						components.push_back(indirectOffset(blockIndex, 1));
 						components.push_back(indirectOffset(blockIndex, 0));
-						return path;
+						return BlockPath(std::move(components));
 					}
 					
 					if (blockIndex < BLOCK_COUNT(3)) {
@@ -62,7 +62,7 @@ namespace OpenP2P {
 						components.push_back(indirectOffset(blockIndex, 2));
 						components.push_back(indirectOffset(blockIndex, 1));
 						components.push_back(indirectOffset(blockIndex, 0));
-						return path;
+						return BlockPath(std::move(components));
 					}
 					
 					throw std::runtime_error("Block index exceeds triple indirect.");
@@ -117,6 +117,18 @@ namespace OpenP2P {
 				
 			private:
 				inline BlockPath() { }
+				
+				inline BlockPath(std::vector<size_t>&& components)
+					: components_(std::move(components)) {
+						if (components_.size() >= 1) {
+							assert(components_.at(0) < NODE_ROOT_MAX_REFS);
+						}
+						
+						for (size_t i = 1; i < components_.size(); i++) {
+							(void) i;
+							assert(components_.at(i) < NODE_MAX_INDIRECT_REFS);
+						}
+					}
 				
 				std::vector<size_t> components_;
 			

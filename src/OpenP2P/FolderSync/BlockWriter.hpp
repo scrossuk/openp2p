@@ -21,6 +21,10 @@ namespace OpenP2P {
 				inline BlockWriter(Block& block, size_t position = 0)
 					: block_(block), position_(position) { }
 				
+				inline void seek(size_t position) {
+					position_ = position;
+				}
+				
 				inline void writeAll(const uint8_t* data, size_t size) {
 					if ((position_ + size) > BLOCK_SIZE) {
 						throw std::runtime_error("Block write overflowed.");

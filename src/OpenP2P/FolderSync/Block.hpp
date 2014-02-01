@@ -11,6 +11,11 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
+		// Get number of blocks required to store a given number of bytes.
+		inline size_t BYTES_TO_BLOCKS(size_t bytes) {
+			return (bytes + (BLOCK_SIZE - 1)) / BLOCK_SIZE;
+		}
+		
 		class Block {
 			public:
 				static inline Block Zero() {

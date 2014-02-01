@@ -51,10 +51,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_unlink(const char* path) {
@@ -64,10 +64,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_rename(const char* src, const char* dst) {
@@ -77,10 +77,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_open(const char* path, struct fuse_file_info* info) {
@@ -95,10 +95,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_release(const char*, struct fuse_file_info* info) {
@@ -117,10 +117,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_read(const char*, char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
@@ -146,10 +146,10 @@ namespace FUSE {
 				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_write(const char*, const char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
@@ -175,10 +175,10 @@ namespace FUSE {
 				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_getattr(const char* path, struct stat* s) {
@@ -188,10 +188,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_truncate(const char* path, off_t size) {
@@ -206,10 +206,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_chmod(const char* path, mode_t mode) {
@@ -229,10 +229,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_mkdir(const char* path, mode_t mode) {
@@ -242,10 +242,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_rmdir(const char* path) {
@@ -255,10 +255,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		int fs_readdir(const char* path, void* buffer, fuse_fill_dir_t filler, off_t, struct fuse_file_info*) {
@@ -278,10 +278,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			} catch (const std::exception& e) {
+			}/*  catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			}
+			} */
 		}
 		
 		struct fuse_operations fsFuseOperations() {

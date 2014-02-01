@@ -37,19 +37,22 @@ namespace OpenP2P {
 		constexpr size_t NODE_MAX_BLOCK_PATH = INDIRECT_COUNT + 1;
 		
 		// Maximum references in node's root block.
-		constexpr size_t NODE_MAX_ROOT_REFS = ((BLOCK_SIZE - NODE_BLOCK_ID_OFFSET) / BLOCK_ID_SIZE) - INDIRECT_COUNT;
+		constexpr size_t NODE_ROOT_MAX_REFS = ((BLOCK_SIZE - NODE_BLOCK_ID_OFFSET) / BLOCK_ID_SIZE);
+		
+		// Maximum direct references in node's root block.
+		constexpr size_t NODE_ROOT_MAX_DIRECT_REFS = NODE_ROOT_MAX_REFS - INDIRECT_COUNT;
 		
 		// Maximum references in node's indirect blocks.
 		constexpr size_t NODE_MAX_INDIRECT_REFS = (BLOCK_SIZE / BLOCK_ID_SIZE);
 		
 		// Index of the single indirect in node's root block.
-		constexpr size_t NODE_SINGLE_INDIRECT_INDEX = NODE_MAX_ROOT_REFS;
+		constexpr size_t NODE_SINGLE_INDIRECT_INDEX = NODE_ROOT_MAX_DIRECT_REFS;
 		
 		// Index of the double indirect in node's root block.
-		constexpr size_t NODE_DOUBLE_INDIRECT_INDEX = NODE_MAX_ROOT_REFS + 1;
+		constexpr size_t NODE_DOUBLE_INDIRECT_INDEX = NODE_ROOT_MAX_DIRECT_REFS + 1;
 		
 		// Index of the triple indirect in node's root block.
-		constexpr size_t NODE_TRIPLE_INDIRECT_INDEX = NODE_MAX_ROOT_REFS + 2;
+		constexpr size_t NODE_TRIPLE_INDIRECT_INDEX = NODE_ROOT_MAX_DIRECT_REFS + 2;
 		
 		// Integer power.
 		constexpr size_t INT_POW(size_t value, size_t power) {
@@ -64,7 +67,7 @@ namespace OpenP2P {
 		
 		// Calculate blocks that can be referenced by an indirect level.
 		constexpr size_t BLOCK_COUNT(size_t indirectLevel) {
-			return INT_POW_SUM(NODE_MAX_INDIRECT_REFS, indirectLevel, NODE_MAX_ROOT_REFS);
+			return INT_POW_SUM(NODE_MAX_INDIRECT_REFS, indirectLevel, NODE_ROOT_MAX_DIRECT_REFS);
 		}
 		
 		// Maximum node size in blocks.

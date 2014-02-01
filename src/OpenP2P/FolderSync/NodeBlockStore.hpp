@@ -12,6 +12,11 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
+		inline size_t NodeBlockIdOffset(const BlockPath& path) {
+			const bool isDirectRef = path.size() == 1;
+			return (isDirectRef ? NODE_BLOCK_ID_OFFSET : 0) + path.back() * BLOCK_ID_SIZE;
+		}
+		
 		class NodeBlockStore: public BlockStore {
 			public:
 				NodeBlockStore(Database& database, const BlockId& rootId);

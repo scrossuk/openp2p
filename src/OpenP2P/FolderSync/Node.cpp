@@ -18,65 +18,16 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		namespace {
-			
-			NodeSize getSize(const Block& block) {
-				BlockReader reader(block, NODE_SIZE_OFFSET);
-				return Binary::ReadUint64(reader);
-			}
-			
-			void setSize(Block& block, NodeSize size) {
-				BlockWriter writer(block, NODE_SIZE_OFFSET);
-				return Binary::WriteUint64(writer, size);
-			}
-			
-			NodeType getType(const Block& block) {
-				BlockReader reader(block, NODE_TYPE_OFFSET);
-				const uint8_t typeVal = Binary::ReadUint8(reader);
-				if (typeVal == 0) {
-					return TYPE_DIRECTORY;
-				} else {
-					return TYPE_FILE;
-				}
-			}
-			
-			void setType(Block& block, NodeType type) {
-				BlockWriter writer(block, NODE_TYPE_OFFSET);
-				return Binary::WriteUint8(writer, type == TYPE_DIRECTORY ? 0 : 1);
-			}
-			
-			size_t blockCount(NodeSize size) {
-				return (size + (BLOCK_SIZE - 1)) / BLOCK_SIZE;
-			}
-			
-			size_t blockIdPosition(size_t blockOffset) {
-				return NODE_BLOCK_ID_OFFSET + BLOCK_ID_SIZE * blockOffset;
-			}
-			
-			BlockId getBlockId(const Block& block, size_t blockOffset) {
-				if (blockOffset >= NODE_MAX_BLOCKS) {
-					throw std::runtime_error("Block offset exceeds maximum value.");
-				}
-				
-				BlockReader reader(block, blockIdPosition(blockOffset));
-				return BlockId::FromReader(reader);
-			}
-			
-			void setBlockId(Block& block, size_t blockOffset, const BlockId& blockId) {
-				if (blockOffset >= NODE_MAX_BLOCKS) {
-					throw std::runtime_error("Block offset exceeds maximum value.");
-				}
-				
-				BlockWriter writer(block, blockIdPosition(blockOffset));
-				blockId.writeTo(writer);
-			}
-			
-		}
-		
 		BlockId CreateEmptyNode(Database& database, NodeType type) {
 			auto emptyBlock = Block::Zero();
-			setSize(emptyBlock, 0);
-			setType(emptyBlock, type);
+			
+			BlockWriter writer(emptyBlock);
+			
+			writer.seek(NODE_SIZE_OFFSET);
+			Binary::WriteUint64(writer, 0);
+			
+			writer.seek(NODE_TYPE_OFFSET);
+			Binary::WriteUint8(writer, type == TYPE_DIRECTORY ? 0 : 1);
 			
 			const auto emptyBlockId = BlockId::Generate(emptyBlock);
 			database.storeBlock(emptyBlockId, std::move(emptyBlock));
@@ -97,11 +48,18 @@ namespace OpenP2P {
 		}
 		
 		NodeSize Node::size() const {
-			return getSize(cache_.getReadBlock(BlockPath::Root()));
+			BlockReader reader(cache_.getReadBlock(BlockPath::Root()), NODE_SIZE_OFFSET);
+			return Binary::ReadUint64(reader);
 		}
 		
 		NodeType Node::type() const {
-			return getType(cache_.getReadBlock(BlockPath::Root()));
+			BlockReader reader(cache_.getReadBlock(BlockPath::Root()), NODE_TYPE_OFFSET);
+			const uint8_t typeVal = Binary::ReadUint8(reader);
+			if (typeVal == 0) {
+				return TYPE_DIRECTORY;
+			} else {
+				return TYPE_FILE;
+			}
 		}
 		
 		void Node::flush() {
@@ -114,20 +72,22 @@ namespace OpenP2P {
 			// at some later time.
 			cache_.flush();
 			
-			const size_t oldBlockCount = blockCount(size());
-			const size_t newBlockCount = blockCount(newSize);
+			const size_t oldBlockCount = BYTES_TO_BLOCKS(size());
+			const size_t newBlockCount = BYTES_TO_BLOCKS(newSize);
 			
 			// Set the size field.
-			setSize(cache_.getWriteBlock(BlockPath::Root()), newSize);
+			BlockWriter sizeWriter(cache_.getWriteBlock(BlockPath::Root()), NODE_SIZE_OFFSET);
+			Binary::WriteUint64(sizeWriter, newSize);
 			
 			// Replace block IDs with zero for deleted blocks.
 			if (oldBlockCount > newBlockCount) {
-				const auto ZERO_ID = BlockId::Zero();
+				const auto zeroId = BlockId::Zero();
 				
 				for (size_t i = newBlockCount; i < oldBlockCount; i++) {
 					const auto path = BlockPath::Index(i);
 					auto& parentBlock = cache_.getWriteBlock(path.parent());
-					setBlockId(parentBlock, path.back(), ZERO_ID);
+					BlockWriter writer(parentBlock, NodeBlockIdOffset(path));
+					zeroId.writeTo(writer);
 				}
 			}
 		}
@@ -165,7 +125,8 @@ namespace OpenP2P {
 			
 			const size_t newSize = offset + bufferSize;
 			if (newSize > size()) {
-				setSize(cache_.getWriteBlock(BlockPath::Root()), newSize);
+				BlockWriter sizeWriter(cache_.getWriteBlock(BlockPath::Root()), NODE_SIZE_OFFSET);
+				Binary::WriteUint64(sizeWriter, newSize);
 			}
 			
 			const size_t writeSize = bufferSize;

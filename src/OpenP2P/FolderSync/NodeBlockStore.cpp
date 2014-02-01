@@ -15,14 +15,6 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		namespace {
-			
-			size_t blockIdPosition(size_t blockPosition) {
-				return NODE_BLOCK_ID_OFFSET + BLOCK_ID_SIZE * blockPosition;
-			}
-			
-		}
-		
 		NodeBlockStore::NodeBlockStore(Database& database, const BlockId& initialRootId)
 			: database_(database), rootId_(initialRootId) { }
 		
@@ -42,7 +34,7 @@ namespace OpenP2P {
 		}
 		
 		Block NodeBlockStore::getBlock(const BlockPath& path, const Block& parentBlock) const {
-			BlockReader reader(parentBlock, blockIdPosition(path.back()));
+			BlockReader reader(parentBlock, NodeBlockIdOffset(path));
 			const auto blockId = BlockId::FromReader(reader);
 			
 			return database_.loadBlock(blockId);
@@ -52,7 +44,7 @@ namespace OpenP2P {
 			const auto blockId = BlockId::Generate(block);
 			database_.storeBlock(blockId, std::move(block));
 			
-			BlockWriter writer(parentBlock, blockIdPosition(path.back()));
+			BlockWriter writer(parentBlock, NodeBlockIdOffset(path));
 			blockId.writeTo(writer);
 		}
 		

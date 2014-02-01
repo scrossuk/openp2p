@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <array>
+#include <functional>
 
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/Constants.hpp>
@@ -28,12 +29,25 @@ namespace OpenP2P {
 				bool operator==(const BlockId&) const;
 				bool operator<(const BlockId&) const;
 				
+				std::size_t hash() const;
+				
 			private:
 				std::array<uint8_t, BLOCK_ID_SIZE> data_;
 			
 		};
 		
 	}
+	
+}
+
+namespace std {
+	
+	template<>
+	struct hash<OpenP2P::FolderSync::BlockId> {
+		std::size_t operator()(const OpenP2P::FolderSync::BlockId& blockId) const {
+			return blockId.hash();
+		}
+	};
 	
 }
 

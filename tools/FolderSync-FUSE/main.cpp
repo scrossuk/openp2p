@@ -5,9 +5,9 @@
 #include <ctime>
 
 #include <fstream>
-#include <map>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -132,10 +132,22 @@ class FileSystemJournal {
 class DemoOpenedFile: public FUSE::OpenedFile {
 	public:
 		DemoOpenedFile(FileSystemJournal& journal, const FUSE::Path& path, FolderSync::Database& database, const FolderSync::BlockId& blockId)
-			: journal_(journal), path_(path), database_(database), node_(database, blockId) { }
+			: journal_(journal), path_(path), database_(database),
+			node_(database, blockId), hasChanged_(false) { }
 		
 		~DemoOpenedFile() {
+			flush();
+		}
+		
+		void flush() {
 			node_.sync();
+			
+			journal_.updateAccessTime(path_);
+			if (hasChanged_) {
+				journal_.updateModifyTime(path_);
+				hasChanged_ = false;
+			}
+			
 			journal_.updateRootId(path_, node_.blockId());
 		}
 		
@@ -143,8 +155,6 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 			if (offset > node_.size()) {
 				throw FUSE::ErrorException(EINVAL);
 			}
-			
-			journal_.updateAccessTime(path_);
 			
 			return node_.read(offset, buffer, size);
 		}
@@ -158,7 +168,7 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 				throw FUSE::ErrorException(EFBIG);
 			}
 			
-			journal_.updateModifyTime(path_);
+			hasChanged_ = true;
 			
 			return node_.write(offset, buffer, size);
 		}
@@ -168,16 +178,9 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 		FUSE::Path path_;
 		FolderSync::Database& database_;
 		FolderSync::Node node_;
+		bool hasChanged_;
 			
 };
-
-FUSE::Path getParentPath(const FUSE::Path& path) {
-	assert(!path.empty());
-	
-	FUSE::Path parent(path);
-	parent.pop_back();
-	return parent;
-}
 
 class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 	public:
@@ -185,7 +188,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			emptyDir_ = FolderSync::CreateEmptyNode(database_, FolderSync::TYPE_DIRECTORY);
 			emptyFile_ = FolderSync::CreateEmptyNode(database_, FolderSync::TYPE_FILE);
 			rootId_ = emptyDir_;
-			metadata_[FUSE::Path()] = Metadata();
+			metadata_.emplace(FUSE::Path(), Metadata());
 		}
 		
 		FolderSync::BlockId lookup(const FUSE::Path& path) const {
@@ -232,7 +235,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			}
 			
 			// Add to parent directory.
-			FolderSync::Node parentNode(database_, lookup(getParentPath(path)));
+			FolderSync::Node parentNode(database_, lookup(path.parent()));
 			FolderSync::Directory parentDirectory(parentNode);
 			
 			if (parentDirectory.hasChild(path.back())) {
@@ -243,10 +246,10 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			
 			parentNode.sync();
 			
-			updateRootId(getParentPath(path), parentNode.blockId());
+			updateRootId(path.parent(), parentNode.blockId());
 			
 			metadata_[path] = Metadata();
-			updateModifyTime(getParentPath(path));
+			updateModifyTime(path.parent());
 		}
 		
 		std::unique_ptr<FUSE::OpenedFile> openFile(const FUSE::Path& path) {
@@ -261,7 +264,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			}
 			
 			// Remove from parent directory.
-			FolderSync::Node parentNode(database_, lookup(getParentPath(path)));
+			FolderSync::Node parentNode(database_, lookup(path.parent()));
 			
 			FolderSync::Directory parentDirectory(parentNode);
 			
@@ -273,9 +276,9 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			
 			parentNode.sync();
 			
-			updateRootId(getParentPath(path), parentNode.blockId());
+			updateRootId(path.parent(), parentNode.blockId());
 			
-			updateModifyTime(getParentPath(path));
+			updateModifyTime(path.parent());
 		}
 		
 		void rename(const FUSE::Path& sourcePath, const FUSE::Path& destPath) {
@@ -287,7 +290,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		}
 		
 		struct stat getAttributes(const FUSE::Path& path) const {
-			logFile() << "getAttributes " << FUSE::PathToString(path) << std::endl;
+			logFile() << "getAttributes " << path.toString() << std::endl;
 			FolderSync::Node node(database_, lookup(path));
 			return getNodeAttr(metadata_.at(path), node);
 		}
@@ -323,7 +326,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		}
 		
 		void createDirectory(const FUSE::Path& path, mode_t) {
-			logFile() << "createDirectory " << FUSE::PathToString(path) << std::endl;
+			logFile() << "createDirectory " << path.toString() << std::endl;
 			
 			if (path.empty()) {
 				// Can't create root.
@@ -332,7 +335,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			}
 			
 			// Add to parent directory.
-			FolderSync::Node parentNode(database_, lookup(getParentPath(path)));
+			FolderSync::Node parentNode(database_, lookup(path.parent()));
 			FolderSync::Directory parentDirectory(parentNode);
 			
 			if (parentDirectory.hasChild(path.back())) {
@@ -345,12 +348,12 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			
 			parentNode.sync();
 			
-			updateRootId(getParentPath(path), parentNode.blockId());
+			updateRootId(path.parent(), parentNode.blockId());
 			
 			logFile() << "Created directory..." << std::endl;
 			
 			metadata_[path] = Metadata();
-			updateModifyTime(getParentPath(path));
+			updateModifyTime(path.parent());
 		}
 		
 		void removeDirectory(const FUSE::Path& path) {
@@ -364,7 +367,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		
 	private:
 		mutable FolderSync::MemDatabase database_;
-		std::map<FUSE::Path, Metadata> metadata_;
+		std::unordered_map<FUSE::Path, Metadata> metadata_;
 		FolderSync::BlockId emptyDir_, emptyFile_;
 		FolderSync::BlockId rootId_;
 	

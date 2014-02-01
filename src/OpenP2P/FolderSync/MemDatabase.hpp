@@ -1,7 +1,7 @@
 #ifndef OPENP2P_FOLDERSYNC_MEMDATABASE_HPP
 #define OPENP2P_FOLDERSYNC_MEMDATABASE_HPP
 
-#include <map>
+#include <unordered_map>
 
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
@@ -23,7 +23,7 @@ namespace OpenP2P {
 				void storeBlock(const BlockId& id, const Block& data);
 				
 			private:
-				std::map<BlockId, Block> data_;
+				std::unordered_map<BlockId, Block> data_;
 			
 		};
 		

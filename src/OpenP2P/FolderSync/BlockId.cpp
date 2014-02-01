@@ -3,10 +3,15 @@
 #include <string.h>
 
 #include <array>
+#include <functional>
+
+#include <boost/functional/hash.hpp>
 
 #include <OpenP2P/Crypt/Hash/MD5Stream.hpp>
+
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
+
 #include <OpenP2P/Stream/BinaryStream.hpp>
 
 namespace OpenP2P {
@@ -51,6 +56,10 @@ namespace OpenP2P {
 		
 		bool BlockId::operator<(const BlockId& other) const {
 			return data_ < other.data_;
+		}
+		
+		std::size_t BlockId::hash() const {
+			return boost::hash_range(data_.begin(), data_.end());
 		}
 		
 	}

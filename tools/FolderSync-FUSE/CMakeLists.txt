@@ -1,3 +1,6 @@
+# Enable performance information.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+
 add_definitions(-D_FILE_OFFSET_BITS=64)
 
 add_executable(folderSync

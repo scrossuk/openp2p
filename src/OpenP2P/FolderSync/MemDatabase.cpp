@@ -1,4 +1,4 @@
-#include <map>
+#include <unordered_map>
 
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
@@ -24,7 +24,7 @@ namespace OpenP2P {
 		}
 		
 		void MemDatabase::storeBlock(const BlockId& id, const Block& data) {
-			data_.insert(std::make_pair(id, data));
+			data_.emplace(id, data);
 		}
 		
 	}

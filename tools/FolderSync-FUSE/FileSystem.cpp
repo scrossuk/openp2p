@@ -6,10 +6,9 @@
 #include <time.h>
 
 #include <fstream>
-#include <map>
 #include <memory>
 #include <string>
-#include <vector>
+#include <unordered_map>
 
 #include <fuse.h>
 
@@ -24,7 +23,7 @@ namespace FUSE {
 			std::ofstream log;
 			FileSystem& fileSystem;
 			uint64_t nextHandle;
-			std::map<uint64_t, OpenedFile*> openedFiles;
+			std::unordered_map<uint64_t, OpenedFile*> openedFiles;
 			
 			inline Context(const std::string& logFile, FileSystem& fs)
 				: log(logFile.c_str()), fileSystem(fs), nextHandle(0) { }
@@ -38,13 +37,16 @@ namespace FUSE {
 			try {
 				ctx().log << "create " << path << std::endl;
 				
-				const auto parsedPath = ParsePath(path);
+				Path parsedPath(path);
 				
 				ctx().fileSystem.createFile(parsedPath, mode);
 				
 				auto openedFile = ctx().fileSystem.openFile(parsedPath);
 				info->fh = ctx().nextHandle++;
-				ctx().openedFiles.insert(std::make_pair(info->fh, openedFile.release()));
+				
+				ctx().log << "created file " << path << " has handle " << info->fh << std::endl;
+				
+				ctx().openedFiles.emplace(info->fh, openedFile.release());
 				
 				return 0;
 			} catch (const ErrorException& e) {
@@ -58,7 +60,7 @@ namespace FUSE {
 		int fs_unlink(const char* path) {
 			try {
 				ctx().log << "unlink " << path << std::endl;
-				ctx().fileSystem.unlink(ParsePath(path));
+				ctx().fileSystem.unlink(Path(path));
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -71,7 +73,7 @@ namespace FUSE {
 		int fs_rename(const char* src, const char* dst) {
 			try {
 				ctx().log << "rename " << src << " to " << dst << std::endl;
-				ctx().fileSystem.rename(ParsePath(src), ParsePath(dst));
+				ctx().fileSystem.rename(Path(src), Path(dst));
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -84,9 +86,12 @@ namespace FUSE {
 		int fs_open(const char* path, struct fuse_file_info* info) {
 			try {
 				ctx().log << "open " << path << std::endl;
-				auto openedFile = ctx().fileSystem.openFile(ParsePath(path));
+				auto openedFile = ctx().fileSystem.openFile(Path(path));
 				info->fh = ctx().nextHandle++;
-				ctx().openedFiles.insert(std::make_pair(info->fh, openedFile.release()));
+				
+				ctx().log << "opened file " << path << " has handle " << info->fh << std::endl;
+				
+				ctx().openedFiles.emplace(info->fh, openedFile.release());
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -96,9 +101,10 @@ namespace FUSE {
 			}
 		}
 		
-		int fs_release(const char* path, struct fuse_file_info* info) {
+		int fs_release(const char*, struct fuse_file_info* info) {
 			try {
-				ctx().log << "release " << path << std::endl;
+				ctx().log << "release " << info->fh << std::endl;
+				
 				const auto it = ctx().openedFiles.find(info->fh);
 				if (it == ctx().openedFiles.end()) {
 					ctx().log << "ERROR: Invalid file handle." << std::endl;
@@ -117,10 +123,8 @@ namespace FUSE {
 			}
 		}
 		
-		int fs_read(const char* path, char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
+		int fs_read(const char*, char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
 			try {
-				// ctx().log << "read " << path << " at offset " << offset << " with size " << size << std::endl;
-				
 				if (offset < 0) {
 					ctx().log << "ERROR: Invalid offset." << std::endl;
 					return -EINVAL;
@@ -148,10 +152,8 @@ namespace FUSE {
 			}
 		}
 		
-		int fs_write(const char* path, const char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
+		int fs_write(const char*, const char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
 			try {
-				// ctx().log << "write " << path << " at offset " << offset << " with size " << size << std::endl;
-				
 				if (offset < 0) {
 					ctx().log << "ERROR: Invalid offset." << std::endl;
 					return -EINVAL;
@@ -182,7 +184,7 @@ namespace FUSE {
 		int fs_getattr(const char* path, struct stat* s) {
 			try {
 				ctx().log << "getattr " << path << std::endl;
-				*s = ctx().fileSystem.getAttributes(ParsePath(path));
+				*s = ctx().fileSystem.getAttributes(Path(path));
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -200,7 +202,7 @@ namespace FUSE {
 					return -EINVAL;
 				}
 				
-				ctx().fileSystem.resize(ParsePath(path), static_cast<size_t>(size));
+				ctx().fileSystem.resize(Path(path), static_cast<size_t>(size));
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -213,7 +215,7 @@ namespace FUSE {
 		int fs_chmod(const char* path, mode_t mode) {
 			try {
 				ctx().log << "chmod " << path << std::endl;
-				ctx().fileSystem.changeMode(ParsePath(path), mode);
+				ctx().fileSystem.changeMode(Path(path), mode);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -223,7 +225,7 @@ namespace FUSE {
 		int fs_chown(const char* path, uid_t uid, gid_t gid) {
 			try {
 				ctx().log << "chown " << path << std::endl;
-				ctx().fileSystem.changeOwner(ParsePath(path), uid, gid);
+				ctx().fileSystem.changeOwner(Path(path), uid, gid);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -236,7 +238,7 @@ namespace FUSE {
 		int fs_mkdir(const char* path, mode_t mode) {
 			try {
 				ctx().log << "mkdir " << path << std::endl;
-				ctx().fileSystem.createDirectory(ParsePath(path), mode);
+				ctx().fileSystem.createDirectory(Path(path), mode);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -249,7 +251,7 @@ namespace FUSE {
 		int fs_rmdir(const char* path) {
 			try {
 				ctx().log << "rmdir " << path << std::endl;
-				ctx().fileSystem.removeDirectory(ParsePath(path));
+				ctx().fileSystem.removeDirectory(Path(path));
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
@@ -263,7 +265,7 @@ namespace FUSE {
 			try {
 				ctx().log << "readdir " << path << std::endl;
 				
-				const auto openDirectory = ctx().fileSystem.openDirectory(ParsePath(path));
+				const auto openDirectory = ctx().fileSystem.openDirectory(Path(path));
 				
 				const auto nodes = openDirectory->read();
 				filler(buffer, ".", 0, 0);

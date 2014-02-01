@@ -56,7 +56,7 @@ FolderSync::BlockId calculateNewId(FolderSync::Database& database, const FolderS
 	
 	directory.updateChild(pathComponent, childNewId);
 	
-	node.sync();
+	node.flush();
 	
 	return node.blockId();
 }
@@ -140,7 +140,7 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 		}
 		
 		void flush() {
-			node_.sync();
+			node_.flush();
 			
 			journal_.updateAccessTime(path_);
 			if (hasChanged_) {
@@ -244,7 +244,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			
 			parentDirectory.addChild(path.back(), emptyFile_);
 			
-			parentNode.sync();
+			parentNode.flush();
 			
 			updateRootId(path.parent(), parentNode.blockId());
 			
@@ -274,7 +274,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			
 			parentDirectory.removeChild(path.back());
 			
-			parentNode.sync();
+			parentNode.flush();
 			
 			updateRootId(path.parent(), parentNode.blockId());
 			
@@ -308,7 +308,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			
 			node.resize(size);
 			
-			node.sync();
+			node.flush();
 			
 			updateRootId(path, node.blockId());
 			
@@ -346,7 +346,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 			
 			parentDirectory.addChild(path.back(), emptyDir_);
 			
-			parentNode.sync();
+			parentNode.flush();
 			
 			updateRootId(path.parent(), parentNode.blockId());
 			

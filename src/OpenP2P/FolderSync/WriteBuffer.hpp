@@ -21,7 +21,7 @@ namespace OpenP2P {
 				
 				Block& getWriteBlock(size_t position);
 				
-				void sync();
+				void flush();
 				
 			private:
 				// Non-copyable.

@@ -94,7 +94,7 @@ namespace OpenP2P {
 			writeBuffer_(blockStore_) { }
 		
 		Node::~Node() {
-			sync();
+			flush();
 		}
 		
 		BlockId Node::blockId() const {
@@ -109,13 +109,13 @@ namespace OpenP2P {
 			return getType(nodeBlock_);
 		}
 		
-		void Node::sync() {
+		void Node::flush() {
 			if (!hasChanged_) {
 				// Only re-calculate when necessary.
 				return;
 			}
 			
-			writeBuffer_.sync();
+			writeBuffer_.flush();
 			
 			nodeBlockId_ = BlockId::Generate(nodeBlock_);
 			
@@ -126,7 +126,7 @@ namespace OpenP2P {
 		
 		void Node::resize(NodeSize newSize) {
 			// Write out all buffered blocks.
-			writeBuffer_.sync();
+			writeBuffer_.flush();
 			
 			const size_t oldBlockCount = blockCount(size());
 			const size_t newBlockCount = blockCount(newSize);

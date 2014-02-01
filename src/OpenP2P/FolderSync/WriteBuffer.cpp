@@ -16,7 +16,7 @@ namespace OpenP2P {
 			: blockStore_(blockStore) { }
 		
 		WriteBuffer::~WriteBuffer() {
-			sync();
+			flush();
 		}
 		
 		bool WriteBuffer::hasChanges() const {
@@ -41,7 +41,7 @@ namespace OpenP2P {
 			return newIterator->second;
 		}
 		
-		void WriteBuffer::sync() {
+		void WriteBuffer::flush() {
 			for (const auto& blockPair: blockMap_) {
 				blockStore_.setBlock(blockPair.first, blockPair.second);
 			}

@@ -48,13 +48,13 @@ namespace OpenP2P {
 				NodeType type() const;
 				
 				/**
-				 * \brief Sync node changes.
+				 * \brief Flush node changes.
 				 * 
 				 * Writes the new node blocks to the database.
 				 * This will be called automatically when the
 				 * node is destroyed.
 				 */
-				void sync();
+				void flush();
 				
 				void resize(NodeSize size);
 				

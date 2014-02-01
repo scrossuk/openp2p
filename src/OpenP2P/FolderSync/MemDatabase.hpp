@@ -20,7 +20,7 @@ namespace OpenP2P {
 				
 				Block loadBlock(const BlockId& id) const;
 				
-				void storeBlock(const BlockId& id, const Block& data);
+				void storeBlock(const BlockId& id, Block data);
 				
 			private:
 				std::unordered_map<BlockId, Block> data_;

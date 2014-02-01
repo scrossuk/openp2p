@@ -13,8 +13,12 @@ namespace OpenP2P {
 		
 		class Block {
 			public:
-				inline Block() 
-					: data_(BLOCK_SIZE, 0x00) { }
+				static inline Block Zero() {
+					return Block();
+				}
+				
+				inline Block(Block&& block) noexcept
+					: data_(block.data_) { }
 				
 				inline uint8_t* data() {
 					return data_.data();
@@ -28,7 +32,19 @@ namespace OpenP2P {
 					return BLOCK_SIZE;
 				}
 				
+				inline Block copy() const {
+					Block copyBlock;
+					copyBlock.data_ = data_;
+					return std::move(copyBlock);
+				}
+				
 			private:
+				inline Block() : data_(BLOCK_SIZE, 0x00) { }
+				
+				// Non-copyable.
+				Block(const Block&) = delete;
+				Block& operator=(Block) = delete;
+				
 				std::vector<uint8_t> data_;
 			
 		};

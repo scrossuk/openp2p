@@ -10,7 +10,7 @@ namespace OpenP2P {
 	namespace FolderSync {
 		
 		MemDatabase::MemDatabase() {
-			storeBlock(BlockId(), Block());
+			storeBlock(BlockId(), Block::Zero());
 		}
 		
 		MemDatabase::~MemDatabase() { }
@@ -20,11 +20,11 @@ namespace OpenP2P {
 		}
 		
 		Block MemDatabase::loadBlock(const BlockId& id) const {
-			return data_.at(id);
+			return data_.at(id).copy();
 		}
 		
-		void MemDatabase::storeBlock(const BlockId& id, const Block& data) {
-			data_.emplace(id, data);
+		void MemDatabase::storeBlock(const BlockId& id, Block data) {
+			data_.emplace(id, std::move(data));
 		}
 		
 	}

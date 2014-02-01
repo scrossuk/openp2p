@@ -1,4 +1,5 @@
 add_library(openp2p-foldersync STATIC
+	BlockCache.cpp
 	BlockId.cpp
 	Directory.cpp
 	Journal.cpp
@@ -7,6 +8,5 @@ add_library(openp2p-foldersync STATIC
 	NodeBlockStore.cpp
 	NodeReader.cpp
 	NodeWriter.cpp
-	WriteBuffer.cpp
 	)
 

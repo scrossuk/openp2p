@@ -74,12 +74,12 @@ namespace OpenP2P {
 		}
 		
 		BlockId CreateEmptyNode(Database& database, NodeType type) {
-			Block emptyBlock;
+			auto emptyBlock = Block::Zero();
 			setSize(emptyBlock, 0);
 			setType(emptyBlock, type);
 			
 			const auto emptyBlockId = BlockId::Generate(emptyBlock);
-			database.storeBlock(emptyBlockId, emptyBlock);
+			database.storeBlock(emptyBlockId, std::move(emptyBlock));
 			
 			return emptyBlockId;
 		}
@@ -91,7 +91,7 @@ namespace OpenP2P {
 			hasChanged_(false),
 			size_(getSize(nodeBlock_)),
 			blockStore_(database, nodeBlock_),
-			writeBuffer_(blockStore_) { }
+			blockCache_(blockStore_) { }
 		
 		Node::~Node() {
 			flush();
@@ -115,18 +115,18 @@ namespace OpenP2P {
 				return;
 			}
 			
-			writeBuffer_.flush();
+			blockCache_.flush();
 			
 			nodeBlockId_ = BlockId::Generate(nodeBlock_);
 			
-			database_.storeBlock(nodeBlockId_, nodeBlock_);
+			database_.storeBlock(nodeBlockId_, nodeBlock_.copy());
 			
 			hasChanged_ = false;
 		}
 		
 		void Node::resize(NodeSize newSize) {
-			// Write out all buffered blocks.
-			writeBuffer_.flush();
+			// Clear cache, to ensure data is up-to-date.
+			blockCache_.flush();
 			
 			const size_t oldBlockCount = blockCount(size());
 			const size_t newBlockCount = blockCount(newSize);
@@ -142,9 +142,8 @@ namespace OpenP2P {
 				}
 			}
 			
-			// Recalculate block ID.
-			nodeBlockId_ = BlockId::Generate(nodeBlock_);
-			database_.storeBlock(nodeBlockId_, nodeBlock_);
+			// Mark as changed.
+			hasChanged_ = true;
 		}
 		
 		size_t Node::read(NodeOffset offset, uint8_t* buffer, size_t bufferSize) const {
@@ -161,7 +160,7 @@ namespace OpenP2P {
 				// Offset within the block.
 				const size_t blockOffset = (offset + pos) % BLOCK_SIZE;
 				
-				const auto block = blockStore_.getBlock(blockIndex);
+				const auto& block = blockCache_.getReadBlock(blockIndex);
 				
 				const size_t blockReadSize = std::min<size_t>(readSize - pos, BLOCK_SIZE - blockOffset);
 				memcpy(&buffer[pos], block.data() + blockOffset, blockReadSize);
@@ -195,11 +194,10 @@ namespace OpenP2P {
 				// Offset within the block.
 				const size_t blockOffset = (offset + pos) % BLOCK_SIZE;
 				
-				auto& block = writeBuffer_.getWriteBlock(blockIndex);
+				auto& block = blockCache_.getWriteBlock(blockIndex);
 				
 				const size_t blockWriteSize = std::min<size_t>(writeSize - pos, FolderSync::BLOCK_SIZE - blockOffset);
 				memcpy(block.data() + blockOffset, &buffer[pos], blockWriteSize);
-				
 				pos += blockWriteSize;
 			}
 			

@@ -4,10 +4,10 @@
 #include <stdint.h>
 
 #include <OpenP2P/FolderSync/Block.hpp>
+#include <OpenP2P/FolderSync/BlockCache.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
 #include <OpenP2P/FolderSync/NodeBlockStore.hpp>
-#include <OpenP2P/FolderSync/WriteBuffer.hpp>
 
 namespace OpenP2P {
 	
@@ -73,7 +73,7 @@ namespace OpenP2P {
 				bool hasChanged_;
 				NodeSize size_;
 				NodeBlockStore blockStore_;
-				WriteBuffer writeBuffer_;
+				BlockCache blockCache_;
 			
 		};
 		

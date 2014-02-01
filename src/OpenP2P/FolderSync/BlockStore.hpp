@@ -11,9 +11,9 @@ namespace OpenP2P {
 		
 		class BlockStore {
 			public:
-				virtual Block getBlock(size_t position) const = 0;
+				virtual Block getBlock(size_t index) const = 0;
 				
-				virtual void setBlock(size_t position, const Block& block) = 0;
+				virtual void setBlock(size_t index, Block block) = 0;
 			
 		};
 		

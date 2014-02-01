@@ -18,7 +18,7 @@ namespace OpenP2P {
 				
 				Block getBlock(size_t position) const;
 				
-				void setBlock(size_t position, const Block& block);
+				void setBlock(size_t position, Block block);
 				
 				void unsetBlock(size_t position);
 				

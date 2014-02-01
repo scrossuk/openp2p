@@ -38,13 +38,13 @@ namespace OpenP2P {
 			return database_.loadBlock(blockId);
 		}
 		
-		void NodeBlockStore::setBlock(size_t position, const Block& block) {
+		void NodeBlockStore::setBlock(size_t position, Block block) {
 			if (position >= NODE_MAX_BLOCKS) {
 				throw std::runtime_error("Block position exceeds maximum value.");
 			}
 			
 			const auto blockId = BlockId::Generate(block);
-			database_.storeBlock(blockId, block);
+			database_.storeBlock(blockId, std::move(block));
 			
 			BlockWriter writer(nodeBlock_, blockIdPosition(position));
 			blockId.writeTo(writer);

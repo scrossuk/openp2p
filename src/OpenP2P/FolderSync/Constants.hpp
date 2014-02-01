@@ -29,6 +29,9 @@ namespace OpenP2P {
 		// Maximum node size in bytes.
 		constexpr size_t NODE_MAX_BYTES = NODE_MAX_BLOCKS * BLOCK_SIZE;
 		
+		// Maximum blocks held by a block cache.
+		constexpr size_t CACHE_MAX_BLOCKS = 2;
+		
 	}
 	
 }

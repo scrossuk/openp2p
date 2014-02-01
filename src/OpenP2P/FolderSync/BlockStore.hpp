@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include <OpenP2P/FolderSync/Block.hpp>
+#include <OpenP2P/FolderSync/BlockPath.hpp>
 
 namespace OpenP2P {
 	
@@ -11,9 +12,13 @@ namespace OpenP2P {
 		
 		class BlockStore {
 			public:
-				virtual Block getBlock(size_t index) const = 0;
+				virtual Block getRoot() const = 0;
 				
-				virtual void setBlock(size_t index, Block block) = 0;
+				virtual void setRoot(Block block) = 0;
+				
+				virtual Block getBlock(const BlockPath& path, const Block& parentBlock) const = 0;
+				
+				virtual void setBlock(const BlockPath& path, Block& parentBlock, Block block) = 0;
 			
 		};
 		

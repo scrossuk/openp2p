@@ -4,6 +4,7 @@
 #include <stddef.h>
 
 #include <OpenP2P/FolderSync/Block.hpp>
+#include <OpenP2P/FolderSync/BlockPath.hpp>
 #include <OpenP2P/FolderSync/BlockStore.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
 
@@ -13,14 +14,18 @@ namespace OpenP2P {
 		
 		class NodeBlockStore: public BlockStore {
 			public:
-				NodeBlockStore(Database& database, Block& nodeBlock);
+				NodeBlockStore(Database& database, const BlockId& rootId);
 				~NodeBlockStore();
 				
-				Block getBlock(size_t position) const;
+				const BlockId& rootId() const;
 				
-				void setBlock(size_t position, Block block);
+				Block getRoot() const;
 				
-				void unsetBlock(size_t position);
+				void setRoot(Block block);
+				
+				Block getBlock(const BlockPath& path, const Block& parentBlock) const;
+				
+				void setBlock(const BlockPath& path, Block& parentBlock, Block block);
 				
 			private:
 				// Non-copyable.
@@ -28,7 +33,7 @@ namespace OpenP2P {
 				NodeBlockStore& operator=(NodeBlockStore) = delete;
 				
 				Database& database_;
-				Block& nodeBlock_;
+				BlockId rootId_;
 				
 		};
 		

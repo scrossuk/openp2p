@@ -67,13 +67,8 @@ namespace OpenP2P {
 				Node(const Node&) = delete;
 				Node& operator=(Node) = delete;
 				
-				Database& database_;
-				BlockId nodeBlockId_;
-				Block nodeBlock_;
-				bool hasChanged_;
-				NodeSize size_;
 				NodeBlockStore blockStore_;
-				BlockCache blockCache_;
+				BlockCache cache_;
 			
 		};
 		

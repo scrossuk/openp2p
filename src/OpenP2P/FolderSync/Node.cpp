@@ -85,65 +85,51 @@ namespace OpenP2P {
 		}
 		
 		Node::Node(Database& database, const BlockId& initialBlockId)
-			: database_(database),
-			nodeBlockId_(initialBlockId),
-			nodeBlock_(database.loadBlock(initialBlockId)),
-			hasChanged_(false),
-			size_(getSize(nodeBlock_)),
-			blockStore_(database, nodeBlock_),
-			blockCache_(blockStore_) { }
+			: blockStore_(database, initialBlockId),
+			cache_(blockStore_) { }
 		
 		Node::~Node() {
 			flush();
 		}
 		
 		BlockId Node::blockId() const {
-			return nodeBlockId_;
+			return blockStore_.rootId();
 		}
 		
 		NodeSize Node::size() const {
-			return size_;
+			return getSize(cache_.getReadBlock(BlockPath::Root()));
 		}
 		
 		NodeType Node::type() const {
-			return getType(nodeBlock_);
+			return getType(cache_.getReadBlock(BlockPath::Root()));
 		}
 		
 		void Node::flush() {
-			if (!hasChanged_) {
-				// Only re-calculate when necessary.
-				return;
-			}
-			
-			blockCache_.flush();
-			
-			nodeBlockId_ = BlockId::Generate(nodeBlock_);
-			
-			database_.storeBlock(nodeBlockId_, nodeBlock_.copy());
-			
-			hasChanged_ = false;
+			cache_.flush();
 		}
 		
 		void Node::resize(NodeSize newSize) {
-			// Clear cache, to ensure data is up-to-date.
-			blockCache_.flush();
+			// Flush all data blocks, so that IDs of
+			// deleted blocks aren't updated incorrectly
+			// at some later time.
+			cache_.flush();
 			
 			const size_t oldBlockCount = blockCount(size());
 			const size_t newBlockCount = blockCount(newSize);
 			
 			// Set the size field.
-			setSize(nodeBlock_, newSize);
-			size_ = newSize;
+			setSize(cache_.getWriteBlock(BlockPath::Root()), newSize);
 			
 			// Replace block IDs with zero for deleted blocks.
 			if (oldBlockCount > newBlockCount) {
+				const auto ZERO_ID = BlockId::Zero();
+				
 				for (size_t i = newBlockCount; i < oldBlockCount; i++) {
-					blockStore_.unsetBlock(i);
+					const auto path = BlockPath::Index(i);
+					auto& parentBlock = cache_.getWriteBlock(path.parent());
+					setBlockId(parentBlock, path.back(), ZERO_ID);
 				}
 			}
-			
-			// Mark as changed.
-			hasChanged_ = true;
 		}
 		
 		size_t Node::read(NodeOffset offset, uint8_t* buffer, size_t bufferSize) const {
@@ -160,7 +146,7 @@ namespace OpenP2P {
 				// Offset within the block.
 				const size_t blockOffset = (offset + pos) % BLOCK_SIZE;
 				
-				const auto& block = blockCache_.getReadBlock(blockIndex);
+				const auto& block = cache_.getReadBlock(BlockPath::Index(blockIndex));
 				
 				const size_t blockReadSize = std::min<size_t>(readSize - pos, BLOCK_SIZE - blockOffset);
 				memcpy(&buffer[pos], block.data() + blockOffset, blockReadSize);
@@ -177,12 +163,9 @@ namespace OpenP2P {
 			
 			if (bufferSize == 0) return 0;
 			
-			hasChanged_ = true;
-			
 			const size_t newSize = offset + bufferSize;
 			if (newSize > size()) {
-				setSize(nodeBlock_, newSize);
-				size_ = newSize;
+				setSize(cache_.getWriteBlock(BlockPath::Root()), newSize);
 			}
 			
 			const size_t writeSize = bufferSize;
@@ -194,7 +177,7 @@ namespace OpenP2P {
 				// Offset within the block.
 				const size_t blockOffset = (offset + pos) % BLOCK_SIZE;
 				
-				auto& block = blockCache_.getWriteBlock(blockIndex);
+				auto& block = cache_.getWriteBlock(BlockPath::Index(blockIndex));
 				
 				const size_t blockWriteSize = std::min<size_t>(writeSize - pos, FolderSync::BLOCK_SIZE - blockOffset);
 				memcpy(block.data() + blockOffset, &buffer[pos], blockWriteSize);

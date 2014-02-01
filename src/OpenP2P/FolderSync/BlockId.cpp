@@ -17,10 +17,8 @@ namespace OpenP2P {
 			(void) memset(data_.data(), 0, data_.size());
 		}
 		
-		BlockId BlockId::ZeroBlockId() {
-			Block zeroBlock;
-			zeroBlock.fill(0x00);
-			return BlockId::Generate(zeroBlock);
+		BlockId BlockId::Zero() {
+			return BlockId();
 		}
 		
 		BlockId BlockId::FromReader(BlockingReader& reader) {

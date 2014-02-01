@@ -9,7 +9,9 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		MemDatabase::MemDatabase() { }
+		MemDatabase::MemDatabase() {
+			storeBlock(BlockId(), Block());
+		}
 		
 		MemDatabase::~MemDatabase() { }
 		

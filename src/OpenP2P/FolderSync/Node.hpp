@@ -6,6 +6,8 @@
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
+#include <OpenP2P/FolderSync/NodeBlockStore.hpp>
+#include <OpenP2P/FolderSync/WriteBuffer.hpp>
 
 namespace OpenP2P {
 	
@@ -19,12 +21,11 @@ namespace OpenP2P {
 			TYPE_FILE
 		};
 		
+		BlockId CreateEmptyNode(Database& database, NodeType type);
+		
 		class Node {
 			public:
 				Node(Database& database, const BlockId& initialBlockId);
-				
-				static Node Empty(Database& database, NodeType type);
-				
 				~Node();
 				
 				/**
@@ -62,10 +63,17 @@ namespace OpenP2P {
 				size_t write(NodeOffset offset, const uint8_t* buffer, size_t bufferSize);
 				
 			private:
+				// Non-copyable.
+				Node(const Node&) = delete;
+				Node& operator=(Node) = delete;
+				
 				Database& database_;
 				BlockId nodeBlockId_;
 				Block nodeBlock_;
+				bool hasChanged_;
 				NodeSize size_;
+				NodeBlockStore blockStore_;
+				WriteBuffer writeBuffer_;
 			
 		};
 		

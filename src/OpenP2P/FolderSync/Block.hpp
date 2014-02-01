@@ -3,16 +3,35 @@
 
 #include <stdint.h>
 
-#include <array>
-#include <cstddef>
+#include <vector>
+
+#include <OpenP2P/FolderSync/Constants.hpp>
 
 namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		constexpr size_t BLOCK_SIZE = 65536;
-		
-		typedef std::array<uint8_t, BLOCK_SIZE> Block;
+		class Block {
+			public:
+				inline Block() 
+					: data_(BLOCK_SIZE, 0x00) { }
+				
+				inline uint8_t* data() {
+					return data_.data();
+				}
+				
+				inline const uint8_t* data() const {
+					return data_.data();
+				}
+				
+				inline size_t size() const {
+					return BLOCK_SIZE;
+				}
+				
+			private:
+				std::vector<uint8_t> data_;
+			
+		};
 		
 	}
 	

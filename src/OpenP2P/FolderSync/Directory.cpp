@@ -51,7 +51,7 @@ namespace OpenP2P {
 				
 				assert(node.size() == (children.size() * ENTRY_SIZE));
 				
-				return children;
+				return std::move(children);
 			}
 			
 			void writeChildren(Node& node, const std::map<std::string, BlockId>& children) {
@@ -91,17 +91,17 @@ namespace OpenP2P {
 		
 		void Directory::addChild(const std::string& name, const BlockId& blockId) {
 			if (name.empty()) {
-				throw std::runtime_error("Name is empty.");
+				throw std::runtime_error("addChild(): Name is empty.");
 			}
 			
 			if (name.size() > ENTRY_NAME_SIZE) {
-				throw std::runtime_error("Name is too long.");
+				throw std::runtime_error("addChild(): Name is too long.");
 			}
 			
 			auto children = readChildren(node_);
 			
 			if (children.find(name) != children.end()) {
-				throw std::runtime_error("Entry already exists.");
+				throw std::runtime_error("addChild(): Entry already exists.");
 			}
 			
 			children.insert(std::make_pair(name, blockId));
@@ -109,19 +109,35 @@ namespace OpenP2P {
 			writeChildren(node_, children);
 		}
 		
-		void Directory::updateChild(const std::string& name, const BlockId& blockId) {
+		void Directory::forceAddChild(const std::string& name, const BlockId& blockId) {
 			if (name.empty()) {
-				throw std::runtime_error("Name is empty.");
+				throw std::runtime_error("forceAddChild(): Name is empty.");
 			}
 			
 			if (name.size() > ENTRY_NAME_SIZE) {
-				throw std::runtime_error("Name is too long.");
+				throw std::runtime_error("forceAddChild(): Name is too long.");
+			}
+			
+			auto children = readChildren(node_);
+			
+			children[name] = blockId;
+			
+			writeChildren(node_, children);
+		}
+		
+		void Directory::updateChild(const std::string& name, const BlockId& blockId) {
+			if (name.empty()) {
+				throw std::runtime_error("updateChild(): Name is empty.");
+			}
+			
+			if (name.size() > ENTRY_NAME_SIZE) {
+				throw std::runtime_error("updateChild(): Name is too long.");
 			}
 			
 			auto children = readChildren(node_);
 			
 			if (children.find(name) == children.end()) {
-				throw std::runtime_error("Entry does not already exist.");
+				throw std::runtime_error("updateChild(): Entry does not already exist.");
 			}
 			
 			children[name] = blockId;
@@ -131,17 +147,17 @@ namespace OpenP2P {
 		
 		void Directory::removeChild(const std::string& name) {
 			if (name.empty()) {
-				throw std::runtime_error("Name is empty.");
+				throw std::runtime_error("removeChild(): Name is empty.");
 			}
 			
 			if (name.size() > ENTRY_NAME_SIZE) {
-				throw std::runtime_error("Name is too long.");
+				throw std::runtime_error("removeChild(): Name is too long.");
 			}
 			
 			auto children = readChildren(node_);
 			
 			if (children.find(name) == children.end()) {
-				throw std::runtime_error("Entry does not already exist.");
+				throw std::runtime_error("removeChild(): Entry does not already exist.");
 			}
 			
 			children.erase(name);
@@ -151,11 +167,11 @@ namespace OpenP2P {
 		
 		bool Directory::hasChild(const std::string& name) const {
 			if (name.empty()) {
-				throw std::runtime_error("Name is empty.");
+				throw std::runtime_error("hasChild(): Name is empty.");
 			}
 			
 			if (name.size() > ENTRY_NAME_SIZE) {
-				throw std::runtime_error("Name is too long.");
+				throw std::runtime_error("hasChild(): Name is too long.");
 			}
 			
 			const auto children = readChildren(node_);
@@ -165,11 +181,11 @@ namespace OpenP2P {
 		
 		BlockId Directory::getChild(const std::string& name) const {
 			if (name.empty()) {
-				throw std::runtime_error("Name is empty.");
+				throw std::runtime_error("getChild(): Name is empty.");
 			}
 			
 			if (name.size() > ENTRY_NAME_SIZE) {
-				throw std::runtime_error("Name is too long.");
+				throw std::runtime_error("getChild(): Name is too long.");
 			}
 			
 			auto children = readChildren(node_);
@@ -177,7 +193,7 @@ namespace OpenP2P {
 			const auto iterator = children.find(name);
 			
 			if (iterator == children.end()) {
-				throw std::runtime_error("Entry does not already exist.");
+				throw std::runtime_error("getChild(): Entry does not already exist.");
 			}
 			
 			return iterator->second;

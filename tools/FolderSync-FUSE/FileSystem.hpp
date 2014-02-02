@@ -29,7 +29,20 @@ namespace FUSE {
 		public:
 			inline virtual ~OpenedDirectory() { }
 			
-			virtual std::vector<std::string> read() const = 0;
+			/**
+			 * \brief Read child node names.
+			 */
+			virtual std::vector<std::string> readNames() const = 0;
+			
+			/**
+			 * \brief Add node.
+			 */
+			virtual void addNode(bool isDirectory, const std::string& name) = 0;
+			
+			/**
+			 * \brief Remove node.
+			 */
+			virtual void removeNode(const std::string& name) = 0;
 			
 	};
 	
@@ -41,6 +54,8 @@ namespace FUSE {
 			
 			virtual size_t write(size_t offset, const uint8_t* buffer, size_t size) = 0;
 			
+			virtual void resize(size_t size) = 0;
+			
 	};
 	
 	class FileSystem {
@@ -48,21 +63,14 @@ namespace FUSE {
 			inline virtual ~FileSystem() { }
 			
 			/**
-			 * \brief Create a file.
-			 */
-			virtual void createFile(const Path& path, mode_t mode) = 0;
-			
-			/**
 			 * \brief Open a file.
 			 */
 			virtual std::unique_ptr<OpenedFile> openFile(const Path& path) = 0;
 			
 			/**
-			 * \brief Unlink a file.
-			 *
-			 * This removes a hard link to a file.
+			 * \brief Open a directory.
 			 */
-			virtual void unlink(const Path& path) = 0;
+			virtual std::unique_ptr<OpenedDirectory> openDirectory(const Path& path) = 0;
 			
 			/**
 			 * \brief Rename a node.
@@ -76,37 +84,17 @@ namespace FUSE {
 			/**
 			 * \brief Get node attributes.
 			 */
-			virtual struct stat getAttributes(const Path& path) const = 0;
-			
-			/**
-			 * \brief Resize file.
-			 */
-			virtual void resize(const Path& path, size_t size) = 0;
+			virtual struct stat getAttributes(const Path& name) const = 0;
 			
 			/**
 			 * \brief Change 'mode' (permissions) for a node.
 			 */
-			virtual void changeMode(const Path& path, mode_t mode) = 0;
+			virtual void changeMode(const Path& name, mode_t mode) = 0;
 			
 			/**
 			 * \brief Change owner for a node.
 			 */
-			virtual void changeOwner(const Path& path, uid_t user, gid_t group) = 0;
-			
-			/**
-			 * \brief Create a directory.
-			 */
-			virtual void createDirectory(const Path& path, mode_t mode) = 0;
-			
-			/**
-			 * \brief Remove a directory.
-			 */
-			virtual void removeDirectory(const Path& path) = 0;
-			
-			/**
-			 * \brief Open a directory.
-			 */
-			virtual std::unique_ptr<OpenedDirectory> openDirectory(const Path& path) = 0;
+			virtual void changeOwner(const Path& name, uid_t user, gid_t group) = 0;
 			
 	};
 	

@@ -11,7 +11,7 @@ namespace OpenP2P {
 		// ------------- Configurable values.
 		
 		// Size of a block.
-		constexpr size_t BLOCK_SIZE = 4096;
+		constexpr size_t BLOCK_SIZE = 65536;
 		
 		// Size of a block ID.
 		constexpr size_t BLOCK_ID_SIZE = 16;

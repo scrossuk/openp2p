@@ -37,7 +37,22 @@ namespace OpenP2P {
 		
 		Node::Node(Database& database, const BlockId& initialBlockId)
 			: blockStore_(database, initialBlockId),
-			cache_(blockStore_) { }
+			cache_(blockStore_),
+			size_(0),
+			type_(TYPE_DIRECTORY) {
+				BlockReader reader(cache_.getReadBlock(BlockPath::Root()));
+				
+				reader.seek(NODE_SIZE_OFFSET);
+				size_ = Binary::ReadUint64(reader);
+				
+				reader.seek(NODE_TYPE_OFFSET);
+				const uint8_t typeVal = Binary::ReadUint8(reader);
+				if (typeVal == 0) {
+					type_ = TYPE_DIRECTORY;
+				} else {
+					type_ = TYPE_FILE;
+				}
+			}
 		
 		Node::~Node() {
 			flush();
@@ -48,18 +63,11 @@ namespace OpenP2P {
 		}
 		
 		NodeSize Node::size() const {
-			BlockReader reader(cache_.getReadBlock(BlockPath::Root()), NODE_SIZE_OFFSET);
-			return Binary::ReadUint64(reader);
+			return size_;
 		}
 		
 		NodeType Node::type() const {
-			BlockReader reader(cache_.getReadBlock(BlockPath::Root()), NODE_TYPE_OFFSET);
-			const uint8_t typeVal = Binary::ReadUint8(reader);
-			if (typeVal == 0) {
-				return TYPE_DIRECTORY;
-			} else {
-				return TYPE_FILE;
-			}
+			return type_;
 		}
 		
 		void Node::flush() {
@@ -78,6 +86,8 @@ namespace OpenP2P {
 			// Set the size field.
 			BlockWriter sizeWriter(cache_.getWriteBlock(BlockPath::Root()), NODE_SIZE_OFFSET);
 			Binary::WriteUint64(sizeWriter, newSize);
+			
+			size_ = newSize;
 			
 			// Replace block IDs with zero for deleted blocks.
 			if (oldBlockCount > newBlockCount) {
@@ -127,6 +137,8 @@ namespace OpenP2P {
 			if (newSize > size()) {
 				BlockWriter sizeWriter(cache_.getWriteBlock(BlockPath::Root()), NODE_SIZE_OFFSET);
 				Binary::WriteUint64(sizeWriter, newSize);
+				
+				size_ = newSize;
 			}
 			
 			const size_t writeSize = bufferSize;

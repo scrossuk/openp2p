@@ -379,6 +379,9 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 	
+	printf("Max file size: %.2f GiB.\n",
+		double(OpenP2P::FolderSync::NODE_MAX_BYTES) / double(1024 * 1024 * 1024));
+	
 	const std::string mountPoint = argv[1];
 	
 	// Open the log file before running FUSE.

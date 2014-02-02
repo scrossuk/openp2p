@@ -69,6 +69,8 @@ namespace OpenP2P {
 				
 				NodeBlockStore blockStore_;
 				BlockCache cache_;
+				NodeSize size_;
+				NodeType type_;
 			
 		};
 		

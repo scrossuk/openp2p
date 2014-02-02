@@ -18,35 +18,20 @@ namespace OpenP2P {
 		
 		class Block {
 			public:
-				static inline Block Zero() {
-					Block block;
-					block.data_.resize(BLOCK_SIZE, 0x00);
-					return std::move(block);
-				}
+				static Block Zero();
 				
-				inline Block(Block&& block) noexcept
-					: data_(std::move(block.data_)) { }
+				Block(Block&& block) noexcept;
 				
-				inline uint8_t* data() {
-					return data_.data();
-				}
+				uint8_t* data();
 				
-				inline const uint8_t* data() const {
-					return data_.data();
-				}
+				const uint8_t* data() const;
 				
-				inline size_t size() const {
-					return BLOCK_SIZE;
-				}
+				size_t size() const;
 				
-				inline Block copy() const {
-					Block copyBlock;
-					copyBlock.data_ = data_;
-					return std::move(copyBlock);
-				}
+				Block copy() const;
 				
 			private:
-				inline Block() { }
+				Block();
 				
 				// Non-copyable.
 				Block(const Block&) = delete;

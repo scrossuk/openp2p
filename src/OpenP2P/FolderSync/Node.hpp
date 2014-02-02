@@ -3,15 +3,15 @@
 
 #include <stdint.h>
 
-#include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockCache.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
-#include <OpenP2P/FolderSync/Database.hpp>
 #include <OpenP2P/FolderSync/NodeBlockStore.hpp>
 
 namespace OpenP2P {
 	
 	namespace FolderSync {
+		
+		class Database;
 		
 		typedef uint64_t NodeSize;
 		typedef uint64_t NodeOffset;

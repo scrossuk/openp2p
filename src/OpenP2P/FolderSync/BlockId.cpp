@@ -19,7 +19,7 @@ namespace OpenP2P {
 	namespace FolderSync {
 		
 		BlockId::BlockId() {
-			(void) memset(data_.data(), 0, data_.size());
+			data_.fill(0x00);
 		}
 		
 		BlockId BlockId::Zero() {
@@ -60,6 +60,29 @@ namespace OpenP2P {
 		
 		std::size_t BlockId::hash() const {
 			return boost::hash_range(data_.begin(), data_.end());
+		}
+		
+		namespace {
+			
+			char getHexDigit(uint8_t value) {
+				assert(value < 16);
+				if (value < 10) {
+					return '0' + value;
+				} else {
+					return 'A' + (value - 10);
+				}
+			}
+			
+		}
+		
+		std::string BlockId::hexString() const {
+			std::array<char, BLOCK_ID_SIZE*2> hexData;
+			for (size_t i = 0; i < BLOCK_ID_SIZE; i++) {
+				const uint8_t value = data_.at(i);
+				hexData.at(i * 2 + 0) = getHexDigit((value >> 4) & 15);
+				hexData.at(i * 2 + 1) = getHexDigit((value >> 0) & 15);
+			}
+			return std::string(hexData.data(), hexData.size());
 		}
 		
 	}

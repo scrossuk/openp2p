@@ -31,6 +31,8 @@ namespace OpenP2P {
 				
 				std::size_t hash() const;
 				
+				std::string hexString() const;
+				
 			private:
 				std::array<uint8_t, BLOCK_ID_SIZE> data_;
 			

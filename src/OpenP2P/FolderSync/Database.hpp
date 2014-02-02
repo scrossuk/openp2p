@@ -10,8 +10,6 @@ namespace OpenP2P {
 		
 		class Database {
 			public:
-				virtual bool hasBlock(const BlockId& id) const = 0;
-				
 				virtual Block loadBlock(const BlockId& id) const = 0;
 				
 				virtual void storeBlock(const BlockId& id, Block data) = 0;

@@ -1,5 +1,5 @@
-#ifndef OPENP2P_FOLDERSYNC_MEMDATABASE_HPP
-#define OPENP2P_FOLDERSYNC_MEMDATABASE_HPP
+#ifndef OPENP2P_FOLDERSYNC_FILEDATABASE_HPP
+#define OPENP2P_FOLDERSYNC_FILEDATABASE_HPP
 
 #include <unordered_map>
 
@@ -11,17 +11,21 @@ namespace OpenP2P {
 	
 	namespace FolderSync {
 		
-		class MemDatabase: public Database {
+		class FileDatabase: public Database {
 			public:
-				MemDatabase();
-				~MemDatabase();
+				FileDatabase(const std::string& path);
+				~FileDatabase();
 				
 				Block loadBlock(const BlockId& id) const;
 				
 				void storeBlock(const BlockId& id, Block data);
 				
 			private:
-				std::unordered_map<BlockId, Block> data_;
+				// Non-copyable.
+				FileDatabase(const FileDatabase&) = delete;
+				FileDatabase& operator=(FileDatabase) = delete;
+				
+				std::string path_;
 			
 		};
 		

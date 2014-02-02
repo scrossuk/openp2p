@@ -15,10 +15,6 @@ namespace OpenP2P {
 		
 		MemDatabase::~MemDatabase() { }
 		
-		bool MemDatabase::hasBlock(const BlockId& id) const {
-			return data_.find(id) != data_.end();
-		}
-		
 		Block MemDatabase::loadBlock(const BlockId& id) const {
 			return data_.at(id).copy();
 		}

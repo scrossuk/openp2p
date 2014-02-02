@@ -17,7 +17,7 @@
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
 #include <OpenP2P/FolderSync/Directory.hpp>
-#include <OpenP2P/FolderSync/MemDatabase.hpp>
+#include <OpenP2P/FolderSync/FileDatabase.hpp>
 #include <OpenP2P/FolderSync/Node.hpp>
 
 using namespace OpenP2P;
@@ -184,7 +184,8 @@ class DemoOpenedFile: public FUSE::OpenedFile {
 
 class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 	public:
-		DemoFileSystem() {
+		DemoFileSystem(FolderSync::Database& database)
+			: database_(database) {
 			emptyDir_ = FolderSync::CreateEmptyNode(database_, FolderSync::TYPE_DIRECTORY);
 			emptyFile_ = FolderSync::CreateEmptyNode(database_, FolderSync::TYPE_FILE);
 			rootId_ = emptyDir_;
@@ -366,7 +367,7 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 		}
 		
 	private:
-		mutable FolderSync::MemDatabase database_;
+		FolderSync::Database& database_;
 		std::unordered_map<FUSE::Path, Metadata> metadata_;
 		FolderSync::BlockId emptyDir_, emptyFile_;
 		FolderSync::BlockId rootId_;
@@ -374,8 +375,8 @@ class DemoFileSystem: public FUSE::FileSystem, public FileSystemJournal {
 };
 
 int main(int argc, char** argv) {
-	if (argc != 2) {
-		printf("Usage: %s [mount point]\n", argv[0]);
+	if (argc != 3) {
+		printf("Usage: %s [mount point] [block-path]\n", argv[0]);
 		return 1;
 	}
 	
@@ -383,11 +384,13 @@ int main(int argc, char** argv) {
 		double(OpenP2P::FolderSync::NODE_MAX_BYTES) / double(1024 * 1024 * 1024));
 	
 	const std::string mountPoint = argv[1];
+	const std::string blockPath = argv[2];
 	
 	// Open the log file before running FUSE.
 	(void) logFile();
 	
-	DemoFileSystem demoFileSystem;
+	FolderSync::FileDatabase database(blockPath);
+	DemoFileSystem demoFileSystem(database);
 	
 	return FUSE::run(mountPoint, demoFileSystem);
 }

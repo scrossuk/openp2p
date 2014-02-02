@@ -1,5 +1,5 @@
-#ifndef OPENP2P_FOLDERSYNC_FUSE_PATH_HPP
-#define OPENP2P_FOLDERSYNC_FUSE_PATH_HPP
+#ifndef FUSE_PATH_HPP
+#define FUSE_PATH_HPP
 
 #include <functional>
 #include <string>

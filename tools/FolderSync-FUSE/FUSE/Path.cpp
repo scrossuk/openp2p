@@ -6,7 +6,7 @@
 
 #include <boost/functional/hash.hpp>
 
-#include "Path.hpp"
+#include <FUSE/Path.hpp>
 
 namespace FUSE {
 	

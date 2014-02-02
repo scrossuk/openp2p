@@ -48,7 +48,7 @@ namespace OpenP2P {
 					
 					inline void writeAll(const uint8_t* data, size_t dataSize) {
 						const size_t result = fwrite(data, 1, dataSize, handle_);
-						assert(readResult <= dataSize);
+						assert(result <= dataSize);
 						if (result < dataSize) {
 							throw std::runtime_error("File write failed.");
 						}

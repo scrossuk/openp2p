@@ -12,8 +12,9 @@
 
 #include <fuse.h>
 
-#include "FileSystem.hpp"
-#include "Path.hpp"
+#include <FUSE/ErrorException.hpp>
+#include <FUSE/FileSystem.hpp>
+#include <FUSE/Path.hpp>
 
 namespace FUSE {
 
@@ -22,11 +23,9 @@ namespace FUSE {
 		struct Context {
 			std::ofstream log;
 			FileSystem& fileSystem;
-			uint64_t nextHandle;
-			std::unordered_map<uint64_t, OpenedFile*> openedFiles;
 			
 			inline Context(const std::string& logFile, FileSystem& fs)
-				: log(logFile.c_str()), fileSystem(fs), nextHandle(0) { }
+				: log(logFile.c_str()), fileSystem(fs) { }
 		};
 		
 		Context& ctx() {
@@ -37,37 +36,41 @@ namespace FUSE {
 			try {
 				ctx().log << "create " << path << std::endl;
 				
-				Path parsedPath(path);
+				const Path fullPath(path);
+				if (fullPath.empty()) {
+					return -EINVAL;
+				}
 				
-				ctx().fileSystem.createFile(parsedPath, mode);
-				
-				auto openedFile = ctx().fileSystem.openFile(parsedPath);
-				info->fh = ctx().nextHandle++;
+				info->fh = ctx().fileSystem.createAndOpenFile(fullPath, mode);
 				
 				ctx().log << "created file " << path << " has handle " << info->fh << std::endl;
-				
-				ctx().openedFiles.emplace(info->fh, openedFile.release());
 				
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_unlink(const char* path) {
 			try {
 				ctx().log << "unlink " << path << std::endl;
-				ctx().fileSystem.unlink(Path(path));
+				
+				const Path fullPath(path);
+				if (fullPath.empty()) {
+					return -EINVAL;
+				}
+				
+				ctx().fileSystem.removeFile(fullPath);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_rename(const char* src, const char* dst) {
@@ -77,50 +80,38 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_open(const char* path, struct fuse_file_info* info) {
 			try {
 				ctx().log << "open " << path << std::endl;
-				auto openedFile = ctx().fileSystem.openFile(Path(path));
-				info->fh = ctx().nextHandle++;
-				
+				info->fh = ctx().fileSystem.openFile(Path(path));
 				ctx().log << "opened file " << path << " has handle " << info->fh << std::endl;
-				
-				ctx().openedFiles.emplace(info->fh, openedFile.release());
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_release(const char*, struct fuse_file_info* info) {
 			try {
 				ctx().log << "release " << info->fh << std::endl;
 				
-				const auto it = ctx().openedFiles.find(info->fh);
-				if (it == ctx().openedFiles.end()) {
-					ctx().log << "ERROR: Invalid file handle." << std::endl;
-					return -ENOENT;
-				}
-				
-				const auto openedFile = it->second;
-				ctx().openedFiles.erase(it);
-				delete openedFile;
+				ctx().fileSystem.closeFile(info->fh);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_read(const char*, char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
@@ -135,21 +126,15 @@ namespace FUSE {
 					return -EINVAL;
 				}
 				
-				const auto it = ctx().openedFiles.find(info->fh);
-				if (it == ctx().openedFiles.end()) {
-					ctx().log << "ERROR: Invalid file handle." << std::endl;
-					return -ENOENT;
-				}
-				
-				const size_t result = (it->second)->read(static_cast<size_t>(offset), reinterpret_cast<uint8_t*>(buffer), size);
+				const size_t result = ctx().fileSystem.readFile(info->fh, static_cast<size_t>(offset), reinterpret_cast<uint8_t*>(buffer), size);
 				assert(result <= size);
 				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_write(const char*, const char* buffer, size_t size, off_t offset, struct fuse_file_info* info) {
@@ -164,21 +149,15 @@ namespace FUSE {
 					return -EINVAL;
 				}
 				
-				const auto it = ctx().openedFiles.find(info->fh);
-				if (it == ctx().openedFiles.end()) {
-					ctx().log << "ERROR: Invalid file handle." << std::endl;
-					return -ENOENT;
-				}
-				
-				const size_t result = (it->second)->write(static_cast<size_t>(offset), reinterpret_cast<const uint8_t*>(buffer), size);
+				const size_t result = ctx().fileSystem.writeFile(info->fh, static_cast<size_t>(offset), reinterpret_cast<const uint8_t*>(buffer), size);
 				assert(result <= size);
 				return static_cast<int>(result);
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_getattr(const char* path, struct stat* s) {
@@ -188,10 +167,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_truncate(const char* path, off_t size) {
@@ -202,14 +181,14 @@ namespace FUSE {
 					return -EINVAL;
 				}
 				
-				ctx().fileSystem.resize(Path(path), static_cast<size_t>(size));
+				ctx().fileSystem.resize(Path(path), size);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_chmod(const char* path, mode_t mode) {
@@ -229,45 +208,61 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_mkdir(const char* path, mode_t mode) {
 			try {
 				ctx().log << "mkdir " << path << std::endl;
-				ctx().fileSystem.createDirectory(Path(path), mode);
+				
+				const Path fullPath(path);
+				if (fullPath.empty()) {
+					return -EINVAL;
+				}
+				
+				ctx().fileSystem.createDirectory(fullPath, mode);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_rmdir(const char* path) {
 			try {
 				ctx().log << "rmdir " << path << std::endl;
-				ctx().fileSystem.removeDirectory(Path(path));
+				
+				const Path fullPath(path);
+				if (fullPath.empty()) {
+					return -EINVAL;
+				}
+				
+				ctx().fileSystem.removeDirectory(fullPath);
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		int fs_readdir(const char* path, void* buffer, fuse_fill_dir_t filler, off_t, struct fuse_file_info*) {
 			try {
 				ctx().log << "readdir " << path << std::endl;
 				
-				const auto openDirectory = ctx().fileSystem.openDirectory(Path(path));
+				// TODO: make sure this gets closed.
+				const auto handle = ctx().fileSystem.openDirectory(Path(path));
 				
-				const auto nodes = openDirectory->read();
+				const auto nodes = ctx().fileSystem.readDirectory(handle);
+				
+				ctx().fileSystem.closeDirectory(handle);
+				
 				filler(buffer, ".", 0, 0);
 				filler(buffer, "..", 0, 0);
 				
@@ -278,10 +273,10 @@ namespace FUSE {
 				return 0;
 			} catch (const ErrorException& e) {
 				return -(e.error());
-			}/*  catch (const std::exception& e) {
+			} catch (const std::exception& e) {
 				ctx().log << "ERROR: Terminated with exception: " << e.what() << std::endl;
 				return -EIO;
-			} */
+			}
 		}
 		
 		struct fuse_operations fsFuseOperations() {

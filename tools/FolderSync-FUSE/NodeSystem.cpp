@@ -78,7 +78,7 @@ namespace OpenP2P {
 		}
 		
 		BlockId NodeSystem::cascadeUpdate(const FUSE::Path& path, BlockId newId) {
-			printf("Performing cascade for path '%s'.\n", path.toString().c_str());
+			printf("Performing cascade for path %s.\n", path.toString().c_str());
 			
 			std::stack<HandleRef> refStack;
 			refStack.push(HandleRef(*this, openRoot()));
@@ -274,8 +274,7 @@ namespace OpenP2P {
 		}
 		
 		size_t NodeSystem::readFile(FUSE::Handle handle, size_t offset, uint8_t* buffer, size_t size) const {
-			printf("Read %llu bytes from handle %llu.\n",
-				(unsigned long long) size, (unsigned long long) handle);
+			// printf("Read %llu bytes from handle %llu.\n", (unsigned long long) size, (unsigned long long) handle);
 			
 			auto& node = getNodeInfo(handle).node;
 			
@@ -287,8 +286,7 @@ namespace OpenP2P {
 		}
 		
 		size_t NodeSystem::writeFile(FUSE::Handle handle, size_t offset, const uint8_t* buffer, size_t size) {
-			printf("Write %llu bytes to handle %llu.\n",
-				(unsigned long long) size, (unsigned long long) handle);
+			// printf("Write %llu bytes to handle %llu.\n", (unsigned long long) size, (unsigned long long) handle);
 			
 			auto& node = getNodeInfo(handle).node;
 			

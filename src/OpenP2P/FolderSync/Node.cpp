@@ -80,7 +80,7 @@ namespace OpenP2P {
 		}
 		
 		void Node::resize(NodeSize newSize) {
-			if (size() != newSize) return;
+			if (size() == newSize) return;
 			
 			hasChanged_ = true;
 			

@@ -75,6 +75,9 @@ namespace OpenP2P {
 					child.second.writeTo(writer);
 				}
 				
+				printf("Node size: %llu.\n", (unsigned long long) node.size());
+				printf("Children size: %llu.\n", (unsigned long long) children.size());
+				
 				assert(node.size() == (children.size() * ENTRY_SIZE));
 			}
 			

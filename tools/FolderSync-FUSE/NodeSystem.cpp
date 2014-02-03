@@ -368,6 +368,9 @@ namespace OpenP2P {
 				handleToPathMap_.erase(handleIterator->second);
 				pathToHandleMap_.erase(handleIterator);
 			}
+			
+			// Flush to trigger immediate cascade updates.
+			flushNode(handle);
 		}
 		
 		void NodeSystem::rename(const FUSE::Path&, const FUSE::Path&) {

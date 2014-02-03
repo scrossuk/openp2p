@@ -4,6 +4,7 @@ add_subdirectory(FUSE)
 
 add_executable(folderSync
 	FileSystemWrapper.cpp
+	HandleRef.cpp
 	NodeSystem.cpp
 	main.cpp
 	)

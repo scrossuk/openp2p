@@ -36,7 +36,8 @@ namespace OpenP2P {
 		}
 		
 		Node::Node(Database& database, const BlockId& initialBlockId)
-			: blockStore_(database, initialBlockId),
+			: hasChanged_(false),
+			blockStore_(database, initialBlockId),
 			cache_(blockStore_),
 			size_(0),
 			type_(TYPE_DIRECTORY) {
@@ -74,7 +75,15 @@ namespace OpenP2P {
 			cache_.flush();
 		}
 		
+		bool Node::hasChanged() const {
+			return hasChanged_;
+		}
+		
 		void Node::resize(NodeSize newSize) {
+			if (size() != newSize) return;
+			
+			hasChanged_ = true;
+			
 			// Flush all data blocks, so that IDs of
 			// deleted blocks aren't updated incorrectly
 			// at some later time.
@@ -132,6 +141,8 @@ namespace OpenP2P {
 			}
 			
 			if (bufferSize == 0) return 0;
+			
+			hasChanged_ = true;
 			
 			const size_t newSize = offset + bufferSize;
 			if (newSize > size()) {

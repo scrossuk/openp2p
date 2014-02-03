@@ -28,6 +28,8 @@ namespace FUSE {
 			
 			std::string toString() const;
 			
+			Path operator+(const std::string& component) const;
+			
 			bool operator==(const Path&) const;
 			bool operator<(const Path&) const;
 			

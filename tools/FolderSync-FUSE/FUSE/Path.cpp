@@ -76,6 +76,13 @@ namespace FUSE {
 		return s;
 	}
 	
+	Path Path::operator+(const std::string& component) const {
+		Path path;
+		path.components_ = components_;
+		path.components_.push_back(component);
+		return path;
+	}
+	
 	bool Path::operator==(const Path& other) const {
 		return components_ == other.components_;
 	}

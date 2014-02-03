@@ -1,9 +1,9 @@
-#include <assert.h>
-#include <climits>
-#include <cstdarg>
-#include <cstring>
+#ifndef OPENP2P_FOLDERSYNC_NODESYSTEM_HPP
+#define OPENP2P_FOLDERSYNC_NODESYSTEM_HPP
+
 #include <ctime>
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -11,7 +11,7 @@
 #include <OpenP2P/FolderSync/Database.hpp>
 #include <OpenP2P/FolderSync/Node.hpp>
 
-#include <FUSE/FileSystem.hpp>
+#include <FUSE/Handle.hpp>
 #include <FUSE/Path.hpp>
 
 namespace OpenP2P {
@@ -53,6 +53,12 @@ namespace OpenP2P {
 		class NodeSystem {
 			public:
 				NodeSystem(Database& database);
+				
+				BlockId cascadeUpdate(const FUSE::Path& path, BlockId newId);
+				
+				NodeInfo& getNodeInfo(FUSE::Handle handle) const;
+				
+				const FUSE::Path& getPath(FUSE::Handle handle) const;
 				
 				FUSE::Handle openRoot();
 				
@@ -100,3 +106,4 @@ namespace OpenP2P {
 	
 }
 
+#endif

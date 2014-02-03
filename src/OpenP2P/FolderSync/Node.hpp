@@ -56,6 +56,8 @@ namespace OpenP2P {
 				 */
 				void flush();
 				
+				bool hasChanged() const;
+				
 				void resize(NodeSize size);
 				
 				size_t read(NodeOffset offset, uint8_t* buffer, size_t bufferSize) const;
@@ -67,6 +69,7 @@ namespace OpenP2P {
 				Node(const Node&) = delete;
 				Node& operator=(Node) = delete;
 				
+				bool hasChanged_;
 				NodeBlockStore blockStore_;
 				BlockCache cache_;
 				NodeSize size_;

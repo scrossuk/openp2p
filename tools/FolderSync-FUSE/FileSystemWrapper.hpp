@@ -1,18 +1,13 @@
-#include <assert.h>
-#include <climits>
-#include <cstdarg>
-#include <cstring>
-#include <ctime>
+#ifndef OPENP2P_FOLDERSYNC_FILESYSTEMWRAPPER_HPP
+#define OPENP2P_FOLDERSYNC_FILESYSTEMWRAPPER_HPP
 
-#include <fstream>
-#include <set>
+#include <stddef.h>
+
 #include <string>
-#include <unordered_map>
-
-#include <OpenP2P/FolderSync/BlockId.hpp>
-#include <OpenP2P/FolderSync/Database.hpp>
+#include <vector>
 
 #include <FUSE/FileSystem.hpp>
+#include <FUSE/Handle.hpp>
 #include <FUSE/Path.hpp>
 
 namespace OpenP2P {
@@ -70,3 +65,4 @@ namespace OpenP2P {
 	
 }
 
+#endif

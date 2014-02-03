@@ -25,70 +25,12 @@
 #include <FUSE/Path.hpp>
 
 #include "FileSystemWrapper.hpp"
+#include "HandleRef.hpp"
 #include "NodeSystem.hpp"
 
 namespace OpenP2P {
 
 	namespace FolderSync {
-	
-		namespace {
-			
-			class HandleRef {
-				public:
-					HandleRef()
-						: nodeSystem_(nullptr), handle_(0) { }
-					
-					HandleRef(NodeSystem& nodeSystem, FUSE::Handle handle)
-						: nodeSystem_(&nodeSystem), handle_(handle) {
-							assert(nodeSystem_ != nullptr);
-						}
-					
-					HandleRef(HandleRef&& ref)
-						: HandleRef() {
-						std::swap(nodeSystem_, ref.nodeSystem_);
-						std::swap(handle_, ref.handle_);
-					}
-					
-					~HandleRef() {
-						if (nodeSystem_ == nullptr) return;
-						nodeSystem_->closeNode(handle_);
-					}
-					
-					HandleRef& operator=(HandleRef ref) {
-						std::swap(nodeSystem_, ref.nodeSystem_);
-						std::swap(handle_, ref.handle_);
-						return *this;
-					}
-					
-					FUSE::Handle get() const {
-						assert(nodeSystem_ != nullptr);
-						return handle_;
-					}
-					
-					FUSE::Handle release() {
-						assert(nodeSystem_ != nullptr);
-						nodeSystem_ = nullptr;
-						return handle_;
-					}
-					
-				private:
-					// Non-copyable.
-					HandleRef(const HandleRef&) = delete;
-					
-					NodeSystem* nodeSystem_;
-					FUSE::Handle handle_;
-					
-			};
-			
-			HandleRef openPath(NodeSystem& nodeSystem, const FUSE::Path& path) {
-				auto handle = HandleRef(nodeSystem, nodeSystem.openRoot());
-				for (size_t i = 0; i < path.size(); i++) {
-					handle = HandleRef(nodeSystem, nodeSystem.openChild(handle.get(), path.at(i)));
-				}
-				return handle;
-			}
-			
-		}
 		
 		FileSystemWrapper::FileSystemWrapper(NodeSystem& nodeSystem)
 			: nodeSystem_(nodeSystem) { }
@@ -117,15 +59,16 @@ namespace OpenP2P {
 		}
 		
 		size_t FileSystemWrapper::readFile(FUSE::Handle handle, size_t offset, uint8_t* buffer, size_t size) const {
-			nodeSystem_.readFile(handle, offset, buffer, size);
+			return nodeSystem_.readFile(handle, offset, buffer, size);
 		}
 		
 		size_t FileSystemWrapper::writeFile(FUSE::Handle handle, size_t offset, const uint8_t* buffer, size_t size) {
-			nodeSystem_.writeFile(handle, offset, buffer, size);
+			return nodeSystem_.writeFile(handle, offset, buffer, size);
 		}
 		
-		void FileSystemWrapper::resizeFile(FUSE::Handle handle, size_t size) {
-			nodeSystem_.resizeFile(handle, size);
+		void FileSystemWrapper::resize(const FUSE::Path& path, size_t size) {
+			const auto handle = openPath(nodeSystem_, path);
+			nodeSystem_.resizeFile(handle.get(), size);
 		}
 		
 		FUSE::Handle FileSystemWrapper::openDirectory(const FUSE::Path& path) {
@@ -155,7 +98,7 @@ namespace OpenP2P {
 			return nodeSystem_.readDirectory(handle);
 		}
 		
-		FUSE::Handle FileSystemWrapper::createAndOpenFile(const FUSE::Path& path, mode_t mode) {
+		FUSE::Handle FileSystemWrapper::createAndOpenFile(const FUSE::Path& path, mode_t) {
 			if (path.empty()) {
 				throw FUSE::ErrorException(EINVAL);
 			}
@@ -166,10 +109,10 @@ namespace OpenP2P {
 				throw FUSE::ErrorException(ENOTDIR);
 			}
 			
-			nodeSystem_.addChild(parent.get(), path.last(), false);
+			nodeSystem_.addChild(parent.get(), path.back(), false);
 			
 			// Open empty file.
-			return openFile(path, mode);
+			return openFile(path);
 		}
 		
 		void FileSystemWrapper::removeFile(const FUSE::Path& path) {
@@ -183,15 +126,15 @@ namespace OpenP2P {
 			}
 			
 			// Check child is a file.
-			auto child = HandleRef(nodeSystem_, nodeSystem_.openChild(parent, path.last()));
+			auto child = HandleRef(nodeSystem_, nodeSystem_.openChild(parent.get(), path.back()));
 			if (nodeSystem_.nodeType(child.get()) != TYPE_FILE) {
 				throw FUSE::ErrorException(EISDIR);
 			}
 			
-			nodeSystem_.removeChild(parent.get(), path.last());
+			nodeSystem_.removeChild(parent.get(), path.back());
 		}
 		
-		void FileSystemWrapper::createDirectory(const FUSE::Path& path, mode_t mode) {
+		void FileSystemWrapper::createDirectory(const FUSE::Path& path, mode_t) {
 			if (path.empty()) {
 				throw FUSE::ErrorException(EINVAL);
 			}
@@ -201,7 +144,7 @@ namespace OpenP2P {
 				throw FUSE::ErrorException(ENOTDIR);
 			}
 			
-			nodeSystem_.addChild(parent.get(), path.last(), true);
+			nodeSystem_.addChild(parent.get(), path.back(), true);
 		}
 		
 		void FileSystemWrapper::removeDirectory(const FUSE::Path& path) {
@@ -215,17 +158,17 @@ namespace OpenP2P {
 			}
 			
 			// Check child is an empty directory.
-			auto child = HandleRef(nodeSystem_, nodeSystem_.openChild(parent, path.last()));
+			auto child = HandleRef(nodeSystem_, nodeSystem_.openChild(parent.get(), path.back()));
 			const auto childChildren = nodeSystem_.readDirectory(child.get());
 			if (!childChildren.empty()) {
 				throw FUSE::ErrorException(ENOTEMPTY);
 			}
 			
-			nodeSystem_.removeChild(parent.get(), path.last());
+			nodeSystem_.removeChild(parent.get(), path.back());
 		}
 		
 		void FileSystemWrapper::rename(const FUSE::Path& sourcePath, const FUSE::Path& destPath) {
-			
+			nodeSystem_.rename(sourcePath, destPath);
 		}
 		
 		struct stat FileSystemWrapper::getAttributes(const FUSE::Path& path) const {
@@ -233,12 +176,12 @@ namespace OpenP2P {
 			return nodeSystem_.getAttributes(handle.get());
 		}
 		
-		void FileSystemWrapper::changeMode(const FUSE::Path& path, mode_t mode) {
+		void FileSystemWrapper::changeMode(const FUSE::Path&, mode_t) {
 			// Not implemented.
 			throw FUSE::ErrorException(ENOSYS);
 		}
 		
-		void FileSystemWrapper::changeOwner(const FUSE::Path& path, uid_t user, gid_t group) {
+		void FileSystemWrapper::changeOwner(const FUSE::Path&, uid_t, gid_t) {
 			// Not implemented.
 			throw FUSE::ErrorException(ENOSYS);
 		}

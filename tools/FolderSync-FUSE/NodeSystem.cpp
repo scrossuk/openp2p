@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <set>
+#include <stack>
 #include <string>
 #include <unordered_map>
 
@@ -17,9 +18,13 @@
 #include <OpenP2P/FolderSync/BlockId.hpp>
 #include <OpenP2P/FolderSync/Database.hpp>
 #include <OpenP2P/FolderSync/Directory.hpp>
-#include <OpenP2P/FolderSync/FileDatabase.hpp>
 #include <OpenP2P/FolderSync/Node.hpp>
 
+#include <FUSE/ErrorException.hpp>
+#include <FUSE/Handle.hpp>
+#include <FUSE/Path.hpp>
+
+#include "HandleRef.hpp"
 #include "NodeSystem.hpp"
 
 namespace OpenP2P {
@@ -72,17 +77,51 @@ namespace OpenP2P {
 			metadata_.emplace(FUSE::Path(), Metadata::Now());
 		}
 		
-		NodeInfo& NodeSystem::getNodeInfo(FUSE::Handle handle) {
-			const auto iterator = handleToNodeMap_.find(path);
+		BlockId NodeSystem::cascadeUpdate(const FUSE::Path& path, BlockId newId) {
+			printf("Performing cascade for path '%s'.\n", path.toString().c_str());
+			
+			std::stack<HandleRef> refStack;
+			refStack.push(HandleRef(*this, openRoot()));
+			
+			for (size_t i = 1; i < path.size(); i++) {
+				refStack.push(HandleRef(*this, openChild(refStack.top().get(), path.at(i - 1))));
+			}
+			
+			BlockId blockId = newId;
+			
+			for (size_t i = 0; i < path.size(); i++) {
+				const size_t pos = path.size() - i - 1;
+				printf("Updating block ID for component %llu.\n",
+					(unsigned long long) pos);
+				printf("Updating block ID for component %llu: '%s'.\n",
+					(unsigned long long) pos,
+					path.at(pos).c_str());
+				
+				auto& parentNode = getNodeInfo(refStack.top().get()).node;
+				Directory directory(parentNode);
+				directory.updateChild(path.at(pos), blockId);
+				
+				parentNode.flush();
+				
+				blockId = parentNode.blockId();
+				
+				refStack.pop();
+			}
+			
+			return blockId;
+		}
+		
+		NodeInfo& NodeSystem::getNodeInfo(FUSE::Handle handle) const {
+			const auto iterator = handleToNodeMap_.find(handle);
 			
 			if (iterator == handleToNodeMap_.end()) {
 				throw FUSE::ErrorException(EBADFD);
 			}
 			
-			return iterator->second;
+			return *(iterator->second);
 		}
 		
-		const FUSE::Path& NodeSystem::getPath(FUSE::Handle handle) {
+		const FUSE::Path& NodeSystem::getPath(FUSE::Handle handle) const {
 			const auto iterator = handleToPathMap_.find(handle);
 			
 			if (iterator == handleToPathMap_.end()) {
@@ -94,6 +133,7 @@ namespace OpenP2P {
 		}
 		
 		FUSE::Handle NodeSystem::openRoot() {
+			printf("Opening root.\n");
 			const auto path = FUSE::Path();
 			
 			// Check if the node is already open.
@@ -106,7 +146,7 @@ namespace OpenP2P {
 			}
 			
 			// Create a node.
-			auto nodeInfoPtr = unique_ptr<NodeInfo>(new NodeInfo(database_, rootId_, metadata_.at(path)));
+			auto nodeInfoPtr = std::unique_ptr<NodeInfo>(new NodeInfo(database_, rootId_, metadata_.at(path)));
 			
 			// Generate a new handle.
 			const auto handle = nextHandle_++;
@@ -121,6 +161,9 @@ namespace OpenP2P {
 		}
 		
 		FUSE::Handle NodeSystem::openChild(FUSE::Handle parentHandle, const std::string& name) {
+			printf("Opening child '%s' of directory with handle %llu.\n",
+				name.c_str(), (unsigned long long) parentHandle);
+			
 			auto& parentNodeInfo = getNodeInfo(parentHandle);
 			
 			if (parentNodeInfo.node.type() != TYPE_DIRECTORY) {
@@ -128,14 +171,14 @@ namespace OpenP2P {
 			}
 			
 			// Get child path.
-			const auto childPath = getPath(parentHandle) + name;
+			const auto path = getPath(parentHandle) + name;
 			
 			// Check if the node is already open.
-			const auto iterator = pathToHandleMap_.find(childPath);
+			const auto iterator = pathToHandleMap_.find(path);
 			
 			if (iterator != pathToHandleMap_.end()) {
 				const auto handle = iterator->second;
-				getNode(handle).refCount()++;
+				getNodeInfo(handle).refCount++;
 				return iterator->second;
 			}
 			
@@ -149,10 +192,13 @@ namespace OpenP2P {
 			const auto childBlockId = directory.getChild(name);
 			
 			// Create a node.
-			auto nodeInfoPtr = unique_ptr<NodeInfo>(new NodeInfo(database_, childBlockId, metadata_.at(childPath)));
+			auto nodeInfoPtr = std::unique_ptr<NodeInfo>(new NodeInfo(database_, childBlockId, metadata_.at(path)));
 			
 			// Generate a new handle.
 			const auto handle = nextHandle_++;
+			
+			printf("Allocating handle %llu.\n",
+				(unsigned long long) handle);
 			
 			handleToNodeMap_.emplace(handle, std::move(nodeInfoPtr));
 			
@@ -164,17 +210,23 @@ namespace OpenP2P {
 		}
 		
 		void NodeSystem::closeNode(FUSE::Handle handle) {
+			printf("Closing handle %llu.\n",
+				(unsigned long long) handle);
+			
 			const auto nodeIterator = handleToNodeMap_.find(handle);
 			
 			if (nodeIterator == handleToNodeMap_.end()) {
 				throw FUSE::ErrorException(EBADF);
 			}
 			
-			auto& nodeInfo = nodeIterator->second;
+			auto& nodeInfo = *(nodeIterator->second);
 			
-			if (--(node.refCount) != 0) {
+			if (--(nodeInfo.refCount) != 0) {
 				return;
 			}
+			
+			printf("Releasing handle %llu.\n",
+				(unsigned long long) handle);
 			
 			// Remove bi-directional mapping, if
 			// any exists (node may have been detached).
@@ -190,7 +242,10 @@ namespace OpenP2P {
 		}
 		
 		void NodeSystem::flushNode(FUSE::Handle handle) {
-			auto& nodeInfo = getNode(handle);
+			printf("Flushing handle %llu.\n",
+				(unsigned long long) handle);
+			
+			auto& nodeInfo = getNodeInfo(handle);
 			
 			// Get the node's path; this won't be
 			// available if it has been detached,
@@ -200,13 +255,12 @@ namespace OpenP2P {
 			if (pathIterator != handleToPathMap_.end()) {
 				const auto& path = pathIterator->second;
 				
-				if (node.isModified()) {
-					node.flush();
-					
-					nodeInfo.metadata.updateModifiedTime();
+				if (nodeInfo.node.hasChanged()) {
+					nodeInfo.metadata.updateModifyTime();
 					
 					// Perform a cascade update.
-					journal_.commitNode(path, node.blockId());
+					nodeInfo.node.flush();
+					rootId_ = cascadeUpdate(path, nodeInfo.node.blockId());
 				} else {
 					nodeInfo.metadata.updateAccessTime();
 				}
@@ -215,8 +269,15 @@ namespace OpenP2P {
 			}
 		}
 		
+		NodeType NodeSystem::nodeType(FUSE::Handle handle) {
+			return getNodeInfo(handle).node.type();
+		}
+		
 		size_t NodeSystem::readFile(FUSE::Handle handle, size_t offset, uint8_t* buffer, size_t size) const {
-			auto& nodeInfo = getNode(handle);
+			printf("Read %llu bytes from handle %llu.\n",
+				(unsigned long long) size, (unsigned long long) handle);
+			
+			auto& node = getNodeInfo(handle).node;
 			
 			if (node.type() != TYPE_FILE) {
 				throw FUSE::ErrorException(EISDIR);
@@ -226,7 +287,10 @@ namespace OpenP2P {
 		}
 		
 		size_t NodeSystem::writeFile(FUSE::Handle handle, size_t offset, const uint8_t* buffer, size_t size) {
-			auto& nodeInfo = getNode(handle);
+			printf("Write %llu bytes to handle %llu.\n",
+				(unsigned long long) size, (unsigned long long) handle);
+			
+			auto& node = getNodeInfo(handle).node;
 			
 			if (node.type() != TYPE_FILE) {
 				throw FUSE::ErrorException(EISDIR);
@@ -236,7 +300,7 @@ namespace OpenP2P {
 		}
 		
 		void NodeSystem::resizeFile(FUSE::Handle handle, size_t size) {
-			auto& nodeInfo = getNode(handle);
+			auto& node = getNodeInfo(handle).node;
 			
 			if (node.type() != TYPE_FILE) {
 				throw FUSE::ErrorException(EISDIR);
@@ -246,26 +310,26 @@ namespace OpenP2P {
 		}
 		
 		std::vector<std::string> NodeSystem::readDirectory(FUSE::Handle handle) const {
-			auto& nodeInfo = getNodeInfo(handle);
+			auto& node = getNodeInfo(handle).node;
 			
 			if (node.type() != TYPE_DIRECTORY) {
 				throw FUSE::ErrorException(ENOTDIR);
 			}
 			
-			Directory directory(nodeInfo.node);
-			return directory.readNames();
+			Directory directory(node);
+			return directory.childNames();
 		}
 		
 		void NodeSystem::addChild(FUSE::Handle handle, const std::string& name, bool isDirectory) {
-			auto& nodeInfo = getNodeInfo(handle);
+			auto& parentNode = getNodeInfo(handle).node;
 			
-			if (node.type() != TYPE_DIRECTORY) {
+			if (parentNode.type() != TYPE_DIRECTORY) {
 				throw FUSE::ErrorException(ENOTDIR);
 			}
 			
-			const auto childPath = getPath(handle) + name;
+			const auto path = getPath(handle) + name;
 			
-			Directory directory(nodeInfo.node);
+			Directory directory(parentNode);
 			
 			if (directory.hasChild(name)) {
 				throw FUSE::ErrorException(EEXIST);
@@ -274,22 +338,22 @@ namespace OpenP2P {
 			directory.addChild(name, isDirectory ? emptyDir_ : emptyFile_);
 			
 			// Add metadata information.
-			metadata_.emplace(childPath, Metadata::Now());
+			metadata_.emplace(path, Metadata::Now());
 			
 			// Flush to trigger immediate cascade updates.
 			flushNode(handle);
 		}
 		
 		void NodeSystem::removeChild(FUSE::Handle handle, const std::string& name) {
-			auto& parentNodeInfo = getNodeInfo(handle);
+			auto& parentNode = getNodeInfo(handle).node;
 			
-			if (parentNodeInfo.node.type() != TYPE_DIRECTORY) {
+			if (parentNode.type() != TYPE_DIRECTORY) {
 				throw FUSE::ErrorException(ENOTDIR);
 			}
 			
-			const auto childPath = getPath(handle) + name;
+			const auto path = getPath(handle) + name;
 			
-			Directory directory(nodeInfo.node);
+			Directory directory(parentNode);
 			
 			if (!directory.hasChild(name)) {
 				throw FUSE::ErrorException(ENOENT);
@@ -298,16 +362,17 @@ namespace OpenP2P {
 			// Remove child.
 			directory.removeChild(name);
 			
-			// Detach child if it's currently open.
-			const auto handleIterator = pathToHandleMap_.find(childPath);
+			metadata_.erase(path);
 			
+			// Detach child if it's currently open.
+			const auto handleIterator = pathToHandleMap_.find(path);
 			if (handleIterator != pathToHandleMap_.end()) {
 				handleToPathMap_.erase(handleIterator->second);
 				pathToHandleMap_.erase(handleIterator);
 			}
 		}
 		
-		void NodeSystem::rename(const Path& sourcePath, const Path& destPath) {
+		void NodeSystem::rename(const FUSE::Path&, const FUSE::Path&) {
 			// TODO.
 			throw FUSE::ErrorException(ENOSYS);
 		}

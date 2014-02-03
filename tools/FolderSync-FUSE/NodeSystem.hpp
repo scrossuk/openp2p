@@ -54,12 +54,22 @@ namespace OpenP2P {
 			public:
 				NodeSystem(Database& database);
 				
+				// --------- Support.
 				BlockId cascadeUpdate(const FUSE::Path& path, BlockId newId);
 				
 				NodeInfo& getNodeInfo(FUSE::Handle handle) const;
 				
 				const FUSE::Path& getPath(FUSE::Handle handle) const;
 				
+				void moveAllMetadata(const FUSE::Path& oldPath, const FUSE::Path& newPath) ;
+				
+				void removeAllMetadata(const FUSE::Path& removePath);
+				
+				void moveAllHandles(const FUSE::Path& oldPath, const FUSE::Path& newPath);
+				
+				void detachAllHandles(const FUSE::Path& detachPath);
+				
+				// --------- API.
 				FUSE::Handle openRoot();
 				
 				FUSE::Handle openChild(FUSE::Handle handle, const std::string& name);
@@ -82,7 +92,7 @@ namespace OpenP2P {
 				
 				void removeChild(FUSE::Handle handle, const std::string& name);
 				
-				void rename(const FUSE::Path& sourcePath, const FUSE::Path& destPath);
+				void rename(FUSE::Handle sourceHandle, const std::string& sourceName, FUSE::Handle destHandle, const std::string& destName);
 				
 				struct stat getAttributes(FUSE::Handle handle) const;
 				

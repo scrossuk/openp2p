@@ -12,6 +12,11 @@ namespace FUSE {
 	
 	Path::Path() { }
 	
+	Path::Path(Path&& path) noexcept
+		: Path() {
+		std::swap(components_, path.components_);
+	}
+	
 	Path::Path(const std::string& pathString) {
 		const char* position = pathString.c_str();
 		
@@ -27,6 +32,11 @@ namespace FUSE {
 			
 			position = dividerPosition + 1;
 		}
+	}
+	
+	Path& Path::operator=(Path path) {
+		std::swap(components_, path.components_);
+		return *this;
 	}
 	
 	bool Path::empty() const {
@@ -62,6 +72,31 @@ namespace FUSE {
 		return parentPath;
 	}
 	
+	bool Path::hasChild(const Path& child) const {
+		if (child.size() < size()) return false;
+		
+		for (size_t i = 0; i < size(); i++) {
+			if (child.at(i) != at(i)) return false;
+		}
+		
+		return true;
+	}
+	
+	Path Path::rebase(const Path& oldParent, const Path& newParent) const {
+		assert(size() >= oldParent.size());
+		assert(*this == oldParent || oldParent.hasChild(*this));
+		
+		return newParent + subpath(oldParent.size(), size() - oldParent.size());
+	}
+	
+	Path Path::subpath(size_t position, size_t length) const {
+		Path subPath;
+		for (size_t i = position; i < length; i++) {
+			subPath.components_.push_back(at(i));
+		}
+		return subPath;
+	}
+	
 	std::size_t Path::hash() const {
 		return boost::hash_range(components_.begin(), components_.end());
 	}
@@ -83,8 +118,21 @@ namespace FUSE {
 		return path;
 	}
 	
+	Path Path::operator+(const Path& path) const {
+		Path newPath;
+		newPath.components_ = components_;
+		for (size_t i = 0; i < path.size(); i++) {
+			newPath.components_.push_back(path.at(i));
+		}
+		return newPath;
+	}
+	
 	bool Path::operator==(const Path& other) const {
 		return components_ == other.components_;
+	}
+	
+	bool Path::operator!=(const Path& other) const {
+		return components_ != other.components_;
 	}
 	
 	bool Path::operator<(const Path& other) const {

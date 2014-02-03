@@ -111,6 +111,8 @@ namespace OpenP2P {
 			
 			nodeSystem_.addChild(parent.get(), path.back(), false);
 			
+			nodeSystem_.flushNode(parent.get());
+			
 			// Open empty file.
 			return openFile(path);
 		}
@@ -132,6 +134,8 @@ namespace OpenP2P {
 			}
 			
 			nodeSystem_.removeChild(parent.get(), path.back());
+			
+			nodeSystem_.flushNode(parent.get());
 		}
 		
 		void FileSystemWrapper::createDirectory(const FUSE::Path& path, mode_t) {
@@ -145,6 +149,8 @@ namespace OpenP2P {
 			}
 			
 			nodeSystem_.addChild(parent.get(), path.back(), true);
+			
+			nodeSystem_.flushNode(parent.get());
 		}
 		
 		void FileSystemWrapper::removeDirectory(const FUSE::Path& path) {
@@ -165,10 +171,28 @@ namespace OpenP2P {
 			}
 			
 			nodeSystem_.removeChild(parent.get(), path.back());
+			
+			nodeSystem_.flushNode(parent.get());
 		}
 		
 		void FileSystemWrapper::rename(const FUSE::Path& sourcePath, const FUSE::Path& destPath) {
-			nodeSystem_.rename(sourcePath, destPath);
+			if (sourcePath.empty() || destPath.empty()) {
+				// Can't rename to/from root.
+				throw FUSE::ErrorException(EINVAL);
+			}
+			
+			if (sourcePath.hasChild(destPath)) {
+				// Can't rename to a subdirectory of itself.
+				throw FUSE::ErrorException(EINVAL);
+			}
+			
+			auto sourceHandle = openPath(nodeSystem_, sourcePath.parent());
+			auto destHandle = openPath(nodeSystem_, destPath.parent());
+			
+			nodeSystem_.rename(sourceHandle.get(), sourcePath.back(), destHandle.get(), destPath.back());
+			
+			nodeSystem_.flushNode(sourceHandle.get());
+			nodeSystem_.flushNode(destHandle.get());
 		}
 		
 		struct stat FileSystemWrapper::getAttributes(const FUSE::Path& path) const {

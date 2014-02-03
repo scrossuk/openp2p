@@ -132,6 +132,86 @@ namespace OpenP2P {
 			return iterator->second;
 		}
 		
+		void NodeSystem::moveAllMetadata(const FUSE::Path& oldPath, const FUSE::Path& newPath) {
+			assert(oldPath != newPath && !oldPath.hasChild(newPath));
+			for (auto iterator = metadata_.begin(); iterator != metadata_.end();) {
+				const auto& metadataPath = iterator->first;
+				const auto metadata = iterator->second;
+				const auto currentIterator = iterator;
+				++iterator;
+				
+				if (metadataPath == oldPath || oldPath.hasChild(metadataPath)) {
+					const auto newMetadataPath = metadataPath.rebase(oldPath, newPath);
+					
+					printf("Moving metadata at path %s to %s.\n",
+						metadataPath.toString().c_str(),
+						newMetadataPath.toString().c_str());
+					
+					metadata_.erase(currentIterator);
+					metadata_.emplace(newMetadataPath, metadata);
+				}
+			}
+		}
+		
+		void NodeSystem::removeAllMetadata(const FUSE::Path& removePath) {
+			for (auto iterator = metadata_.begin(); iterator != metadata_.end();) {
+				const auto& metadataPath = iterator->first;
+				const auto currentIterator = iterator;
+				++iterator;
+				
+				if (metadataPath == removePath || removePath.hasChild(metadataPath)) {
+					printf("Removing metadata at path %s.\n",
+						metadataPath.toString().c_str());
+					
+					metadata_.erase(currentIterator);
+				}
+			}
+		}
+		
+		void NodeSystem::moveAllHandles(const FUSE::Path& oldPath, const FUSE::Path& newPath) {
+			assert(oldPath != newPath && !oldPath.hasChild(newPath));
+			for (auto& pair: handleToPathMap_) {
+				const auto handle = pair.first;
+				auto& nodePath = pair.second;
+				
+				if (nodePath == oldPath || oldPath.hasChild(nodePath)) {
+					const auto newNodePath = nodePath.rebase(oldPath, newPath);
+					
+					printf("Moving handle %llu at path %s to %s.\n",
+						(unsigned long long) handle,
+						nodePath.toString().c_str(),
+						newNodePath.toString().c_str());
+					
+					// Remove the current 'old path -> handle' mapping
+					// and add a 'new path -> handle' mapping.
+					pathToHandleMap_.erase(nodePath);
+					pathToHandleMap_.emplace(newNodePath, handle);
+					
+					// Update path for the handle.
+					nodePath = newNodePath;
+				}
+			}
+		}
+		
+		void NodeSystem::detachAllHandles(const FUSE::Path& detachPath) {
+			for (auto iterator = pathToHandleMap_.begin(); iterator != pathToHandleMap_.end();) {
+				const auto& nodePath = iterator->first;
+				const auto handle = iterator->second;
+				const auto currentIterator = iterator;
+				++iterator;
+				
+				if (nodePath == detachPath || detachPath.hasChild(nodePath)) {
+					printf("Detaching handle %llu at path %s.\n",
+						(unsigned long long) handle,
+						nodePath.toString().c_str());
+					
+					// Remove bi-directional mapping.
+					handleToPathMap_.erase(handle);
+					pathToHandleMap_.erase(currentIterator);
+				}
+			}
+		}
+		
 		FUSE::Handle NodeSystem::openRoot() {
 			printf("Opening root.\n");
 			const auto path = FUSE::Path();
@@ -337,9 +417,6 @@ namespace OpenP2P {
 			
 			// Add metadata information.
 			metadata_.emplace(path, Metadata::Now());
-			
-			// Flush to trigger immediate cascade updates.
-			flushNode(handle);
 		}
 		
 		void NodeSystem::removeChild(FUSE::Handle handle, const std::string& name) {
@@ -360,22 +437,47 @@ namespace OpenP2P {
 			// Remove child.
 			directory.removeChild(name);
 			
-			metadata_.erase(path);
+			// Remove metadata.
+			removeAllMetadata(path);
 			
-			// Detach child if it's currently open.
-			const auto handleIterator = pathToHandleMap_.find(path);
-			if (handleIterator != pathToHandleMap_.end()) {
-				handleToPathMap_.erase(handleIterator->second);
-				pathToHandleMap_.erase(handleIterator);
-			}
-			
-			// Flush to trigger immediate cascade updates.
-			flushNode(handle);
+			// Detach open handles.
+			detachAllHandles(path);
 		}
 		
-		void NodeSystem::rename(const FUSE::Path&, const FUSE::Path&) {
-			// TODO.
-			throw FUSE::ErrorException(ENOSYS);
+		void NodeSystem::rename(FUSE::Handle sourceHandle, const std::string& sourceName, FUSE::Handle destHandle, const std::string& destName) {
+			auto& sourceNode = getNodeInfo(sourceHandle).node;
+			auto& destNode = getNodeInfo(destHandle).node;
+			
+			const auto sourcePath = getPath(sourceHandle) + sourceName;
+			const auto destPath = getPath(destHandle) + destName;
+			
+			if (sourcePath.hasChild(destPath)) {
+				// Can't rename to a subdirectory of itself.
+				throw FUSE::ErrorException(EINVAL);
+			}
+			
+			if (sourcePath == destPath) {
+				// Paths are the same; nothing to do.
+				return;
+			}
+			
+			Directory sourceDirectory(sourceNode);
+			Directory destDirectory(destNode);
+			
+			if (!sourceDirectory.hasChild(sourceName)) {
+				throw FUSE::ErrorException(ENOENT);
+			}
+			
+			destDirectory.forceAddChild(destName, sourceDirectory.getChild(sourceName));
+			sourceDirectory.removeChild(sourceName);
+			
+			// Re-map any affected metadata.
+			removeAllMetadata(destPath);
+			moveAllMetadata(sourcePath, destPath);
+			
+			// Re-map any affected handles.
+			detachAllHandles(destPath);
+			moveAllHandles(sourcePath, destPath);
 		}
 		
 		struct stat NodeSystem::getAttributes(FUSE::Handle handle) const {

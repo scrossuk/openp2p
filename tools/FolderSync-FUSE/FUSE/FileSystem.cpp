@@ -319,7 +319,7 @@ namespace FUSE {
 		std::vector<const char*> args;
 		args.push_back("runFUSE");
 		args.push_back("-s");
-		args.push_back("-f");
+		// args.push_back("-f");
 		args.push_back(mountPoint.c_str());
 		
 		const auto operations = fsFuseOperations();

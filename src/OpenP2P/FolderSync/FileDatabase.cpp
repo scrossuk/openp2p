@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <unordered_map>
 #include <stdexcept>
 #include <string>
 
@@ -15,38 +16,73 @@ namespace OpenP2P {
 		
 		namespace {
 			
-			bool fileExists(const std::string& name) {
-				FILE *file = fopen(name.c_str(), "r");
-				if (file != nullptr) {
-					fclose(file);
-					return true;
-				}
-				return false;
-			}
-			
-			class OpenFile {
+			class FILEHandle {
 				public:
-					inline OpenFile(const std::string& name, bool openForWrite)
+					inline FILEHandle()
+						: handle_(nullptr) { }
+					
+					inline FILEHandle(const std::string& name)
 						: handle_(nullptr) {
-						handle_ = fopen(name.c_str(), openForWrite ? "wb" : "rb");
+						handle_ = fopen(name.c_str(), "wb+");
 						if (handle_ == nullptr) {
 							throw std::runtime_error(std::string("Failed to open file '") + name + "'.");
 						}
 					}
 					
-					inline ~OpenFile() {
-						fclose(handle_);
+					inline FILEHandle(FILEHandle&& file) noexcept
+						: FILEHandle() {
+						std::swap(handle_, file.handle_);
+					}
+					
+					inline ~FILEHandle() {
+						if (handle_ != nullptr) fclose(handle_);
+					}
+					
+					FILEHandle& operator=(FILEHandle file) {
+						std::swap(handle_, file.handle_);
+						return *this;
+					}
+					
+					inline size_t position() const {
+						assert(handle_ != nullptr);
+						const long result = ftell(handle_);
+						assert(result >= 0);
+						return static_cast<size_t>(result);
+					}
+					
+					inline size_t size() const {
+						assert(handle_ != nullptr);
+						const size_t currentPosition = position();
+						fseek(handle_, 0, SEEK_END);
+						const size_t endPosition = position();
+						fseek(handle_, static_cast<long>(currentPosition), SEEK_SET);
+						return endPosition;
+					}
+					
+					inline void seek(size_t seekPosition) {
+						assert(handle_ != nullptr);
+						fseek(handle_, static_cast<long>(seekPosition), SEEK_SET);
+					}
+					
+					inline void seekEnd() {
+						assert(handle_ != nullptr);
+						fseek(handle_, 0, SEEK_END);
 					}
 					
 					inline void readAll(uint8_t* data, size_t dataSize) {
+						assert(handle_ != nullptr);
 						const size_t result = fread(data, 1, dataSize, handle_);
 						assert(result <= dataSize);
 						if (result < dataSize) {
+							if (ferror(handle_) != 0) {
+								perror("Error");
+							}
 							throw std::runtime_error("File read failed.");
 						}
 					}
 					
 					inline void writeAll(const uint8_t* data, size_t dataSize) {
+						assert(handle_ != nullptr);
 						const size_t result = fwrite(data, 1, dataSize, handle_);
 						assert(result <= dataSize);
 						if (result < dataSize) {
@@ -56,8 +92,7 @@ namespace OpenP2P {
 					
 				private:
 					// Non-copyable.
-					OpenFile(const OpenFile&) = delete;
-					OpenFile& operator=(OpenFile) = delete;
+					FILEHandle(const FILEHandle&) = delete;
 					
 					FILE* handle_;
 				
@@ -65,26 +100,76 @@ namespace OpenP2P {
 			
 		}
 		
+		// Maximum number of blocks per database file.
+		constexpr size_t MAX_DATABASE_FILE_BLOCKS = 65536;
+		
+		// Maximum number of bytes per database file.
+		constexpr size_t MAX_DATABASE_FILE_BYTES = BLOCK_SIZE * MAX_DATABASE_FILE_BLOCKS;
+		
+		struct FilePosition {
+			size_t fileNumber, blockIndex;
+			
+			inline FilePosition(size_t pFileNumber, size_t pBlockIndex)
+				: fileNumber(pFileNumber), blockIndex(pBlockIndex) { }
+		};
+		
+		struct FileDatabaseImpl {
+			std::string path;
+			std::unordered_map<BlockId, FilePosition> blockMap;
+			std::unordered_map<size_t, FILEHandle> files;
+			size_t currentFileNumber;
+			
+			inline FileDatabaseImpl(const std::string& pPath)
+				: path(pPath), currentFileNumber(0) {
+					files.emplace(currentFileNumber, FILEHandle(path + "/" + std::to_string(currentFileNumber) + ".block"));
+				}
+		};
+		
 		FileDatabase::FileDatabase(const std::string& path)
-			: path_(path) {
+			: impl_(new FileDatabaseImpl(path)) {
 			storeBlock(BlockId(), Block::Zero());
 		}
 		
 		FileDatabase::~FileDatabase() { }
 		
 		Block FileDatabase::loadBlock(const BlockId& id) const {
-			OpenFile openFile(path_ + "/" + id.hexString() + ".block", false);
+			const auto& filePosition = impl_->blockMap.at(id);
+			auto& blockFile = impl_->files.at(filePosition.fileNumber);
+			
+			blockFile.seek(filePosition.blockIndex * BLOCK_SIZE);
+			
 			auto block = Block::Zero();
-			openFile.readAll(block.data(), block.size());
+			blockFile.readAll(block.data(), block.size());
 			return std::move(block);
 		}
 		
 		void FileDatabase::storeBlock(const BlockId& id, Block block) {
-			const std::string fileName = path_ + "/" + id.hexString() + ".block";
-			if (fileExists(fileName)) return;
+			if (impl_->blockMap.find(id) != impl_->blockMap.end()) {
+				// Block already stored.
+				return;
+			}
 			
-			OpenFile openFile(fileName, true);
-			openFile.writeAll(block.data(), block.size());
+			auto& currentFile = impl_->files.at(impl_->currentFileNumber);
+			
+			currentFile.seekEnd();
+			
+			assert((currentFile.position() % BLOCK_SIZE) == 0);
+			assert(currentFile.position() < MAX_DATABASE_FILE_BYTES);
+			
+			// Record block position.
+			impl_->blockMap.emplace(id, FilePosition(impl_->currentFileNumber, currentFile.position() / BLOCK_SIZE));
+			
+			// Write block.
+			currentFile.writeAll(block.data(), block.size());
+			
+			assert((currentFile.position() % BLOCK_SIZE) == 0);
+			assert(currentFile.position() <= MAX_DATABASE_FILE_BYTES);
+			
+			if (currentFile.position() == MAX_DATABASE_FILE_BYTES) {
+				// Current database file is full; move to next.
+				impl_->currentFileNumber++;
+				impl_->files.emplace(impl_->currentFileNumber, FILEHandle(impl_->path + "/" + std::to_string(impl_->currentFileNumber) + ".block"));
+			}
 		}
 		
 	}

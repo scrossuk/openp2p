@@ -1,7 +1,7 @@
 #ifndef OPENP2P_FOLDERSYNC_FILEDATABASE_HPP
 #define OPENP2P_FOLDERSYNC_FILEDATABASE_HPP
 
-#include <unordered_map>
+#include <memory>
 
 #include <OpenP2P/FolderSync/Block.hpp>
 #include <OpenP2P/FolderSync/BlockId.hpp>
@@ -25,7 +25,7 @@ namespace OpenP2P {
 				FileDatabase(const FileDatabase&) = delete;
 				FileDatabase& operator=(FileDatabase) = delete;
 				
-				std::string path_;
+				std::unique_ptr<struct FileDatabaseImpl> impl_;
 			
 		};
 		

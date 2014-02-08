@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <OpenP2P.hpp>
+#include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream/BinaryStream.hpp>
 
 using namespace OpenP2P;

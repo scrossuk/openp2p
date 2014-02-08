@@ -3,44 +3,61 @@
 
 #include <OpenP2P/BinaryStream.hpp>
 
-#include <OpenP2P/RootNetwork/Id.hpp>
 #include <OpenP2P/RootNetwork/Node.hpp>
+#include <OpenP2P/RootNetwork/NodeId.hpp>
 
 namespace OpenP2P {
 
 	namespace RootNetwork {
 	
 		enum Version {
-			VERSION_0 = 0 // Currently only one version.
+			VERSION_INVALID = 0,
+			VERSION_1 = 1 // Currently only one version.
+		};
+		
+		enum State {
+			STATE_0 = 0,
+			STATE_1 = 1,
+			STATE_2 = 2,
+			STATE_3 = 3
 		};
 		
 		enum PacketType {
 			TYPE_IDENTIFY = 0,
 			TYPE_PING = 1,
-			TYPE_GETNEARESTNODES = 2,
-			TYPE_SUBSCRIBE = 3,
-			TYPE_GETSUBSCRIBERS = 4,
-			TYPE_SENDMESSAGE = 5,
-			TYPE_OPENSTREAM = 6,
-			TYPE_CLOSESTREAM = 7,
-			TYPE_SENDSTREAMDATA = 8
+			TYPE_QUERY_SUBNETWORKS = 4,
+			TYPE_KEY_EXCHANGE = 8
 		};
 		
-		enum Status {
-			STATUS_SUCCESS = 0,
-			STATUS_SUBNETWORKUNSUPPORTED = 1,
-			STATUS_TOOMANYCONNECTIONS = 2
+		enum Error {
+			ERROR_INVALID_MESSAGE_FORMAT = 0,
+			ERROR_INVALID_SIGNATURE = 1,
+			ERROR_INVALID_COUNTER = 2,
+			ERROR_VERSION_NOT_SUPPORTED = 3,
+			ERROR_UNKNOWN_SUBNETWORK = 8
 		};
 		
 		struct PacketHeader {
-			Version version; // 4 bits.
-			uint8_t state; // 2 bits.
-			bool ERR; // 1 bit.
-			bool COM; // 1 bit.
-			PacketType type; // 8 bits.
-			uint16_t data; // 16 bits.
-			uint64_t requestCounter; // 64 bits.
-			Id destinationId; // 256 bits.
+			Version version; // 8 bits.
+			State state; // 2 bits.
+			bool err; // 1 bit.
+			bool sub; // 1 bit.
+			PacketType type; // 4 bits.
+			uint16_t length; // 16 bits.
+			uint32_t routine; // 32 bits.
+			uint64_t messageCounter; // 64 bits.
+			NodeId destinationId; // 256 bits.
+			
+			inline PacketHeader()
+				: version(VERSION_INVALID),
+				state(STATE_0),
+				err(false),
+				sub(false),
+				type(TYPE_IDENTIFY),
+				length(0),
+				routine(0),
+				messageCounter(0) { }
+				
 		};
 		
 		struct IdentifyRequest { };
@@ -55,62 +72,19 @@ namespace OpenP2P {
 			Endpoint endpoint;
 		};
 		
-		struct GetNearestNodesRequest {
-			Id nodeId;
-		}
+		struct QuerySubnetworksRequest { };
 		
-		struct GetNearestNodesReply {
-			std::vector<Node> nodeList;
-		}
-		
-		struct SubscribeRequest {
-			Id subnetworkId;
+		struct QuerySubnetworksReply {
+			std::vector<NetworkId> networks;
 		};
 		
-		struct SubscribeReply { };
-		
-		struct GetSubscribersRequest {
-			Id subnetworkId;
+		struct KeyExchangeRequest {
+			// TODO.
 		};
 		
-		struct GetSubscribersReply {
-			std::vector<Node> subscriberList;
+		struct KeyExchangeReply {
+			// TODO.
 		};
-		
-		struct SendMessageRequest {
-			Id subnetworkId;
-			Buffer data;
-		}
-		
-		struct SendMessageReply {
-			Status status;
-		}
-		
-		struct OpenStreamRequest {
-			Id subnetworkId;
-		}
-		
-		struct OpenStreamReply {
-			Status status;
-			Id streamId;
-		}
-		
-		struct CloseStreamRequest {
-			Id streamId;
-		}
-		
-		struct CloseStreamReply {
-			Status status;
-		}
-		
-		struct SendStreamDataRequest {
-			Id streamId;
-			Buffer data;
-		}
-		
-		struct SendStreamDataReply {
-			Status status;
-		}
 		
 		// Using struct because union has problems with C++ types.
 		struct PacketData {
@@ -118,20 +92,10 @@ namespace OpenP2P {
 			IdentifyReply identifyReply;
 			PingRequest pingRequest;
 			PingReply pingReply;
-			GetNearestNodesRequest getNearestNodesRequest;
-			GetNearestNodesReply getNearestNodesReply;
-			SubscribeRequest subscribeRequest;
-			SubscribeReply subscribeReply;
-			GetSubscribersRequest getSubscribersRequest;
-			GetSubscribersReply getSubscribersReply;
-			SendMessageRequest sendMessageRequest;
-			SendMessageReply sendMessageReply;
-			OpenStreamRequest openStreamRequest;
-			OpenStreamReply openStreamReply;
-			CloseStreamRequest closeStreamRequest;
-			CloseStreamReply closeStreamReply;
-			SendStreamDataRequest sendStreamDataRequest;
-			SendStreamDataReply sendStreamDataReply;
+			QuerySubnetworksRequest querySubnetworksRequest;
+			QuerySubnetworksReply querySubnetworksReply;
+			KeyExchangeRequest keyExchangeRequest;
+			KeyExchangeReply keyExchangeReply;
 		};
 		
 		struct Packet {

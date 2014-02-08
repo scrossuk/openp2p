@@ -12,9 +12,7 @@
 #include <OpenP2P/Event/Generator.hpp>
 #include <OpenP2P/Event/Source.hpp>
 
-#include <OpenP2P/IP/Address.hpp>
-#include <OpenP2P/IP/Endpoint.hpp>
-
+#include <OpenP2P/TCP/Endpoint.hpp>
 #include <OpenP2P/TCP/Stream.hpp>
 
 namespace OpenP2P {
@@ -83,7 +81,7 @@ namespace OpenP2P {
 			}
 		}
 		
-		bool Stream::connect(const IP::Endpoint& endpoint) {
+		bool Stream::connect(const TCP::Endpoint& endpoint) {
 			std::unique_lock<std::mutex> lock(impl_->mutex);
 			
 			impl_->socket.close();
@@ -100,7 +98,7 @@ namespace OpenP2P {
 			return impl_->socket.is_open();
 		}
 		
-		bool Stream::connect(const std::vector<IP::Endpoint>& endpointList) {
+		bool Stream::connect(const std::vector<TCP::Endpoint>& endpointList) {
 			for (const auto& endpoint: endpointList) {
 				if (connect(endpoint)) {
 					return true;

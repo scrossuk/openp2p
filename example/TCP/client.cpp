@@ -11,7 +11,7 @@ int main() {
 	TCP::Stream tcpStream;
 	std::cout << "---Connecting" << std::endl;
 	
-	if (!tcpStream.connect(IP::Endpoint(IP::V4Address::Localhost(), 45556))) {
+	if (!tcpStream.connect(TCP::Endpoint(IP::V4Address::Localhost(), 45556))) {
 		std::cout << "---Failed to connect" << std::endl;
 		return 0;
 	}

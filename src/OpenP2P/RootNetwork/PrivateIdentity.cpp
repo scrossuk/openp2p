@@ -10,7 +10,7 @@ namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		PrivateIdentity::PrivateIdentity(const Crypt::ECDSA::PrivateKey& privateKey, uint64_t packetCount)
+		PrivateIdentity::PrivateIdentity(const PrivateKey& privateKey, uint64_t packetCount)
 			: privateKey_(privateKey), packetCount_(packetCount) { }
 			
 		PacketSignature PrivateIdentity::sign(const Packet& packet) {

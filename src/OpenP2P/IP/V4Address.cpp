@@ -1,4 +1,6 @@
 #include <boost/asio.hpp>
+
+#include <OpenP2P/String.hpp>
 #include <OpenP2P/IP/V4Address.hpp>
 
 namespace OpenP2P {
@@ -29,6 +31,22 @@ namespace OpenP2P {
 		
 		V4Address V4Address::Netmask(const V4Address& address) {
 			return V4Address::FromImpl(boost::asio::ip::address_v4::netmask(V4Address::ToImpl(address)));
+		}
+		
+		bool V4Address::operator==(const V4Address& other) const {
+			return data == other.data;
+		}
+		
+		bool V4Address::operator<(const V4Address& other) const {
+			return data < other.data;
+		}
+		
+		std::string V4Address::toString() const {
+			return STR("%u.%u.%u.%u",
+				(unsigned) data.at(0),
+				(unsigned) data.at(1),
+				(unsigned) data.at(2),
+				(unsigned) data.at(3));
 		}
 		
 	}

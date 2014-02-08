@@ -1,6 +1,8 @@
 #ifndef OPENP2P_IP_ADDRESS_HPP
 #define OPENP2P_IP_ADDRESS_HPP
 
+#include <string>
+
 #include <OpenP2P/IP/Version.hpp>
 #include <OpenP2P/IP/V4Address.hpp>
 #include <OpenP2P/IP/V6Address.hpp>
@@ -26,6 +28,12 @@ namespace OpenP2P {
 			Address();
 			Address(const V4Address& pAddress);
 			Address(const V6Address& pAddress);
+			
+			bool operator==(const Address& other) const;
+			bool operator!=(const Address& other) const;
+			bool operator<(const Address& other) const;
+			
+			std::string toString() const;
 			
 		};
 		

@@ -2,7 +2,7 @@
 #define OPENP2P_ROOTNETWORK_PUBLICIDENTITY_HPP
 
 #include <stdint.h>
-#include <OpenP2P/Crypt/ECDSA/PublicKey.hpp>
+#include <OpenP2P/RootNetwork/Key.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 
@@ -12,7 +12,7 @@ namespace OpenP2P {
 	
 		class PublicIdentity {
 			public:
-				PublicIdentity(const Crypt::ECDSA::PublicKey&, uint64_t packetCount = 0);
+				PublicIdentity(const PublicKey&, uint64_t packetCount = 0);
 				
 				PublicIdentity(const PrivateIdentity&);
 				
@@ -20,14 +20,14 @@ namespace OpenP2P {
 					return packetCount_;
 				}
 				
-				inline Crypt::ECDSA::PublicKey publicKey() {
+				inline PublicKey publicKey() {
 					return publicKey_;
 				}
 				
 				bool verify(const Packet&, const PacketSignature&);
 				
 			private:
-				Crypt::ECDSA::PublicKey publicKey_;
+				PublicKey publicKey_;
 				uint64_t packetCount_;
 				
 		};

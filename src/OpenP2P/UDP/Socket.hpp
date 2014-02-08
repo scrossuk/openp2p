@@ -1,8 +1,7 @@
 #ifndef OPENP2P_UDP_SOCKET_HPP
 #define OPENP2P_UDP_SOCKET_HPP
 
-#include <boost/asio.hpp>
-#include <boost/utility.hpp>
+#include <memory>
 
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Condition.hpp>
@@ -11,29 +10,28 @@
 #include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Socket.hpp>
 
-#include <OpenP2P/IP/Endpoint.hpp>
+#include <OpenP2P/UDP/Endpoint.hpp>
 
 namespace OpenP2P {
 
 	namespace UDP {
 	
-		class Socket: public OpenP2P::Socket<IP::Endpoint>, boost::noncopyable {
+		class Socket: public OpenP2P::Socket<UDP::Endpoint, Buffer> {
 			public:
 				Socket();
+				Socket(uint16_t port);
+				~Socket();
 				
-				bool open();
+				bool isValid() const;
 				
-				bool bind(unsigned short port);
+				Event::Source eventSource() const;
 				
-				size_t send(const IP::Endpoint& endpoint, const uint8_t* data, size_t size, Timeout timeout);
+				bool send(const UDP::Endpoint& endpoint, const Buffer& buffer);
 				
-				size_t receive(IP::Endpoint* endpoint, uint8_t* data, size_t size, Timeout timeout);
-				
-				void close();
+				bool receive(UDP::Endpoint& endpoint, Buffer& buffer);
 				
 			private:
-				Mutex mutex_;
-				boost::asio::ip::udp::socket internalSocket_;
+				std::unique_ptr<struct SocketImpl> impl_;
 				
 		};
 		

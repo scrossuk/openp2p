@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <array>
+#include <string>
 
 #include <boost/asio.hpp>
 
@@ -23,6 +24,12 @@ namespace OpenP2P {
 			static V6Address Any();
 			
 			static V6Address Localhost();
+			
+			bool operator==(const V6Address& other) const;
+			bool operator<(const V6Address& other) const;
+			
+			std::string toString() const;
+			
 		};
 		
 	}

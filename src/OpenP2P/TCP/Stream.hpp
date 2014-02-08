@@ -11,7 +11,7 @@
 
 #include <OpenP2P/Event/Source.hpp>
 
-#include <OpenP2P/IP/Endpoint.hpp>
+#include <OpenP2P/TCP/Endpoint.hpp>
 
 namespace OpenP2P {
 
@@ -22,9 +22,9 @@ namespace OpenP2P {
 				Stream();
 				~Stream();
 				
-				bool connect(const IP::Endpoint& endpoint);
+				bool connect(const TCP::Endpoint& endpoint);
 				
-				bool connect(const std::vector<IP::Endpoint>& endpointList);
+				bool connect(const std::vector<TCP::Endpoint>& endpointList);
 				
 				boost::asio::ip::tcp::socket& getInternal();
 				

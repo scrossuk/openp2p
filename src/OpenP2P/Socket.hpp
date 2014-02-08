@@ -1,18 +1,20 @@
 #ifndef OPENP2P_SOCKET_HPP
 #define OPENP2P_SOCKET_HPP
 
-#include <OpenP2P/Buffer.hpp>
+#include <OpenP2P/Event/Source.hpp>
 
 namespace OpenP2P {
 
-	template <typename EndpointType>
+	template <typename EndpointType, typename MessageType>
 	class Socket {
 		public:
-			virtual size_t send(const EndpointType& endpoint, const uint8_t* data, size_t size, Timeout timeout) = 0;
+			virtual bool isValid() const = 0;
 			
-			virtual size_t receive(EndpointType* endpoint, uint8_t* data, size_t size, Timeout timeout) = 0;
+			virtual Event::Source eventSource() const = 0;
 			
-			virtual void close() = 0;
+			virtual bool send(const EndpointType& endpoint, const MessageType& message) = 0;
+			
+			virtual bool receive(EndpointType& endpoint, MessageType& message) = 0;
 			
 	};
 	

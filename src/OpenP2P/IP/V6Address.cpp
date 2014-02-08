@@ -1,4 +1,6 @@
 #include <boost/asio.hpp>
+
+#include <OpenP2P/String.hpp>
 #include <OpenP2P/IP/V6Address.hpp>
 
 namespace OpenP2P {
@@ -21,6 +23,18 @@ namespace OpenP2P {
 		
 		V6Address V6Address::Localhost() {
 			return V6Address::FromImpl(boost::asio::ip::address_v6::loopback());
+		}
+		
+		bool V6Address::operator==(const V6Address& other) const {
+			return data == other.data;
+		}
+		
+		bool V6Address::operator<(const V6Address& other) const {
+			return data < other.data;
+		}
+		
+		std::string V6Address::toString() const {
+			return ToImpl(*this).to_string();
 		}
 		
 	}

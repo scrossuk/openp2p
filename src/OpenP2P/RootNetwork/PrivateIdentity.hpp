@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include <OpenP2P/Crypt/ECDSA/PrivateKey.hpp>
+#include <OpenP2P/RootNetwork/Key.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 
 namespace OpenP2P {
@@ -12,25 +12,25 @@ namespace OpenP2P {
 	
 		struct PacketSignature {
 			Buffer signature;
-			Crypt::ECDSA::PublicKey publicKey;
+			PublicKey publicKey;
 		};
 		
 		class PrivateIdentity {
 			public:
-				PrivateIdentity(const Crypt::ECDSA::PrivateKey&, uint64_t packetCount = 0);
+				PrivateIdentity(const PrivateKey&, uint64_t packetCount = 0);
 				
 				inline uint64_t packetCount() {
 					return packetCount_;
 				}
 				
-				inline Crypt::ECDSA::PrivateKey privateKey() {
+				inline PrivateKey privateKey() {
 					return privateKey_;
 				}
 				
 				PacketSignature sign(const Packet&);
 				
 			private:
-				Crypt::ECDSA::PrivateKey privateKey_;
+				PrivateKey privateKey_;
 				uint64_t packetCount_;
 				
 		};

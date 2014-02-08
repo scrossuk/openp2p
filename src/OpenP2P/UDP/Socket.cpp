@@ -1,150 +1,170 @@
+#include <condition_variable>
+#include <mutex>
+
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 
-#include <OpenP2P/Condition.hpp>
 #include <OpenP2P/IOService.hpp>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Socket.hpp>
-#include <OpenP2P/Timeout.hpp>
-#include <OpenP2P/TimeoutSequence.hpp>
 
-#include <OpenP2P/IP/Endpoint.hpp>
+#include <OpenP2P/Event/Generator.hpp>
+#include <OpenP2P/Event/Source.hpp>
 
+#include <OpenP2P/UDP/Endpoint.hpp>
 #include <OpenP2P/UDP/Socket.hpp>
 
 namespace OpenP2P {
 
 	namespace UDP {
-	
+		
+		constexpr size_t MAX_DATAGRAM_SIZE = 65536;
+		
+		struct SocketImpl {
+			boost::asio::ip::udp::socket socket;
+			std::mutex mutex;
+			std::condition_variable condition;
+			Event::Generator eventGenerator;
+			bool isActiveReceive, isActiveSend, hasReceiveData;
+			Buffer sendBuffer;
+			boost::asio::ip::udp::endpoint receiveEndpoint;
+			Buffer receiveBuffer;
+			
+			inline SocketImpl(boost::asio::io_service& pIOService)
+				: socket(pIOService), isActiveReceive(false),
+				isActiveSend(false), hasReceiveData(false) { }
+			
+			inline void close() {
+				boost::system::error_code ec;
+				socket.close(ec);
+			}
+		};
+		
 		namespace {
 		
-			void receiveCallback(Mutex* mutex, Condition* condition, boost::system::error_code* receiveResult,
-								 size_t* receiveLength, const boost::system::error_code& ec, size_t transferred) {
-				Lock lock(*mutex);
-				*receiveResult = ec;
-				*receiveLength = transferred;
-				condition->notifyOne();
+			void receiveCallback(SocketImpl* impl, const boost::system::error_code& ec, size_t transferred) {
+				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->eventGenerator.activate();
+				impl->isActiveReceive = false;
+				impl->hasReceiveData = true;
+				impl->receiveBuffer.resize(transferred);
+				if (ec) impl->close();
+				impl->condition.notify_all();
 			}
 			
-			void sendCallback(Mutex* mutex, Condition* condition, boost::system::error_code* sendResult,
-							  size_t* sendLength, const boost::system::error_code& ec, size_t transferred) {
-				Lock lock(*mutex);
-				*sendResult = ec;
-				*sendLength = transferred;
-				condition->notifyOne();
+			void sendCallback(SocketImpl* impl, const boost::system::error_code& ec, size_t transferred) {
+				std::lock_guard<std::mutex> lock(impl->mutex);
+				impl->eventGenerator.activate();
+				impl->isActiveSend = false;
+				if (ec || transferred != impl->sendBuffer.size()) {
+					impl->close();
+				}
+				impl->condition.notify_all();
 			}
 			
 		}
 		
-		Socket::Socket() : internalSocket_(GetIOService()) { }
-		
-		bool Socket::open() {
-			Lock lock(mutex_);
+		Socket::Socket() : impl_(new SocketImpl(GetIOService())) {
 			boost::system::error_code ec;
 			
-			// This ensures the socket uses both IPv4 and IPv6.
+			impl_->socket.open(boost::asio::ip::udp::v6(), ec);
+			
+			if (ec) {
+				throw std::runtime_error("Socket open() failed.");
+			}
+			
+			// Ensure the socket uses both IPv4 and IPv6.
 			boost::asio::ip::v6_only v6OnlyOption(false);
-			internalSocket_.set_option(v6OnlyOption, ec);
+			impl_->socket.set_option(v6OnlyOption, ec);
 			
 			if (ec) {
-				return false;
+				throw std::runtime_error("Set 'v6_only' to 'false' failed.");
 			}
-			
-			internalSocket_.open(boost::asio::ip::udp::v6(), ec);
-			
-			return !bool(ec);
 		}
 		
-		bool Socket::bind(unsigned short port) {
-			Lock lock(mutex_);
-			
+		Socket::Socket(uint16_t port) : impl_(new SocketImpl(GetIOService())) {
 			boost::system::error_code ec;
-			boost::asio::socket_base::reuse_address reuseAddressOption(true);
-			internalSocket_.set_option(reuseAddressOption, ec);
+			
+			impl_->socket.open(boost::asio::ip::udp::v6(), ec);
 			
 			if (ec) {
-				return false;
+				throw std::runtime_error("Socket open() failed.");
 			}
 			
-			internalSocket_.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v6(), port), ec);
+			// Ensure the address/port are re-used.
+			boost::asio::socket_base::reuse_address reuseAddressOption(true);
+			impl_->socket.set_option(reuseAddressOption, ec);
 			
-			return !bool(ec);
+			if (ec) {
+				throw std::runtime_error("Set 'reuse_address' to 'true' failed.");
+			}
+			
+			// Ensure the socket uses both IPv4 and IPv6.
+			boost::asio::ip::v6_only v6OnlyOption(false);
+			impl_->socket.set_option(v6OnlyOption, ec);
+			
+			if (ec) {
+				throw std::runtime_error("Set 'v6_only' to 'false' failed.");
+			}
+			
+			impl_->socket.bind(boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v6(), port), ec);
+			
+			if (ec) {
+				throw std::runtime_error("Socket bind() failed.");
+			}
 		}
 		
-		size_t Socket::send(const IP::Endpoint& endpoint, const uint8_t* data, size_t size, Timeout timeout) {
+		Socket::~Socket() {
+			impl_->close();
+			std::unique_lock<std::mutex> lock(impl_->mutex);
+			while (impl_->isActiveReceive || impl_->isActiveSend) {
+				impl_->condition.wait(lock);
+			}
+		}
+		
+		bool Socket::isValid() const {
+			return impl_->socket.is_open();
+		}
+		
+		Event::Source Socket::eventSource() const {
+			return impl_->eventGenerator.eventSource();
+		}
+		
+		bool Socket::send(const UDP::Endpoint& endpoint, const Buffer& buffer) {
 			boost::asio::ip::udp::endpoint endpointImpl(IP::Address::ToImpl(endpoint.address), endpoint.port);
 			
-			boost::system::error_code sendResult;
-			size_t sendLength;
+			std::lock_guard<std::mutex> lock(impl_->mutex);
 			
-			Condition condition;
-			Lock lock(mutex_);
+			if (impl_->isActiveSend) return false;
 			
-			internalSocket_.async_send_to(boost::asio::buffer(data, size), endpointImpl,
-										  boost::bind(sendCallback, &mutex_, &condition, &sendResult, &sendLength, _1, _2));
-										  
-			TimeoutSequence sequence(timeout);
+			impl_->sendBuffer = buffer;
+			impl_->socket.async_send_to(boost::asio::buffer(impl_->sendBuffer.data(), impl_->sendBuffer.size()),
+					endpointImpl, boost::bind(sendCallback, impl_.get(), _1, _2));
 			
-			while (condition.wait(lock, sequence.getTimeout())) {
-				if (sendResult) {
-					if (sendResult == boost::asio::error::operation_aborted) {
-						// Other operations being cancelled can cause this operation
-						// to be cancelled - need to restart it.
-						internalSocket_.async_send_to(boost::asio::buffer(data, size), endpointImpl,
-													  boost::bind(sendCallback, &mutex_, &condition, &sendResult, &sendLength, _1, _2));
-					} else {
-						return 0;
-					}
-				} else {
-					return sendLength;
-				}
-			}
+			impl_->isActiveSend = true;
 			
-			internalSocket_.cancel();
-			condition.wait(lock);
-			return 0;
+			return true;
 		}
 		
-		size_t Socket::receive(IP::Endpoint* endpoint, uint8_t* data, size_t size, Timeout timeout) {
-			boost::asio::ip::udp::endpoint endpointImpl;
+		bool Socket::receive(UDP::Endpoint& endpoint, Buffer& buffer) {
+			std::lock_guard<std::mutex> lock(impl_->mutex);
 			
-			boost::system::error_code receiveResult;
-			size_t receiveLength;
+			const bool hasData = impl_->hasReceiveData;
 			
-			Condition condition;
-			Lock lock(mutex_);
-			
-			internalSocket_.async_receive_from(boost::asio::buffer(data, size), endpointImpl,
-											   boost::bind(receiveCallback, &mutex_, &condition, &receiveResult, &receiveLength, _1, _2));
-											   
-			TimeoutSequence sequence(timeout);
-			
-			while (condition.wait(lock, sequence.getTimeout())) {
-				if (receiveResult) {
-					if (receiveResult == boost::asio::error::operation_aborted) {
-						// Other operations being cancelled can cause this operation
-						// to be cancelled - need to restart it.
-						internalSocket_.async_receive_from(boost::asio::buffer(data, size), endpointImpl,
-														   boost::bind(receiveCallback, &mutex_, &condition, &receiveResult, &receiveLength, _1, _2));
-					} else {
-						return 0;
-					}
-				} else {
-					endpoint->address = IP::Address::FromImpl(endpointImpl.address());
-					endpoint->port = endpointImpl.port();
-					
-					return receiveLength;
-				}
+			if (hasData) {
+				endpoint.address = IP::Address::FromImpl(impl_->receiveEndpoint.address());
+				endpoint.port = impl_->receiveEndpoint.port();
+				buffer = std::move(impl_->receiveBuffer);
+				impl_->hasReceiveData = false;
 			}
 			
-			internalSocket_.cancel();
-			condition.wait(lock);
-			return 0;
-		}
-		
-		void Socket::close() {
-			Lock lock(mutex_);
-			internalSocket_.close();
+			if (!impl_->isActiveReceive) {
+				impl_->receiveBuffer.resize(MAX_DATAGRAM_SIZE);
+				impl_->socket.async_receive_from(boost::asio::buffer(impl_->receiveBuffer.data(), impl_->receiveBuffer.size()),
+					impl_->receiveEndpoint, boost::bind(receiveCallback, impl_.get(), _1, _2));
+				impl_->isActiveReceive = true;
+			}
+			
+			return hasData;
 		}
 		
 	}

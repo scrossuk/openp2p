@@ -1,6 +1,7 @@
 add_library(openp2p STATIC
 	IOService.cpp
 	Signal.cpp
+	String.cpp
 	Thread.cpp
 	Timer.cpp
 	)

@@ -1,3 +1,5 @@
+#include <OpenP2P/String.hpp>
+
 #include <OpenP2P/IP/Address.hpp>
 
 namespace OpenP2P {
@@ -37,6 +39,36 @@ namespace OpenP2P {
 			
 		Address::Address(const V6Address& pAddress)
 			: version(v6), v6Address(pAddress) { }
+		
+		bool Address::operator==(const Address& other) const {
+			return version == other.version &&
+				((version == v4) ?
+					(v4Address == other.v4Address) :
+					(v6Address == other.v6Address)
+				);
+		}
+		
+		bool Address::operator!=(const Address& other) const {
+			return !(*this == other);
+		}
+		
+		bool Address::operator<(const Address& other) const {
+			return (version != other.version) ? (version < other.version) :
+				((version == v4) ?
+					(v4Address < other.v4Address) :
+					(v6Address < other.v6Address)
+				);
+		}
+		
+		std::string Address::toString() const {
+			if (version == v4) {
+				return STR("IPv4Address(%s)",
+					v4Address.toString().c_str());
+			} else {
+				return STR("IPv6Address(%s)",
+					v6Address.toString().c_str());
+			}
+		}
 			
 	}
 	

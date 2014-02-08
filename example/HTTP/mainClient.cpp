@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 	
 	TCP::Resolver resolver;
 	
-	boost::optional< std::vector<IP::Endpoint> > endpointList = resolver.resolve(domain, "http", Timeout::Seconds(5.0));
+	const auto endpointList = resolver.resolve(domain, "http", Timeout::Seconds(5.0));
 	
 	if (!endpointList) {
 		std::cout << "Failed to resolve." << std::endl;

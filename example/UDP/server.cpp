@@ -1,58 +1,64 @@
-#include <OpenP2P.hpp>
-#include <OpenP2P/UDP.hpp>
-#include <iostream>
+#include <stdio.h>
+
 #include <map>
+
+#include <OpenP2P.hpp>
+#include <OpenP2P/Buffer.hpp>
+#include <OpenP2P/Event/Source.hpp>
+#include <OpenP2P/Event/Wait.hpp>
+#include <OpenP2P/Stream/BinaryStream.hpp>
+#include <OpenP2P/UDP.hpp>
 
 using namespace OpenP2P;
 
 int main() {
 	UDP::Socket socket(45557);
 	
-	std::map<UDP::Endpoint, uint16_t> v_map;
+	std::map<UDP::Endpoint, uint16_t> expectedValueMap;
 	
-	std::cout << "Start server" << std::endl;
+	printf("UDP Server Started.\n");
 	
-	while (true) {
+	while (socket.isValid()) {
 		UDP::Endpoint endpoint;
 		Buffer data;
 		
 		if (!socket.receive(endpoint, data)) {
-			std::cout << "receive failed" << std::endl;
+			Event::Wait(socket.eventSource());
 			continue;
 		}
 		
-		uint16_t& v = v_map[endpoint];
+		uint16_t& expectedValue = expectedValueMap[endpoint];
 		
-		uint16_t i;
+		BufferIterator iterator(data);
+		BinaryIStream blockingReader(iterator);
+		const uint16_t i = Binary::ReadUint16(blockingReader);
 		
-		{
-			BufferIterator iterator(data);
-			BinaryIStream binaryStream(iterator);
-			binaryStream >> i;
-		}
+		printf("Received: %u from '%s'.\n",
+			(unsigned) i, endpoint.toString().c_str());
 		
-		std::cout << "Received: " << i << " from " << endpoint << std::endl;
-		
-		if (i != v) {
-			std::cout << "Incorrect data received: " << i << " for endpoint " << endpoint << std::endl;
-			v = 0;
+		if (i != expectedValue) {
+			printf("Incorrect data received: %u from endpoint '%s'.\n",
+				(unsigned) i, endpoint.toString().c_str());
+			expectedValue = 0;
 			continue;
-		}
-		
-		if (i < 10000) {
-			v += 2;
-			std::cout << "Sent: " << (i + 1) << std::endl;
-			Buffer buffer;
-			BufferBuilder builder(buffer);
-			BinaryOStream binaryStream(builder);
-			binaryStream << uint16_t(i + 1);
-			socket.send(endpoint, buffer);
 		}
 		
 		if (i >= 9999) {
-			std::cout << "Completed Successfully for endpoint " << endpoint << std::endl;
-			v = 0;
+			printf("Completed successfully for endpoint '%s'.\n",
+				endpoint.toString().c_str());
+			expectedValue = 0;
+			continue;
 		}
+		
+		Buffer buffer;
+		BufferBuilder builder(buffer);
+		BinaryOStream blockingWriter(builder);
+		Binary::WriteUint16(blockingWriter, i + 1);
+		socket.send(endpoint, buffer);
+		
+		printf("Sent: %u.\n", (unsigned) (i + 1));
+		
+		expectedValue += 2;
 	}
 	
 	return 0;

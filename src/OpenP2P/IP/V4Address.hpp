@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <array>
+#include <string>
 
 #include <boost/asio.hpp>
 
@@ -27,6 +28,12 @@ namespace OpenP2P {
 			static V4Address Localhost();
 			
 			static V4Address Netmask(const V4Address&);
+			
+			bool operator==(const V4Address& other) const;
+			bool operator<(const V4Address& other) const;
+			
+			std::string toString() const;
+			
 		};
 		
 	}

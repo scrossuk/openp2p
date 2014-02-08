@@ -9,7 +9,7 @@ namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		PublicIdentity::PublicIdentity(const Crypt::ECDSA::PublicKey& publicKey, uint64_t packetCount = 0)
+		PublicIdentity::PublicIdentity(const PublicKey& publicKey, uint64_t packetCount = 0)
 			: publicKey_(publicKey), packetCount_(packetCount) { }
 			
 		PublicIdentity::PublicIdentity(const PrivateIdentity& identity)

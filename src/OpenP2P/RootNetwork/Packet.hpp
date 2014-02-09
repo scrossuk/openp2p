@@ -1,9 +1,12 @@
 #ifndef OPENP2P_ROOTNETWORK_PACKET_HPP
 #define OPENP2P_ROOTNETWORK_PACKET_HPP
 
-#include <OpenP2P/BinaryStream.hpp>
+#include <stdint.h>
 
-#include <OpenP2P/RootNetwork/Node.hpp>
+#include <OpenP2P/Buffer.hpp>
+
+#include <OpenP2P/Stream/BinaryStream.hpp>
+
 #include <OpenP2P/RootNetwork/NodeId.hpp>
 
 namespace OpenP2P {
@@ -22,13 +25,6 @@ namespace OpenP2P {
 			STATE_3 = 3
 		};
 		
-		enum PacketType {
-			TYPE_IDENTIFY = 0,
-			TYPE_PING = 1,
-			TYPE_QUERY_SUBNETWORKS = 4,
-			TYPE_KEY_EXCHANGE = 8
-		};
-		
 		enum Error {
 			ERROR_INVALID_MESSAGE_FORMAT = 0,
 			ERROR_INVALID_SIGNATURE = 1,
@@ -42,7 +38,7 @@ namespace OpenP2P {
 			State state; // 2 bits.
 			bool err; // 1 bit.
 			bool sub; // 1 bit.
-			PacketType type; // 4 bits.
+			uint8_t type; // 4 bits.
 			uint16_t length; // 16 bits.
 			uint32_t routine; // 32 bits.
 			uint64_t messageCounter; // 64 bits.
@@ -53,63 +49,25 @@ namespace OpenP2P {
 				state(STATE_0),
 				err(false),
 				sub(false),
-				type(TYPE_IDENTIFY),
+				type(0),
 				length(0),
 				routine(0),
 				messageCounter(0) { }
 				
 		};
 		
-		struct IdentifyRequest { };
-		
-		struct IdentifyReply {
-			Endpoint endpoint;
-		}
-		
-		struct PingRequest { };
-		
-		struct PingReply {
-			Endpoint endpoint;
-		};
-		
-		struct QuerySubnetworksRequest { };
-		
-		struct QuerySubnetworksReply {
-			std::vector<NetworkId> networks;
-		};
-		
-		struct KeyExchangeRequest {
-			// TODO.
-		};
-		
-		struct KeyExchangeReply {
-			// TODO.
-		};
-		
-		// Using struct because union has problems with C++ types.
-		struct PacketData {
-			IdentifyRequest identifyRequest;
-			IdentifyReply identifyReply;
-			PingRequest pingRequest;
-			PingReply pingReply;
-			QuerySubnetworksRequest querySubnetworksRequest;
-			QuerySubnetworksReply querySubnetworksReply;
-			KeyExchangeRequest keyExchangeRequest;
-			KeyExchangeReply keyExchangeReply;
-		};
-		
 		struct Packet {
 			PacketHeader header;
-			PacketData data;
+			Buffer payload;
 		};
 		
-		bool ReadPacketHeader(BinaryIStream& stream, PacketHeader* header, Timeout timeout = Timeout::Infinite());
+		PacketHeader ReadPacketHeader(BlockingReader& reader);
 		
-		bool WritePacketHeader(BinaryOStream& stream, const PacketHeader& header, Timeout timeout = Timeout::Infinite());
+		void WritePacketHeader(BlockingWriter& writer, const PacketHeader& header);
 		
-		bool ReadPacket(BinaryIStream& stream, Packet* packet, Timeout timeout = Timeout::Infinite());
+		Packet ReadPacket(BlockingReader& reader);
 		
-		bool WritePacket(BinaryOStream& stream, const Packet& packet, Timeout timeout = Timeout::Infinite());
+		void WritePacket(BlockingWriter& writer, const Packet& packet);
 		
 	}
 	

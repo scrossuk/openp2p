@@ -1,6 +1,10 @@
 #include <stdint.h>
+
+#include <OpenP2P/Crypt/AutoSeededRandomPool.hpp>
 #include <OpenP2P/Crypt/ECDSA/PublicKey.hpp>
 #include <OpenP2P/Crypt/ECDSA/VerifyStream.hpp>
+
+#include <OpenP2P/RootNetwork/Key.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/PublicIdentity.hpp>
@@ -9,20 +13,25 @@ namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		PublicIdentity::PublicIdentity(const PublicKey& publicKey, uint64_t packetCount = 0)
-			: publicKey_(publicKey), packetCount_(packetCount) { }
+		PublicIdentity::PublicIdentity(const PublicKey& pPublicKey, uint64_t packetCount)
+			: publicKey_(pPublicKey), nextPacketCount_(packetCount) { }
 			
 		PublicIdentity::PublicIdentity(const PrivateIdentity& identity)
-			: publicKey_(identity.privateKey()), packetCount_(identity.packetCount()) { }
+			: nextPacketCount_(identity.nextPacketCount()) {
+				Crypt::AutoSeededRandomPool rand;
+				publicKey_ = PublicKey(rand, identity.privateKey());
+			}
 			
 		bool PublicIdentity::verify(const Packet& packet, const PacketSignature& sig) {
-			if (sig.packetCount < packetCount_) {
+			if (packet.header.messageCounter < nextPacketCount_) {
 				return false;
 			}
 			
+			nextPacketCount_++;
+			
 			Crypt::ECDSA::VerifyStream verifyStream(publicKey_, sig.signature);
 			BinaryOStream binStream(verifyStream);
-			binStream << packet << sig.packetCount;
+			WritePacket(binStream, packet);
 			
 			return verifyStream.isValid();
 		}

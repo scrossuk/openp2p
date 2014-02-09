@@ -2,6 +2,7 @@
 #define OPENP2P_ROOTNETWORK_PUBLICIDENTITY_HPP
 
 #include <stdint.h>
+
 #include <OpenP2P/RootNetwork/Key.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
@@ -16,11 +17,11 @@ namespace OpenP2P {
 				
 				PublicIdentity(const PrivateIdentity&);
 				
-				inline uint64_t packetCount() {
-					return packetCount_;
+				inline uint64_t nextPacketCount() const {
+					return nextPacketCount_;
 				}
 				
-				inline PublicKey publicKey() {
+				inline const PublicKey& publicKey() const {
 					return publicKey_;
 				}
 				
@@ -28,7 +29,7 @@ namespace OpenP2P {
 				
 			private:
 				PublicKey publicKey_;
-				uint64_t packetCount_;
+				uint64_t nextPacketCount_;
 				
 		};
 		

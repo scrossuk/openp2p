@@ -20,6 +20,8 @@ namespace OpenP2P {
 		
 			class PrivateKey {
 				public:
+					inline PrivateKey() { }
+					
 					inline PrivateKey(RandomPool& pool, Curve curve) {
 						CryptoPP::OID oid;
 						

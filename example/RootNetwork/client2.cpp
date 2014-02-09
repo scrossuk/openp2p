@@ -1,27 +1,25 @@
 #include <stdint.h>
 #include <iostream>
-#include <string>
-#include <boost/asio.hpp>
-#include <boost/optional.hpp>
 #include <OpenP2P.hpp>
+#include <OpenP2P/Crypt/AutoSeededRandomPool.hpp>
 #include <OpenP2P/RootNetwork.hpp>
 #include <OpenP2P/UDP.hpp>
 
 using namespace OpenP2P;
 
 int main() {
-	/*UDP::Socket socket(46668);
+	UDP::Socket socket(46668);
 	
 	Crypt::AutoSeededRandomPool rand;
-	
-	Crypt::ECDSA::PrivateKey privateKey(rand);
+	Crypt::ECDSA::PrivateKey privateKey(rand, Crypt::ECDSA::brainpoolP256r1);
 	
 	RootNetwork::PrivateIdentity privateIdentity(privateKey);
 	
-	RootNetwork::Service service(socket, privateIdentity);
+	RootNetwork::PacketSocket packetSocket(socket);
 	
-	std::string str;
-	std::getline(std::cin, str);*/
+	RootNetwork::Service service(packetSocket, privateIdentity);
+	
+	service.processRequests();
 	
 	return 0;
 }

@@ -1,35 +1,86 @@
-#ifndef OPENP2P_ROOTNETWORK_SERVICE_HPP
-#define OPENP2P_ROOTNETWORK_SERVICE_HPP
+#include <stdio.h>
+
+#include <queue>
+
+#include <OpenP2P/Socket.hpp>
+
+#include <OpenP2P/Event/Source.hpp>
+#include <OpenP2P/Event/Wait.hpp>
+
+#include <OpenP2P/RootNetwork/CoreMessage.hpp>
+#include <OpenP2P/RootNetwork/Endpoint.hpp>
+#include <OpenP2P/RootNetwork/NodeId.hpp>
+#include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
+#include <OpenP2P/RootNetwork/PublicIdentity.hpp>
+#include <OpenP2P/RootNetwork/Service.hpp>
 
 namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		class Service {
-			public:
-				Service(PrivateIdentity& identity);
+		Service::Service(Socket<Endpoint, Packet>& socket, PrivateIdentity& identity)
+			: socket_(socket), identity_(identity), nextRoutine_(0) { }
+		
+		Service::~Service() { }
+		
+		NodeId Service::identifyEndpoint(const Endpoint& endpoint) {
+			NodeId destination;
+			destination.fill(0x00);
+			
+			const uint32_t routineId = nextRoutine_++;
+			socket_.send(endpoint, CoreMessage::IdentifyRequest().createPacket(routineId, identity_.nextPacketCount(), destination));
+			
+			while (true) {
+				Endpoint receiveEndpoint;
+				Packet receivePacket;
+				const bool result = socket_.receive(receiveEndpoint, receivePacket);
+				if (!result) {
+					Event::Wait(socket_.eventSource());
+					continue;
+				}
 				
-				bool setUDPSocket(UDP::Socket& socket);
+				if (receivePacket.header.routine != routineId) {
+					packetQueue_.push(receivePacket);
+					continue;
+				}
 				
-				boost::optional<Node> identifyEndpoint(const Endpoint& endpoint, Timeout timeout = Timeout::Infinite());
+				printf("Got reply.\n");
 				
-				boost::optional<Node> findNode(const Id& id, Timeout timeout = Timeout::Infinite());
+				// TODO.
+				NodeId sourceId;
+				sourceId.fill(0x00);
+				return sourceId;
+			}
+		}
+		
+		void Service::processRequests() {
+			while (true) {
+				Endpoint receiveEndpoint;
+				Packet receivePacket;
+				const bool result = socket_.receive(receiveEndpoint, receivePacket);
+				if (!result) {
+					Event::Wait(socket_.eventSource());
+					continue;
+				}
 				
-				boost::optional< std::vector<Node> > findNearestNodes(const Id& id, Timeout timeout = Timeout::Infinite());
+				if (receivePacket.header.type != CoreMessage::IDENTIFY) {
+					printf("Unknown type.\n");
+					continue;
+				}
 				
-				bool subscribe(const SubNetworkId& subNetworkId, const Buffer& subNetworkInfo, Timeout timeout = Timeout::Infinite());
+				// TODO.
+				NodeId destination;
+				destination.fill(0x00);
 				
-				boost::optional< std::vector<Node> > getSubscribers(const SubNetworkId& subNetworkId, Timeout timeout = Timeout::Infinite());
+				printf("Handling IDENTIFY request.\n");
 				
-				boost::optional<Buffer> getSubNetworkInfo(const Id& id, const SubNetworkId& subNetworkId, Timeout timeout = Timeout::Infinite());
-				
-			private:
-				PrivateIdentity& identity_;
-				
-		};
+				const auto sendPacket = CoreMessage::IdentifyReply(receiveEndpoint).createPacket(
+					receivePacket.header.routine, identity_.nextPacketCount(), destination);
+				socket_.send(receiveEndpoint, sendPacket);
+			}
+		}
 		
 	}
 	
 }
 
-#endif

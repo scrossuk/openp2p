@@ -19,11 +19,11 @@ namespace OpenP2P {
 			public:
 				PrivateIdentity(const PrivateKey&, uint64_t packetCount = 0);
 				
-				inline uint64_t packetCount() {
-					return packetCount_;
+				inline uint64_t nextPacketCount() const {
+					return nextPacketCount_;
 				}
 				
-				inline PrivateKey privateKey() {
+				inline const PrivateKey& privateKey() const {
 					return privateKey_;
 				}
 				
@@ -31,7 +31,7 @@ namespace OpenP2P {
 				
 			private:
 				PrivateKey privateKey_;
-				uint64_t packetCount_;
+				uint64_t nextPacketCount_;
 				
 		};
 		

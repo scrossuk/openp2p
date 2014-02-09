@@ -18,7 +18,9 @@ namespace OpenP2P {
 		
 			class PublicKey {
 				public:
-					inline PublicKey(RandomPool& pool, PrivateKey& privateKey) {
+					inline PublicKey() { }
+					
+					inline PublicKey(RandomPool& pool, const PrivateKey& privateKey) {
 						((CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey&) privateKey).MakePublicKey(publicKey_);
 						
 						if (!publicKey_.Validate(pool, 3)) {

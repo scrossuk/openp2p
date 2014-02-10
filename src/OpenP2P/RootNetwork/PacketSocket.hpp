@@ -13,12 +13,13 @@
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
+#include <OpenP2P/RootNetwork/SignedPacket.hpp>
 
 namespace OpenP2P {
 
 	namespace RootNetwork {
-	
-		class PacketSocket: public Socket<Endpoint, Packet> {
+		
+		class PacketSocket: public Socket<Endpoint, SignedPacket> {
 			public:
 				inline PacketSocket(Socket<UDP::Endpoint, Buffer>& udpSocket)
 					: udpSocket_(udpSocket) { }
@@ -31,7 +32,7 @@ namespace OpenP2P {
 					return udpSocket_.eventSource();
 				}
 				
-				inline bool receive(Endpoint& endpoint, Packet& packet) {
+				inline bool receive(Endpoint& endpoint, SignedPacket& signedPacket) {
 					UDP::Endpoint udpEndpoint;
 					Buffer buffer;
 					if (!udpSocket_.receive(udpEndpoint, buffer)) {
@@ -43,17 +44,19 @@ namespace OpenP2P {
 					
 					BufferIterator bufferIterator(buffer);
 					BinaryIStream blockingReader(bufferIterator);
-					packet = ReadPacket(blockingReader);
+					signedPacket.packet = ReadPacket(blockingReader);
+					signedPacket.signature = ReadSignature(blockReader);
 					return true;
 				}
 				
-				inline bool send(const Endpoint& endpoint, const Packet& packet) {
+				inline bool send(const Endpoint& endpoint, const SignedPacket& signedPacket) {
 					assert(endpoint.kind == Endpoint::UDPIPV6);
 					
 					Buffer buffer;
 					BufferBuilder bufferBuilder(buffer);
 					BinaryOStream blockingWriter(bufferBuilder);
-					WritePacket(blockingWriter, packet);
+					WritePacket(blockingWriter, signedPacket.packet);
+					WriteSignature(blockingWriter, signedPacket.signature);
 					return udpSocket_.send(endpoint.udpEndpoint, buffer);
 				}
 				

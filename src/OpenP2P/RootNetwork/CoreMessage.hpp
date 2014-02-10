@@ -41,7 +41,7 @@ namespace OpenP2P {
 				
 				Buffer toPayload() const;
 				
-				Packet createPacket(uint32_t routine, uint64_t messageCounter, const NodeId& destinationId) const;
+				Packet createPacket(uint32_t routine, const NodeId& destinationId) const;
 				
 			private:
 				CoreMessage(Kind kind, State state);

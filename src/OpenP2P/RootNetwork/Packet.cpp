@@ -33,9 +33,7 @@ namespace OpenP2P {
 			header.length = length;
 			header.routine = Binary::ReadUint32(reader);
 			header.messageCounter = Binary::ReadUint64(reader);
-			
-			reader.readAll(header.destinationId.data(), header.destinationId.size());
-			
+			header.destinationId = NodeId::FromReader(reader);
 			return header;
 		}
 		
@@ -49,7 +47,7 @@ namespace OpenP2P {
 			Binary::WriteUint16(writer, header.length);
 			Binary::WriteUint32(writer, header.routine);
 			Binary::WriteUint64(writer, header.messageCounter);
-			writer.writeAll(header.destinationId.data(), header.destinationId.size());
+			header.destinationId.writeTo(writer);
 		}
 		
 		Packet ReadPacket(BlockingReader& reader) {

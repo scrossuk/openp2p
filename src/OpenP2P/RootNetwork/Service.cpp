@@ -18,17 +18,18 @@ namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		Service::Service(Socket<Endpoint, Packet>& socket, PrivateIdentity& identity)
-			: socket_(socket), identity_(identity), nextRoutine_(0) { }
+		Service::Service(Socket<Endpoint, Packet>& socket)
+			: socket_(socket), nextRoutine_(0) { }
 		
 		Service::~Service() { }
 		
 		NodeId Service::identifyEndpoint(const Endpoint& endpoint) {
-			NodeId destination;
-			destination.fill(0x00);
+			// Destination isn't known for IDENTIFY messages,
+			// so the ID field is zeroed.
+			const auto destinationId = NodeId::Zero();
 			
 			const uint32_t routineId = nextRoutine_++;
-			socket_.send(endpoint, CoreMessage::IdentifyRequest().createPacket(routineId, identity_.nextPacketCount(), destination));
+			socket_.send(endpoint, CoreMessage::IdentifyRequest().createPacket(routineId, destinationId));
 			
 			while (true) {
 				Endpoint receiveEndpoint;
@@ -46,10 +47,11 @@ namespace OpenP2P {
 				
 				printf("Got reply.\n");
 				
+				BufferIterator iterator(receivePacket.payload);
+				BinaryIStream blockingReader(iterator);
+				
 				// TODO.
-				NodeId sourceId;
-				sourceId.fill(0x00);
-				return sourceId;
+				return NodeId::FromReader(blockingReader);
 			}
 		}
 		
@@ -68,14 +70,12 @@ namespace OpenP2P {
 					continue;
 				}
 				
-				// TODO.
-				NodeId destination;
-				destination.fill(0x00);
+				const auto& senderId = receivePacket.header.destinationId;
 				
 				printf("Handling IDENTIFY request.\n");
 				
 				const auto sendPacket = CoreMessage::IdentifyReply(receiveEndpoint).createPacket(
-					receivePacket.header.routine, identity_.nextPacketCount(), destination);
+					receivePacket.header.routine, identity_.nextPacketCount(), senderId);
 				socket_.send(receiveEndpoint, sendPacket);
 			}
 		}

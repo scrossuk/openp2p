@@ -98,7 +98,7 @@ namespace OpenP2P {
 			return payload;
 		}
 		
-		Packet CoreMessage::createPacket(uint32_t routine, uint64_t messageCounter, const NodeId& destinationId) const {
+		Packet CoreMessage::createPacket(uint32_t routine, const NodeId& destinationId) const {
 			Packet packet;
 			packet.payload = toPayload();
 			packet.header.version = VERSION_1;
@@ -108,7 +108,10 @@ namespace OpenP2P {
 			packet.header.type = static_cast<uint8_t>(kind());
 			packet.header.length = MIN_PACKET_SIZE_BYTES + packet.payload.size();
 			packet.header.routine = routine;
-			packet.header.messageCounter = messageCounter;
+			
+			// This will be set when the packet is signed.
+			packet.header.messageCounter = 0;
+			
 			packet.header.destinationId = destinationId;
 			return packet;
 		}

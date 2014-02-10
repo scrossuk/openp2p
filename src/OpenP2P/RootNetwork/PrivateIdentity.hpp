@@ -5,16 +5,12 @@
 
 #include <OpenP2P/RootNetwork/Key.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
+#include <OpenP2P/RootNetwork/SignedPacket.hpp>
 
 namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		struct PacketSignature {
-			Buffer signature;
-			PublicKey publicKey;
-		};
-		
 		class PrivateIdentity {
 			public:
 				PrivateIdentity(const PrivateKey&, uint64_t packetCount = 0);

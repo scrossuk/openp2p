@@ -28,6 +28,8 @@ namespace OpenP2P {
 			PacketSignature sig;
 			sig.signature = signStream.signature();
 			sig.publicKey = Crypt::ECDSA::PublicKey(rand, privateKey_);
+			
+			assert(sig.signature.size() == SIGNATURE_SIZE_BYTES);
 			return sig;
 		}
 		

@@ -23,6 +23,8 @@ namespace OpenP2P {
 			}
 			
 		bool PublicIdentity::verify(const Packet& packet, const PacketSignature& sig) {
+			assert(sig.signature.size() == SIGNATURE_SIZE_BYTES);
+			
 			if (packet.header.messageCounter < nextPacketCount_) {
 				return false;
 			}

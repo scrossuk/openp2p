@@ -38,7 +38,16 @@ namespace OpenP2P {
 								oid = CryptoPP::ASN1::brainpoolP256r1();
 						}
 						
-						privateKey_.Initialize(pool, oid);
+						while (true) {
+							// Black box algorithm: keep generating keys
+							// until y = min(y, p - y).
+							privateKey_.Initialize(pool, oid);
+							CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey;
+							privateKey_.MakePublicKey(publicKey);
+							if (publicKey.GetPublicElement().y.GetBit(0) == 0) {
+								break;
+							}
+						}
 						
 						if (!privateKey_.Validate(pool, 3)) {
 							throw std::runtime_error("Generated private key is invalid.");

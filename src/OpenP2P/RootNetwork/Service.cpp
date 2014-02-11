@@ -51,11 +51,13 @@ namespace OpenP2P {
 				BinaryIStream blockingReader(iterator);
 				
 				// TODO.
-				return NodeId::FromReader(blockingReader);
+				return NodeId::Zero();
 			}
 		}
 		
 		void Service::processRequests() {
+			printf("Processing requests.\n");
+			
 			while (true) {
 				Endpoint receiveEndpoint;
 				Packet receivePacket;
@@ -75,7 +77,7 @@ namespace OpenP2P {
 				printf("Handling IDENTIFY request.\n");
 				
 				const auto sendPacket = CoreMessage::IdentifyReply(receiveEndpoint).createPacket(
-					receivePacket.header.routine, identity_.nextPacketCount(), senderId);
+					receivePacket.header.routine, senderId);
 				socket_.send(receiveEndpoint, sendPacket);
 			}
 		}

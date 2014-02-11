@@ -1,5 +1,6 @@
 #include <stdint.h>
-#include <iostream>
+#include <stdio.h>
+
 #include <OpenP2P.hpp>
 #include <OpenP2P/Crypt/AutoSeededRandomPool.hpp>
 #include <OpenP2P/RootNetwork.hpp>
@@ -17,7 +18,9 @@ int main() {
 	
 	RootNetwork::PacketSocket packetSocket(socket);
 	
-	RootNetwork::Service service(packetSocket, privateIdentity);
+	RootNetwork::AuthenticatedSocket authenticatedSocket(privateIdentity, packetSocket);
+	
+	RootNetwork::Service service(authenticatedSocket);
 	
 	const RootNetwork::NodeId nodeId = service.identifyEndpoint(UDP::Endpoint(IP::V4Address::Localhost(), 46668));
 	

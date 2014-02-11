@@ -1,7 +1,7 @@
 #ifndef OPENP2P_CRYPT_ECDSA_PUBLICKEY_HPP
 #define OPENP2P_CRYPT_ECDSA_PUBLICKEY_HPP
 
-#include <cstddef>
+#include <stddef.h>
 
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/ecp.h>
@@ -20,19 +20,24 @@ namespace OpenP2P {
 		
 			class PublicKey {
 				public:
-					inline PublicKey() { }
+					inline PublicKey() {
+						key_.AccessGroupParameters().SetPointCompression(true);
+					}
 					
 					inline PublicKey(RandomPool& pool, const PrivateKey& privateKey) {
-						((CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey&) privateKey).MakePublicKey(publicKey_);
+						((CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PrivateKey&) privateKey).MakePublicKey(key_);
 						
-						if (!publicKey_.Validate(pool, 3)) {
+						if (!key_.Validate(pool, 3)) {
 							throw std::runtime_error("Generated private key is invalid.");
 						}
+						
+						key_.AccessGroupParameters().SetPointCompression(true);
 					}
 					
 					inline static PublicKey FromBuffer(const Buffer& buffer) {
 						PublicKey publicKey;
-						publicKey.publicKey_.AccessGroupParameters().AssignFrom(CryptoPP::ASN1::brainpoolP256r1());
+						publicKey.key_.Initialize(CryptoPP::ASN1::brainpoolP256r1(), decltype(publicKey.key_)::Element());
+						publicKey.key_.AccessGroupParameters().SetPointCompression(true);
 						
 						CryptoPP::ByteQueue byteQueue;
 						
@@ -41,33 +46,33 @@ namespace OpenP2P {
 						byteQueue.Put(0x02);
 						byteQueue.Put(buffer.data(), buffer.size());
 						
-						publicKey.publicKey_.BERDecodePublicKey(byteQueue, false, 32);
+						publicKey.key_.BERDecodePublicKey(byteQueue, false, 1 + 32);
 						return publicKey;
 					}
 					
 					inline Buffer toBuffer() const {
 						CryptoPP::ByteQueue byteQueue;
-						publicKey.publicKey_.DEREncodePublicKey(byteQueue);
+						key_.DEREncodePublicKey(byteQueue);
 						
 						uint8_t formatByte = 0;
 						byteQueue.Get(formatByte);
 						assert(formatByte == 0x02);
 						
 						Buffer buffer(32, 0x00);
-						byteQueue.get(buffer.data(), buffer.size());
+						byteQueue.Get(buffer.data(), buffer.size());
 						return buffer;
 					}
 					
 					inline operator CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& () {
-						return publicKey_;
+						return key_;
 					}
 					
 					inline operator const CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey& () const {
-						return publicKey_;
+						return key_;
 					}
 					
 				private:
-					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey publicKey_;
+					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::PublicKey key_;
 					
 			};
 			

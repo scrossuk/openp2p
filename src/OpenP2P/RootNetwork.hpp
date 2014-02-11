@@ -1,6 +1,7 @@
 #ifndef OPENP2P_ROOTNETWORK_HPP
 #define OPENP2P_ROOTNETWORK_HPP
 
+#include <OpenP2P/RootNetwork/AuthenticatedSocket.hpp>
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
 #include <OpenP2P/RootNetwork/NetworkId.hpp>
 #include <OpenP2P/RootNetwork/NodeId.hpp>

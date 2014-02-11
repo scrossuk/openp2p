@@ -17,7 +17,9 @@ int main() {
 	
 	RootNetwork::PacketSocket packetSocket(socket);
 	
-	RootNetwork::Service service(packetSocket, privateIdentity);
+	RootNetwork::AuthenticatedSocket authenticatedSocket(privateIdentity, packetSocket);
+	
+	RootNetwork::Service service(authenticatedSocket);
 	
 	service.processRequests();
 	

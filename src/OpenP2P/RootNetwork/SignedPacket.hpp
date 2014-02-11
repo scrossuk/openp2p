@@ -19,6 +19,19 @@ namespace OpenP2P {
 			PacketSignature sig;
 			sig.signature.resize(SIGNATURE_SIZE_BYTES);
 			reader.readAll(sig.signature.data(), sig.signature.size());
+			
+			Buffer encodedPublicKey;
+			encodedPublicKey.resize(PUBLIC_KEY_SIZE_BYTES);
+			reader.readAll(encodedPublicKey.data(), encodedPublicKey.size());
+			sig.publicKey = PublicKey::FromBuffer(encodedPublicKey);
+			return sig;
+		}
+		
+		inline void WriteSignature(BlockingWriter& writer, const PacketSignature& sig) {
+			writer.writeAll(sig.signature.data(), sig.signature.size());
+			
+			const auto encodedPublicKey = sig.publicKey.toBuffer();
+			writer.writeAll(encodedPublicKey.data(), encodedPublicKey.size());
 		}
 		
 		struct SignedPacket {

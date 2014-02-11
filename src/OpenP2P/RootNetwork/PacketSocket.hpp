@@ -1,18 +1,14 @@
 #ifndef OPENP2P_ROOTNETWORK_PACKETSOCKET_HPP
 #define OPENP2P_ROOTNETWORK_PACKETSOCKET_HPP
 
-#include <assert.h>
-#include <stdint.h>
-
 #include <OpenP2P/Buffer.hpp>
-
-#include <OpenP2P/Stream/BinaryStream.hpp>
+#include <OpenP2P/Socket.hpp>
 
 #include <OpenP2P/Event/Source.hpp>
-#include <OpenP2P/Event/Wait.hpp>
+
+#include <OpenP2P/UDP/Endpoint.hpp>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
-#include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/SignedPacket.hpp>
 
 namespace OpenP2P {
@@ -21,46 +17,20 @@ namespace OpenP2P {
 		
 		class PacketSocket: public Socket<Endpoint, SignedPacket> {
 			public:
-				inline PacketSocket(Socket<UDP::Endpoint, Buffer>& udpSocket)
-					: udpSocket_(udpSocket) { }
+				PacketSocket(Socket<UDP::Endpoint, Buffer>& udpSocket);
 				
-				inline bool isValid() const {
-					return udpSocket_.isValid();
-				}
+				bool isValid() const;
 				
-				inline Event::Source eventSource() const {
-					return udpSocket_.eventSource();
-				}
+				Event::Source eventSource() const;
 				
-				inline bool receive(Endpoint& endpoint, SignedPacket& signedPacket) {
-					UDP::Endpoint udpEndpoint;
-					Buffer buffer;
-					if (!udpSocket_.receive(udpEndpoint, buffer)) {
-						return false;
-					}
-					
-					endpoint.kind = Endpoint::UDPIPV6;
-					endpoint.udpEndpoint = udpEndpoint;
-					
-					BufferIterator bufferIterator(buffer);
-					BinaryIStream blockingReader(bufferIterator);
-					signedPacket.packet = ReadPacket(blockingReader);
-					signedPacket.signature = ReadSignature(blockReader);
-					return true;
-				}
+				bool receive(Endpoint& endpoint, SignedPacket& signedPacket);
 				
-				inline bool send(const Endpoint& endpoint, const SignedPacket& signedPacket) {
-					assert(endpoint.kind == Endpoint::UDPIPV6);
-					
-					Buffer buffer;
-					BufferBuilder bufferBuilder(buffer);
-					BinaryOStream blockingWriter(bufferBuilder);
-					WritePacket(blockingWriter, signedPacket.packet);
-					WriteSignature(blockingWriter, signedPacket.signature);
-					return udpSocket_.send(endpoint.udpEndpoint, buffer);
-				}
+				bool send(const Endpoint& endpoint, const SignedPacket& signedPacket);
 				
 			private:
+				PacketSocket(const PacketSocket&) = delete;
+				PacketSocket& operator=(PacketSocket) = delete;
+				
 				Socket<UDP::Endpoint, Buffer>& udpSocket_;
 				
 		};

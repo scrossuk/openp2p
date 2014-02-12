@@ -3,65 +3,39 @@
 
 #include <stdint.h>
 
-#include <string>
-
-#include <cryptopp/eccrypto.h>
-#include <cryptopp/ecp.h>
-#include <cryptopp/filters.h>
-#include <cryptopp/sha.h>
+#include <memory>
 
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
-
-#include <OpenP2P/Crypt/RandomPool.hpp>
-#include <OpenP2P/Crypt/ECDSA/PrivateKey.hpp>
 
 namespace OpenP2P {
 
 	namespace Crypt {
 	
+		class RandomPool;
+		
 		namespace ECDSA {
 		
+			class PrivateKey;
+			
 			class SignStream: public OStream {
 				public:
-					inline SignStream(RandomPool& pool, const PrivateKey& privateKey)
-						: signer_(privateKey) {
-						
-						filter_ = new CryptoPP::SignerFilter(pool, signer_, new CryptoPP::StringSink(signature_));
-					}
+					SignStream(RandomPool& pool, const PrivateKey& privateKey);
+					~SignStream();
 					
-					inline ~SignStream() {
-						delete filter_;
-					}
+					bool isValid() const;
 					
-					inline bool isValid() const {
-						return true;
-					}
+					Event::Source eventSource() const;
 					
-					inline Event::Source eventSource() const {
-						return Event::Source();
-					}
+					size_t write(const uint8_t* data, size_t size);
 					
-					inline size_t write(const uint8_t* data, size_t size) {
-						// Apparently this always returns 0,
-						// which means success...
-						(void) filter_->Put((const byte*) data, size);
-						return size;
-					}
-					
-					inline Buffer signature() {
-						filter_->MessageEnd();
-						
-						return Buffer(signature_.begin(), signature_.end());
-					}
+					Buffer signature();
 					
 				private:
 					SignStream(const SignStream&) = delete;
 					SignStream& operator=(SignStream) = delete;
 					
-					std::string signature_;
-					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Signer signer_;
-					CryptoPP::Filter* filter_;
+					std::unique_ptr<struct SignStreamImpl> impl_;
 					
 			};
 			

@@ -3,10 +3,10 @@
 
 #include <stdint.h>
 
+#include <memory>
+
 #include <OpenP2P/Buffer.hpp>
 #include <OpenP2P/Stream.hpp>
-
-#include <OpenP2P/Crypt/ECDSA/PublicKey.hpp>
 
 namespace OpenP2P {
 
@@ -14,46 +14,26 @@ namespace OpenP2P {
 	
 		namespace ECDSA {
 		
+			class PublicKey;
+			
 			class VerifyStream: public OStream {
 				public:
-					inline VerifyStream(const PublicKey& publicKey, const Buffer& signature)
-						: verifier_(publicKey), isValid_(false) {
-						
-						filter_ = new CryptoPP::SignatureVerificationFilter(
-							verifier_,
-							new CryptoPP::ArraySink((byte*) &isValid_, sizeof(isValid_))
-						);
-						filter_->Put(&signature[0], signature.size());
-					}
+					VerifyStream(const PublicKey& publicKey, const Buffer& signature);
+					~VerifyStream();
 					
-					inline ~VerifyStream() {
-						delete filter_;
-					}
+					bool isValid() const;
 					
-					inline bool isValid() const {
-						return true;
-					}
+					Event::Source eventSource() const;
 					
-					inline Event::Source eventSource() const {
-						return Event::Source();
-					}
+					size_t write(const uint8_t* data, size_t size);
 					
-					inline size_t write(const uint8_t* data, size_t size) {
-						// Apparently this always returns 0,
-						// which means success...
-						(void) filter_->Put((byte*) data, size);
-						return size;
-					}
-					
-					inline bool isSignatureValid() {
-						filter_->MessageEnd();
-						return isValid_;
-					}
+					bool isSignatureValid();
 					
 				private:
-					CryptoPP::ECDSA<CryptoPP::ECP, CryptoPP::SHA256>::Verifier verifier_;
-					CryptoPP::Filter* filter_;
-					bool isValid_;
+					VerifyStream(const VerifyStream&) = delete;
+					VerifyStream& operator=(VerifyStream) = delete;
+					
+					std::unique_ptr<struct VerifyStreamImpl> impl_;
 					
 			};
 			

@@ -21,6 +21,8 @@ namespace OpenP2P {
 				
 				NodeId identifyEndpoint(const Endpoint& endpoint);
 				
+				Endpoint pingNode(const Endpoint& endpoint, const NodeId& nodeId);
+				
 				void processRequests();
 				
 			private:

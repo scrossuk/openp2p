@@ -26,6 +26,10 @@ int main() {
 	
 	(void) nodeId;
 	
+	const auto endpoint = service.pingNode(UDP::Endpoint(IP::V4Address::Localhost(), 46668), RootNetwork::NodeId());
+	
+	printf("My endpoint is '%s'.\n", endpoint.udpEndpoint.toString().c_str());
+	
 	return 0;
 }
 

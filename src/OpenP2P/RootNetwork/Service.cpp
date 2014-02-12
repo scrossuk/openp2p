@@ -45,13 +45,40 @@ namespace OpenP2P {
 					continue;
 				}
 				
-				printf("Got reply.\n");
+				printf("Got IDENTIFY reply.\n");
 				
 				BufferIterator iterator(receivePacket.payload);
 				BinaryIStream blockingReader(iterator);
 				
 				// TODO.
 				return NodeId::Zero();
+			}
+		}
+		
+		Endpoint Service::pingNode(const Endpoint& endpoint, const NodeId& nodeId) {
+			const uint32_t routineId = nextRoutine_++;
+			socket_.send(endpoint, CoreMessage::PingRequest().createPacket(routineId, nodeId));
+			
+			while (true) {
+				Endpoint receiveEndpoint;
+				Packet receivePacket;
+				const bool result = socket_.receive(receiveEndpoint, receivePacket);
+				if (!result) {
+					Event::Wait(socket_.eventSource());
+					continue;
+				}
+				
+				if (receivePacket.header.routine != routineId) {
+					packetQueue_.push(receivePacket);
+					continue;
+				}
+				
+				printf("Got PING reply.\n");
+				
+				BufferIterator iterator(receivePacket.payload);
+				BinaryIStream blockingReader(iterator);
+				
+				return Endpoint::Read(blockingReader);
 			}
 		}
 		
@@ -67,18 +94,26 @@ namespace OpenP2P {
 					continue;
 				}
 				
-				if (receivePacket.header.type != CoreMessage::IDENTIFY) {
+				if (receivePacket.header.type == CoreMessage::IDENTIFY) {
+					const auto& senderId = receivePacket.header.destinationId;
+					
+					printf("Handling IDENTIFY request.\n");
+					
+					const auto sendPacket = CoreMessage::IdentifyReply(receiveEndpoint).createPacket(
+						receivePacket.header.routine, senderId);
+					socket_.send(receiveEndpoint, sendPacket);
+				} else if (receivePacket.header.type == CoreMessage::PING) {
+					const auto& senderId = receivePacket.header.destinationId;
+					
+					printf("Handling PING request.\n");
+					
+					const auto sendPacket = CoreMessage::PingReply(receiveEndpoint).createPacket(
+						receivePacket.header.routine, senderId);
+					socket_.send(receiveEndpoint, sendPacket);
+				} else {
 					printf("Unknown type.\n");
 					continue;
 				}
-				
-				const auto& senderId = receivePacket.header.destinationId;
-				
-				printf("Handling IDENTIFY request.\n");
-				
-				const auto sendPacket = CoreMessage::IdentifyReply(receiveEndpoint).createPacket(
-					receivePacket.header.routine, senderId);
-				socket_.send(receiveEndpoint, sendPacket);
 			}
 		}
 		

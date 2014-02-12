@@ -73,12 +73,12 @@ namespace OpenP2P {
 			switch (kind()) {
 				case IDENTIFY:
 					if (state() == STATE_1) {
-						// TODO
+						endpoint().writeTo(writer);
 					}
 					break;
 				case PING:
 					if (state() == STATE_1) {
-						// TODO
+						endpoint().writeTo(writer);
 					}
 					break;
 				case QUERY_NETWORKS:

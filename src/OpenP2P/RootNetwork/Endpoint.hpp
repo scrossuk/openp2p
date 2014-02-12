@@ -4,6 +4,8 @@
 #include <OpenP2P/TCP/Endpoint.hpp>
 #include <OpenP2P/UDP/Endpoint.hpp>
 
+#include <OpenP2P/Stream/BinaryStream.hpp>
+
 namespace OpenP2P {
 
 	namespace RootNetwork {
@@ -20,22 +22,12 @@ namespace OpenP2P {
 			UDP::Endpoint udpEndpoint;
 			TCP::Endpoint tcpEndpoint;
 			
-			inline static Endpoint UDP(const UDP::Endpoint& udpEndpoint) {
-				Endpoint endpoint;
-				
-				// TODO: detect this.
-				endpoint.kind = UDPIPV6;
-				
-				endpoint.udpEndpoint = udpEndpoint;
-				return endpoint;
-			}
+			Endpoint();
+			Endpoint(const UDP::Endpoint& udpEndpoint);
 			
-			inline Endpoint()
-				: kind(LOCAL) { }
+			static Endpoint Read(BlockingReader& reader);
 			
-			inline Endpoint(const UDP::Endpoint& pUdpEndpoint)
-				// TODO: detect this.
-				: kind(UDPIPV6), udpEndpoint(pUdpEndpoint) { }
+			void writeTo(BlockingWriter& writer) const;
 		};
 		
 	}

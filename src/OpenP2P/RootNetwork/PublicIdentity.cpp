@@ -35,7 +35,7 @@ namespace OpenP2P {
 			BinaryOStream binStream(verifyStream);
 			WritePacket(binStream, packet);
 			
-			return verifyStream.isValid();
+			return verifyStream.isSignatureValid();
 		}
 		
 	}

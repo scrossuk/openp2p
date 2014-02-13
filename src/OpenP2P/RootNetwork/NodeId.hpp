@@ -1,6 +1,8 @@
 #ifndef OPENP2P_ROOTNETWORK_NODEID_HPP
 #define OPENP2P_ROOTNETWORK_NODEID_HPP
 
+#include <stdint.h>
+
 #include <array>
 #include <functional>
 

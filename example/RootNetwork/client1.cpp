@@ -30,6 +30,17 @@ int main() {
 	
 	printf("My endpoint is '%s'.\n", endpoint.udpEndpoint.toString().c_str());
 	
+	const auto networks = service.queryNetworks(UDP::Endpoint(IP::V4Address::Localhost(), 46668), RootNetwork::NodeId());
+	
+	printf("Node supports %llu networks.\n", (unsigned long long) networks.size());
+	
+	for (size_t i = 0; i < networks.size(); i++) {
+		printf("    Network %llu: %s.\n", (unsigned long long) i, networks.at(i).hexString().c_str());
+		if (networks.at(i) == RootNetwork::NetworkId::Generate("test")) {
+			printf("         -> Supports 'test' network.\n");
+		}
+	}
+	
 	return 0;
 }
 

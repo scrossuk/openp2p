@@ -21,6 +21,8 @@ int main() {
 	
 	RootNetwork::Service service(authenticatedSocket);
 	
+	service.addNetwork("test");
+	
 	service.processRequests();
 	
 	return 0;

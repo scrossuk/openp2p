@@ -83,7 +83,9 @@ namespace OpenP2P {
 					break;
 				case QUERY_NETWORKS:
 					if (state() == STATE_1) {
-						// TODO
+						for (size_t i = 0; i < networks().size(); i++) {
+							networks().at(i).writeTo(writer);
+						}
 					}
 					break;
 				case KEY_EXCHANGE:

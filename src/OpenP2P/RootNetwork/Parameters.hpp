@@ -7,7 +7,7 @@ namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		constexpr size_t NETWORK_ID_SIZE_BITS = 128;
+		constexpr size_t NETWORK_ID_SIZE_BITS = 64;
 		constexpr size_t NETWORK_ID_SIZE_BYTES = NETWORK_ID_SIZE_BITS / 8;
 		
 		constexpr size_t NODE_ID_SIZE_BITS = 256;

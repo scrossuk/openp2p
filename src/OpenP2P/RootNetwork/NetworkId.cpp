@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <array>
 
 #include <boost/functional/hash.hpp>

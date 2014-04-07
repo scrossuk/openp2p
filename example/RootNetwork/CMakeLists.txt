@@ -18,6 +18,7 @@ target_link_libraries(client1
 	boost_thread
 	boost_system
 	cryptopp
+	pthread
 	)
 
 target_link_libraries(client2
@@ -32,5 +33,6 @@ target_link_libraries(client2
 	boost_thread
 	boost_system
 	cryptopp
+	pthread
 	)
 

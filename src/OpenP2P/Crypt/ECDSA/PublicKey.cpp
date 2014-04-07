@@ -1,5 +1,7 @@
 #include <stddef.h>
 
+#include <stdexcept>
+
 #include <cryptopp/eccrypto.h>
 #include <cryptopp/ecp.h>
 #include <cryptopp/sha.h>

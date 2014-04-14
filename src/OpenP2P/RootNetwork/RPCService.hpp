@@ -1,5 +1,5 @@
-#ifndef OPENP2P_ROOTNETWORK_SERVICE_HPP
-#define OPENP2P_ROOTNETWORK_SERVICE_HPP
+#ifndef OPENP2P_ROOTNETWORK_RPCSERVICE_HPP
+#define OPENP2P_ROOTNETWORK_RPCSERVICE_HPP
 
 #include <stdint.h>
 
@@ -15,10 +15,10 @@ namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		class Service {
+		class RPCService {
 			public:
-				Service(Socket<Endpoint, Packet>& socket);
-				~Service();
+				RPCService(Socket<Endpoint, Packet>& socket);
+				~RPCService();
 				
 				void addNetwork(const std::string& networkName);
 				
@@ -32,12 +32,11 @@ namespace OpenP2P {
 				
 			private:
 				// Non-copyable.
-				Service(const Service&) = delete;
-				Service& operator=(Service) = delete;
+				RPCService(const RPCService&) = delete;
+				RPCService& operator=(RPCService) = delete;
 				
 				Socket<Endpoint, Packet>& socket_;
 				uint32_t nextRoutine_;
-				std::queue<Packet> packetQueue_;
 				std::vector<NetworkId> networks_;
 				
 		};

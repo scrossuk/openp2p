@@ -11,8 +11,12 @@ namespace OpenP2P {
 		
 		class Generator {
 			public:
-				Generator();
+				Generator(bool initialState = false);
 				~Generator();
+				
+				// Moveable.
+				Generator(Generator&& other);
+				Generator& operator=(Generator&&);
 				
 				void activate();
 				
@@ -21,7 +25,7 @@ namespace OpenP2P {
 			private:
 				// Non-copyable.
 				Generator(const Generator&) = delete;
-				Generator& operator=(Generator) = delete;
+				Generator& operator=(const Generator&) = delete;
 				
 				std::unique_ptr<struct GeneratorImpl> impl_;
 				

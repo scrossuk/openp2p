@@ -8,5 +8,5 @@ add_library(openp2p-rootnetwork STATIC
 	PacketSocket.cpp
 	PrivateIdentity.cpp
 	PublicIdentity.cpp
-	Service.cpp
+	RPCService.cpp
 	)

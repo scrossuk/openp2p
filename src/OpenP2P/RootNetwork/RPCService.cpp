@@ -13,22 +13,22 @@
 #include <OpenP2P/RootNetwork/NodeId.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/PublicIdentity.hpp>
-#include <OpenP2P/RootNetwork/Service.hpp>
+#include <OpenP2P/RootNetwork/RPCService.hpp>
 
 namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		Service::Service(Socket<Endpoint, Packet>& socket)
+		RPCService::RPCService(Socket<Endpoint, Packet>& socket)
 			: socket_(socket), nextRoutine_(0) { }
 		
-		Service::~Service() { }
+		RPCService::~RPCService() { }
 		
-		void Service::addNetwork(const std::string& networkName) {
+		void RPCService::addNetwork(const std::string& networkName) {
 			networks_.push_back(NetworkId::Generate(networkName));
 		}
 		
-		NodeId Service::identifyEndpoint(const Endpoint& endpoint) {
+		NodeId RPCService::identifyEndpoint(const Endpoint& endpoint) {
 			// Destination isn't known for IDENTIFY messages,
 			// so the ID field is zeroed.
 			const auto destinationId = NodeId::Zero();
@@ -45,8 +45,9 @@ namespace OpenP2P {
 					continue;
 				}
 				
-				if (receivePacket.header.routine != routineId) {
-					packetQueue_.push(receivePacket);
+				if (receivePacket.header.routine != routineId ||
+					receivePacket.header.state != STATE_1 ||
+					receivePacket.header.type != CoreMessage::IDENTIFY) {
 					continue;
 				}
 				
@@ -60,7 +61,7 @@ namespace OpenP2P {
 			}
 		}
 		
-		Endpoint Service::pingNode(const Endpoint& endpoint, const NodeId& nodeId) {
+		Endpoint RPCService::pingNode(const Endpoint& endpoint, const NodeId& nodeId) {
 			const uint32_t routineId = nextRoutine_++;
 			socket_.send(endpoint, CoreMessage::PingRequest().createPacket(routineId, nodeId));
 			
@@ -73,8 +74,9 @@ namespace OpenP2P {
 					continue;
 				}
 				
-				if (receivePacket.header.routine != routineId) {
-					packetQueue_.push(receivePacket);
+				if (receivePacket.header.routine != routineId ||
+					receivePacket.header.state != STATE_1 ||
+					receivePacket.header.type != CoreMessage::PING) {
 					continue;
 				}
 				
@@ -87,7 +89,7 @@ namespace OpenP2P {
 			}
 		}
 		
-		std::vector<NetworkId> Service::queryNetworks(const Endpoint& endpoint, const NodeId& nodeId) {
+		std::vector<NetworkId> RPCService::queryNetworks(const Endpoint& endpoint, const NodeId& nodeId) {
 			const uint32_t routineId = nextRoutine_++;
 			socket_.send(endpoint, CoreMessage::QueryNetworksRequest().createPacket(routineId, nodeId));
 			
@@ -100,8 +102,9 @@ namespace OpenP2P {
 					continue;
 				}
 				
-				if (receivePacket.header.routine != routineId) {
-					packetQueue_.push(receivePacket);
+				if (receivePacket.header.routine != routineId ||
+					receivePacket.header.state != STATE_1 ||
+					receivePacket.header.type != CoreMessage::QUERY_NETWORKS) {
 					continue;
 				}
 				
@@ -122,7 +125,7 @@ namespace OpenP2P {
 			}
 		}
 		
-		void Service::processRequests() {
+		void RPCService::processRequests() {
 			printf("Processing requests.\n");
 			
 			while (true) {

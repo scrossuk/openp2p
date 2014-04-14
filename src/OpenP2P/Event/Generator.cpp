@@ -12,7 +12,7 @@ namespace OpenP2P {
 	
 		struct GeneratorImpl: public SourceImpl {
 			public:
-				GeneratorImpl() : isActivated_(false) { }
+				GeneratorImpl(bool initialState) : isActivated_(initialState) { }
 				
 				void activate() {
 					std::lock_guard<std::mutex> lock(mutex_);
@@ -53,10 +53,18 @@ namespace OpenP2P {
 				
 		};
 		
-		Generator::Generator()
-			: impl_(new GeneratorImpl()) { }
+		Generator::Generator(bool initialState)
+			: impl_(new GeneratorImpl(initialState)) { }
 			
 		Generator::~Generator() { }
+		
+		Generator::Generator(Generator&& other)
+			: impl_(std::move(other.impl_)) { }
+		
+		Generator& Generator::operator=(Generator&& other) {
+			std::swap(impl_, other.impl_);
+			return *this;
+		}
 		
 		void Generator::activate() {
 			impl_->activate();

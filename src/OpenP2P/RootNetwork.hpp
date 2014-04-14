@@ -10,6 +10,6 @@
 #include <OpenP2P/RootNetwork/Parameters.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/PublicIdentity.hpp>
-#include <OpenP2P/RootNetwork/Service.hpp>
+#include <OpenP2P/RootNetwork/RPCService.hpp>
 
 #endif

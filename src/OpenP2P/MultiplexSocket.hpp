@@ -1,7 +1,15 @@
 #ifndef OPENP2P_MULTIPLEXSOCKET_HPP
 #define OPENP2P_MULTIPLEXSOCKET_HPP
 
-#include <boost/thread.hpp>
+#include <stdint.h>
+
+#include <deque>
+#include <mutex>
+
+#include <OpenP2P/Socket.hpp>
+
+#include <OpenP2P/Event/MultiGenerator.hpp>
+#include <OpenP2P/Event/Source.hpp>
 
 namespace OpenP2P {
 	
@@ -9,75 +17,158 @@ namespace OpenP2P {
 	class MultiplexHost {
 		public:
 			MultiplexHost(Socket<EndpointType, MessageType>& socket)
-				: nextClientId_(0), socket_(socket) { }
+				: socket_(socket), multiGenerator_(socket.eventSource()),
+				basePosition_(0ull), numClients_(0ull) { }
 			
-			bool isValid() const {
-				return socket_.isValid();
-			}
-			
-			size_t addClient() {
-				const size_t clientId = nextClientId_++;
-				clientPositions_.insert(std::make_pair(clientId, currentPosition_));
-				return clientId;
-			}
-			
-			void removeClient(size_t clientId) {
-				clientPositions_.erase(clientId);
-			}
-			
-			Event::Source eventSource(size_t clientId) const {
+			uint64_t addClient() {
+				std::lock_guard<std::mutex> lock(mutex_);
 				
+				numClients_++;
+				return basePosition_;
+			}
+			
+			void removeClient(uint64_t clientPosition) {
+				std::lock_guard<std::mutex> lock(mutex_);
+				
+				assert(clientPosition >= basePosition_);
+				numClients_--;
+				
+				const auto queuePosition = clientPosition - basePosition_;
+				
+				// Reduce consume count of messages read by this client.
+				for (size_t i = 0; i < queuePosition; i++) {
+					messageQueue_.at(i).consumeCount--;
+				}
+			}
+			
+			bool isValid(uint64_t clientPosition) const {
+				std::lock_guard<std::mutex> lock(mutex_);
+				
+				assert(clientPosition >= basePosition_);
+				const auto currentPosition = basePosition_ + static_cast<uint64_t>(messageQueue_.size());
+				
+				if (clientPosition < currentPosition) {
+					// Make sure client reads all queued data.
+					return true;
+				} else {
+					return socket_.isValid();
+				}
+			}
+			
+			Event::MultiGenerator& eventGenerator() {
+				return multiGenerator_;
+			}
+			
+			const Event::MultiGenerator& eventGenerator() const {
+				return multiGenerator_;
 			}
 			
 			bool send(const EndpointType& endpoint, const MessageType& message) {
+				std::lock_guard<std::mutex> lock(mutex_);
 				return socket_.send(endpoint, message);
 			}
 			
-			bool receive(size_t clientId, EndpointType& endpoint, MessageType& message) {
-				while (!messageQueue_.empty()) {
-					if (messageQueue_.top().consumeCount >= clientPositions_
+			bool receive(uint64_t clientPosition, EndpointType& endpoint, MessageType& message) {
+				std::lock_guard<std::mutex> lock(mutex_);
+				
+				assert(clientPosition >= basePosition_);
+				const auto currentPosition = basePosition_ + static_cast<uint64_t>(messageQueue_.size());
+				
+				if (clientPosition < currentPosition) {
+					const auto queuePosition = clientPosition - basePosition_;
+					auto& messageData = messageQueue_.back();
+					endpoint = messageData.endpoint;
+					message = messageData.message;
+					messageData.consumeCount++;
+					
+					if (queuePosition == 0 && messageData.consumeCount == numClients_) {
+						basePosition_++;
+						messageQueue_.pop_front();
+					}
+					
+					return true;
+				} else {
+					// Try to read from the socket.
+					const bool result = socket_.receive(endpoint, message);
+					if (!result) return false;
+					
+					if (numClients_ > 1) {
+						messageQueue_.push_back(QueuedMessage(endpoint, message, 1ull));
+					}
+					
+					return true;
 				}
 			}
 			
 		private:
+			// Non-copyable.
+			MultiplexHost(const MultiplexHost<EndpointType, MessageType>&) = delete;
+			MultiplexHost<EndpointType, MessageType>& operator=(MultiplexHost<EndpointType, MessageType>) = delete;
+			
 			struct QueuedMessage {
 				EndpointType endpoint;
 				MessageType message;
 				size_t consumeCount;
+				
+				inline QueuedMessage(const EndpointType& pEndpoint,
+						const MessageType& pMessage, size_t pConsumeCount)
+					: endpoint(pEndpoint), message(pMessage),
+					consumeCount(pConsumeCount) { }
 			};
 			
-			size_t nextClientId_;
+			mutable std::mutex mutex_;
 			Socket<EndpointType, MessageType>& socket_;
-			size_t currentPosition_;
-			std::queue<QueuedMessage> messageQueue_;
-			std::map<size_t, size_t> clientPositions_;
+			Event::MultiGenerator multiGenerator_;
+			uint64_t basePosition_;
+			size_t numClients_;
+			std::deque<QueuedMessage> messageQueue_;
 			
 	};
 	
 	template <typename EndpointType, typename MessageType>
-	class MultiplexClient {
+	class MultiplexClient: public Socket<EndpointType, MessageType> {
 		public:
 			MultiplexClient(MultiplexHost<EndpointType, MessageType>& host)
-				: host_(host) { }
+				: host_(host), position_(0ull), clientId_(0ull) {
+					position_ = host_.addClient();
+					clientId_ = host_.eventGenerator().addClient();
+				}
+				
+			~MultiplexClient() {
+				host_.eventGenerator().removeClient(clientId_);
+				host_.removeClient(position_);
+			}
+			
+			// Moveable.
+			MultiplexClient(MultiplexClient<EndpointType, MessageType>&&) = default;
+			MultiplexClient<EndpointType, MessageType>& operator=(MultiplexClient<EndpointType, MessageType>&&) = default;
 			
 			bool isValid() const {
-				return host_.isValid();
+				return host_.isValid(position_);
 			}
 			
 			Event::Source eventSource() const {
-				return host_.eventSource();
+				return host_.eventGenerator().eventSource(clientId_);
 			}
 			
 			bool send(const EndpointType& endpoint, const MessageType& message) {
-				
+				return host_.send(endpoint, message);
 			}
 			
 			bool receive(EndpointType& endpoint, MessageType& message) {
-				
+				const bool result = host_.receive(position_, endpoint, message);
+				if (result) position_++;
+				return result;
 			}
 			
 		private:
+			// Non-copyable.
+			MultiplexClient(const MultiplexClient<EndpointType, MessageType>&) = delete;
+			MultiplexClient<EndpointType, MessageType>& operator=(const MultiplexClient<EndpointType, MessageType>&) = delete;
+			
 			MultiplexHost<EndpointType, MessageType>& host_;
+			uint64_t position_;
+			size_t clientId_;
 			
 	};
 	

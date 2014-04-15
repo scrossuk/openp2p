@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <OpenP2P/RootNetwork/Key.hpp>
+#include <OpenP2P/RootNetwork/NodeId.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 
@@ -17,13 +18,11 @@ namespace OpenP2P {
 				
 				PublicIdentity(const PrivateIdentity&);
 				
-				inline uint64_t nextPacketCount() const {
-					return nextPacketCount_;
-				}
+				uint64_t nextPacketCount() const;
 				
-				inline const PublicKey& publicKey() const {
-					return publicKey_;
-				}
+				const PublicKey& publicKey() const;
+				
+				NodeId id() const;
 				
 				bool verify(const Packet&, const PacketSignature&);
 				

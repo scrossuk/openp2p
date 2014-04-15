@@ -8,8 +8,9 @@
 #include <OpenP2P/Socket.hpp>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
+#include <OpenP2P/RootNetwork/Message.hpp>
 #include <OpenP2P/RootNetwork/NetworkId.hpp>
-#include <OpenP2P/RootNetwork/Packet.hpp>
+#include <OpenP2P/RootNetwork/RoutineIdGenerator.hpp>
 
 namespace OpenP2P {
 
@@ -17,7 +18,7 @@ namespace OpenP2P {
 	
 		class RPCService {
 			public:
-				RPCService(Socket<Endpoint, Packet>& socket);
+				RPCService(Socket<Endpoint, Message>& socket, RoutineIdGenerator& routineIdGenerator);
 				~RPCService();
 				
 				void addNetwork(const std::string& networkName);
@@ -35,8 +36,8 @@ namespace OpenP2P {
 				RPCService(const RPCService&) = delete;
 				RPCService& operator=(RPCService) = delete;
 				
-				Socket<Endpoint, Packet>& socket_;
-				uint32_t nextRoutine_;
+				Socket<Endpoint, Message>& socket_;
+				RoutineIdGenerator& routineIdGenerator_;
 				std::vector<NetworkId> networks_;
 				
 		};

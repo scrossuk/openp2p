@@ -5,6 +5,7 @@
 #include <OpenP2P/Crypt/ECDSA/VerifyStream.hpp>
 
 #include <OpenP2P/RootNetwork/Key.hpp>
+#include <OpenP2P/RootNetwork/NodeId.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/PublicIdentity.hpp>
@@ -21,7 +22,19 @@ namespace OpenP2P {
 				Crypt::AutoSeededRandomPool rand;
 				publicKey_ = PublicKey(rand, identity.privateKey());
 			}
-			
+		
+		uint64_t PublicIdentity::nextPacketCount() const {
+			return nextPacketCount_;
+		}
+		
+		const PublicKey& PublicIdentity::publicKey() const {
+			return publicKey_;
+		}
+		
+		NodeId PublicIdentity::id() const {
+			return NodeId::Generate(publicKey_);
+		}
+		
 		bool PublicIdentity::verify(const Packet& packet, const PacketSignature& sig) {
 			assert(sig.signature.size() == SIGNATURE_SIZE_BYTES);
 			

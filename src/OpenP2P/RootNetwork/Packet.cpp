@@ -25,15 +25,15 @@ namespace OpenP2P {
 			header.sub = (((flagsByte >> 4) & 0x01) == 1);
 			header.type = ((flagsByte >> 0) & 0x0F);
 			
-			const uint16_t length = Binary::ReadUint16(reader);
-			if (length < MIN_PACKET_SIZE_BYTES) {
-				throw std::runtime_error("Packet length is less than minimum.");
-			}
-			
-			header.length = length;
+			header.length = Binary::ReadUint16(reader);
 			header.routine = Binary::ReadUint32(reader);
 			header.messageCounter = Binary::ReadUint64(reader);
 			header.destinationId = NodeId::FromReader(reader);
+			
+			if (header.sub) {
+				header.subnetworkId = NetworkId::FromReader(reader);
+			}
+			
 			return header;
 		}
 		
@@ -48,23 +48,46 @@ namespace OpenP2P {
 			Binary::WriteUint32(writer, header.routine);
 			Binary::WriteUint64(writer, header.messageCounter);
 			header.destinationId.writeTo(writer);
+			
+			if (header.sub) {
+				header.subnetworkId.writeTo(writer);
+			}
 		}
 		
 		Packet ReadPacket(BlockingReader& reader) {
 			Packet packet;
 			packet.header = ReadPacketHeader(reader);
 			
-			const size_t payloadSize = packet.header.length - MIN_PACKET_SIZE_BYTES;
-			packet.payload.resize(payloadSize);
+			packet.payload.resize(packet.header.length);
 			reader.readAll(packet.payload.data(), packet.payload.size());
+			
 			return packet;
 		}
 		
 		void WritePacket(BlockingWriter& writer, const Packet& packet) {
-			assert(packet.header.length >= MIN_PACKET_SIZE_BYTES);
-			assert(packet.header.length == (MIN_PACKET_SIZE_BYTES + packet.payload.size()));
+			assert(packet.header.length == packet.payload.size());
+			
 			WritePacketHeader(writer, packet.header);
 			writer.writeAll(packet.payload.data(), packet.payload.size());
+		}
+		
+		PacketSignature ReadSignature(BlockingReader& reader) {
+			PacketSignature sig;
+			sig.signature.resize(SIGNATURE_SIZE_BYTES);
+			reader.readAll(sig.signature.data(), sig.signature.size());
+			
+			Buffer encodedPublicKey;
+			encodedPublicKey.resize(PUBLIC_KEY_SIZE_BYTES);
+			reader.readAll(encodedPublicKey.data(), encodedPublicKey.size());
+			sig.publicKey = PublicKey::FromBuffer(encodedPublicKey);
+			return sig;
+		}
+		
+		void WriteSignature(BlockingWriter& writer, const PacketSignature& sig) {
+			writer.writeAll(sig.signature.data(), sig.signature.size());
+			
+			const auto encodedPublicKey = sig.publicKey.toBuffer();
+			writer.writeAll(encodedPublicKey.data(), encodedPublicKey.size());
 		}
 		
 	}

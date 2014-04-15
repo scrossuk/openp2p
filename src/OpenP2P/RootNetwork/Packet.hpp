@@ -7,6 +7,7 @@
 
 #include <OpenP2P/Stream/BinaryStream.hpp>
 
+#include <OpenP2P/RootNetwork/NetworkId.hpp>
 #include <OpenP2P/RootNetwork/NodeId.hpp>
 
 namespace OpenP2P {
@@ -43,6 +44,7 @@ namespace OpenP2P {
 			uint32_t routine; // 32 bits.
 			uint64_t messageCounter; // 64 bits.
 			NodeId destinationId; // 256 bits.
+			NetworkId subnetworkId; // If sub == true, 64 bits.
 			
 			inline PacketHeader()
 				: version(VERSION_INVALID),
@@ -56,9 +58,19 @@ namespace OpenP2P {
 				
 		};
 		
+		struct PacketSignature {
+			Buffer signature;
+			PublicKey publicKey;
+		};
+		
 		struct Packet {
 			PacketHeader header;
 			Buffer payload;
+		};
+		
+		struct SignedPacket {
+			Packet packet;
+			PacketSignature signature;
 		};
 		
 		PacketHeader ReadPacketHeader(BlockingReader& reader);
@@ -68,6 +80,10 @@ namespace OpenP2P {
 		Packet ReadPacket(BlockingReader& reader);
 		
 		void WritePacket(BlockingWriter& writer, const Packet& packet);
+		
+		PacketSignature ReadSignature(BlockingReader& reader);
+		
+		void WriteSignature(BlockingWriter& writer, const PacketSignature& sig);
 		
 	}
 	

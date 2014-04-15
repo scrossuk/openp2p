@@ -11,9 +11,9 @@ using namespace OpenP2P;
 
 class EventThread: public Runnable {
 	public:
-		EventThread(Socket<RootNetwork::Endpoint, RootNetwork::Packet>& socket)
-			: service_(socket) { }
-			
+		EventThread(Socket<RootNetwork::Endpoint, RootNetwork::Message>& socket, RootNetwork::RoutineIdGenerator& routineIdGenerator)
+			: service_(socket, routineIdGenerator) { }
+		
 		void run() {
 			service_.addNetwork("test");
 			service_.addNetwork("p2p.rootdht");
@@ -38,29 +38,43 @@ int main(int argc, char** argv) {
 	const auto myPort = atoi(argv[1]);
 	const auto otherPort = atoi(argv[2]);
 	
-	UDP::Socket socket(myPort);
+	UDP::Socket udpSocket(myPort);
 	
+	// Send/receive data on appropriate transport.
+	RootNetwork::TransportSocket transportSocket(udpSocket);
+	
+	// Serialize/unserialize packets.
+	RootNetwork::PacketSocket packetSocket(transportSocket);
+	
+	// Generate a private key for our node.
 	Crypt::AutoSeededRandomPool rand;
 	Crypt::ECDSA::PrivateKey privateKey(rand, Crypt::ECDSA::brainpoolP256r1);
 	
+	RootNetwork::IdentityDatabase identityDatabase;
 	RootNetwork::PrivateIdentity privateIdentity(privateKey);
 	
-	RootNetwork::PacketSocket packetSocket(socket);
+	printf("My id is '%s'.\n", privateIdentity.id().hexString().c_str());
 	
-	RootNetwork::AuthenticatedSocket authenticatedSocket(privateIdentity, packetSocket);
+	// Sign all outgoing packets and verify incoming packets.
+	RootNetwork::AuthenticatedSocket authenticatedSocket(identityDatabase, privateIdentity, packetSocket);
 	
-	MultiplexHost<RootNetwork::Endpoint, RootNetwork::Packet> multiplexHost(authenticatedSocket);
-	MultiplexClient<RootNetwork::Endpoint, RootNetwork::Packet> eventClient(multiplexHost);
-	MultiplexClient<RootNetwork::Endpoint, RootNetwork::Packet> rpcClient(multiplexHost);
+	// Multiplex messages for processing incoming requests in
+	// one thread while performing outgoing requests in another.
+	MultiplexHost<RootNetwork::Endpoint, RootNetwork::Message> multiplexHost(authenticatedSocket);
+	MultiplexClient<RootNetwork::Endpoint, RootNetwork::Message> eventSocket(multiplexHost);
+	MultiplexClient<RootNetwork::Endpoint, RootNetwork::Message> rpcSocket(multiplexHost);
 	
-	EventThread eventThreadRunnable(eventClient);
+	// Routine ID generator.
+	RootNetwork::RoutineIdGenerator routineIdGenerator;
+	
+	EventThread eventThreadRunnable(eventSocket, routineIdGenerator);
 	Thread eventThread(eventThreadRunnable);
 	
-	RootNetwork::RPCService service(rpcClient);
+	RootNetwork::RPCService service(rpcSocket, routineIdGenerator);
 	
-	const RootNetwork::NodeId nodeId = service.identifyEndpoint(UDP::Endpoint(IP::V4Address::Localhost(), otherPort));
+	const auto peerId = service.identifyEndpoint(UDP::Endpoint(IP::V4Address::Localhost(), otherPort));
 	
-	(void) nodeId;
+	printf("Peer's id is '%s'.\n", peerId.hexString().c_str());
 	
 	const auto endpoint = service.pingNode(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), RootNetwork::NodeId());
 	

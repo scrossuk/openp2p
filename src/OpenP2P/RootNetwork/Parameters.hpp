@@ -17,7 +17,6 @@ namespace OpenP2P {
 		constexpr size_t SIGNATURE_SIZE_BYTES = 64;
 		constexpr size_t PUBLIC_KEY_SIZE_BYTES = 32;
 		constexpr size_t IDENTITY_SIZE_BYTES = SIGNATURE_SIZE_BYTES + PUBLIC_KEY_SIZE_BYTES;
-		constexpr size_t MIN_PACKET_SIZE_BYTES = HEADER_SIZE_BYTES + IDENTITY_SIZE_BYTES;
 		
 		// Amount of concurrency for lookups.
 		constexpr size_t DHT_NUM_PROBES = 3;

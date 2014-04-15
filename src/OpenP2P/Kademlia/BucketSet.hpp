@@ -1,80 +1,77 @@
 #ifndef OPENP2P_KADEMLIA_BUCKETSET_HPP
 #define OPENP2P_KADEMLIA_BUCKETSET_HPP
 
+#include <array>
 #include <cstddef>
 #include <list>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
+#include <mutex>
+
 #include <OpenP2P/Kademlia/Id.hpp>
-#include <OpenP2P/Kademlia/Node.hpp>
 
 namespace OpenP2P {
 
 	namespace Kademlia {
 	
-		template <class EndpointType, size_t IdSize, size_t MaxBucketSize = 20>
+		template <class EndpointType, size_t ID_SIZE, size_t MAX_BUCKET_SIZE = 20>
 		class BucketSet {
 				typedef Id<IdSize> IdType;
-				typedef Node<EndpointType, IdSize> NodeType;
-				typedef std::vector<NodeType> GroupType;
-				typedef typename GroupType::iterator GroupIteratorType;
 				
 			public:
+				constexpr size_t ID_SIZE_IN_BITS = ID_SIZE * 8;
+				
 				BucketSet(const IdType& id) : id_(id) { }
 				
-				IdType getId() const {
+				const IdType& getId() const {
 					return id_;
 				}
 				
-				void add(const NodeType& node) {
-					if (id_ == node.id) {
+				void add(const IdType& id) {
+					if (id_ == id) {
 						return;
 					}
 					
-					Lock lock(mutex_);
-					size_t index = getBucket(node.id);
+					std::lock_guard<std::mutex> lock(mutex_);
 					
-					std::list<NodeType>& bucket = buckets_[index];
+					const size_t index = getBucket(id);
 					
-					for (typename std::list<NodeType>::iterator p = bucket.begin(); p != bucket.end(); ++p) {
-						if (p->id == node.id) {
-							bucket.erase(p);
-							bucket.push_front(node);
+					auto& bucket = buckets_.at(index);
+					
+					for (const auto& nodeId: bucket) {
+						if (nodeId == id) {
 							return;
 						}
 					}
 					
-					if (bucket.size() >= MaxBucketSize) {
+					if (bucket.size() >= MAX_BUCKET_SIZE) {
 						bucket.pop_back();
 					}
 					
-					bucket.push_front(node);
+					bucket.push_front(id);
 				}
 				
-				GroupType getNearest(const IdType& id, size_t number) {
-					Lock lock(mutex_);
-					size_t index = getBucket(id);
-					GroupType group;
+				std::vector<NodeType> getNearest(const IdType& id, size_t maxGroupSize) const {
+					std::lock_guard<std::mutex> lock(mutex_);
 					
-					for (size_t dist = 0; dist < IdSize && group.size() < number; dist++) {
-						size_t l = index - dist;
-						
-						if (l >= 0) {
-							const std::list<NodeType>& lbucket = buckets_[l];
-							
-							for (typename std::list<NodeType>::const_iterator p = lbucket.begin(); p != lbucket.end() && group.size() < number; ++p) {
-								group.push_back(*p);
+					const size_t index = getBucket(id);
+					std::vector<NodeType> group;
+					
+					for (size_t dist = 0; dist < IdSize && group.size() < maxGroupSize; dist++) {
+						if (index >= dist) {
+							for (const auto& nodeId: buckets_.at(index - dist)) {
+								if (group.size() >= maxGroupSize) {
+									break;
+								}
+								group.push_back(nodeId);
 							}
 						}
 						
-						
-						size_t r = index + dist + 1;
-						
-						if (r < IdSize) {
-							const std::list<NodeType>& rbucket = buckets_[r];
-							
-							for (typename std::list<NodeType>::const_iterator p = rbucket.begin(); p != rbucket.end() && group.size() < number; ++p) {
-								group.push_back(*p);
+						const auto rightPosition = index + dist + 1;
+						if (rightPosition < ID_SIZE_IN_BITS) {
+							for (const auto& nodeId: buckets_[rightPosition]) {
+								if (group.size() >= maxGroupSize) {
+									break;
+								}
+								group.push_back(nodeId);
 							}
 						}
 					}
@@ -82,26 +79,20 @@ namespace OpenP2P {
 					return group;
 				}
 				
-			private:
 				size_t getBucket(const IdType& id) const {
-					for (size_t i = 0; i < IdSize; ++i) {
-						uint8_t distance = id_.data[i] ^ id.data[i];
-						
-						if (distance != 0) {
-							for (uint8_t j = 0, m = (1 << 7); j < 8; ++j, m >>= 1) {
-								if (distance & m) {
-									return (i << 3) | j;
-								}
-							}
+					for (size_t i = 0; i < ID_SIZE_IN_BITS; ++i) {
+						if (id_.bitAt(i) != id.bitAt(i)) {
+							return i;
 						}
 					}
 					
-					return (IdSize << 3) - 1;
+					return ID_SIZE_IN_BITS - 1;
 				}
 				
-				Mutex mutex_;
-				const IdType id_;
-				std::list<NodeType> buckets_[IdSize << 3];
+			private:
+				mutable std::mutex mutex_;
+				IdType id_;
+				std::array<std::list<IdType>, ID_SIZE_IN_BITS> buckets_;
 				
 		};
 		

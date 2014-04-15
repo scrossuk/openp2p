@@ -9,7 +9,7 @@
 #include <OpenP2P/UDP/Endpoint.hpp>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
-#include <OpenP2P/RootNetwork/SignedPacket.hpp>
+#include <OpenP2P/RootNetwork/Packet.hpp>
 
 namespace OpenP2P {
 
@@ -17,21 +17,21 @@ namespace OpenP2P {
 		
 		class PacketSocket: public Socket<Endpoint, SignedPacket> {
 			public:
-				PacketSocket(Socket<UDP::Endpoint, Buffer>& udpSocket);
+				PacketSocket(Socket<Endpoint, Buffer>& socket);
 				
 				bool isValid() const;
 				
 				Event::Source eventSource() const;
 				
-				bool receive(Endpoint& endpoint, SignedPacket& signedPacket);
+				bool receive(Endpoint& endpoint, SignedPacket& packet);
 				
-				bool send(const Endpoint& endpoint, const SignedPacket& signedPacket);
+				bool send(const Endpoint& endpoint, const SignedPacket& packet);
 				
 			private:
 				PacketSocket(const PacketSocket&) = delete;
 				PacketSocket& operator=(PacketSocket) = delete;
 				
-				Socket<UDP::Endpoint, Buffer>& udpSocket_;
+				Socket<Endpoint, Buffer>& socket_;
 				
 		};
 		

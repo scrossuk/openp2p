@@ -1,0 +1,40 @@
+#ifndef OPENP2P_ROOTNETWORK_ROUTINEIDGENERATOR_HPP
+#define OPENP2P_ROOTNETWORK_ROUTINEIDGENERATOR_HPP
+
+#include <stdint.h>
+
+#include <mutex>
+
+namespace OpenP2P {
+
+	namespace RootNetwork {
+		
+		/**
+		 * \brief Routine ID Generator.
+		 * 
+		 * Thread safe class to generate routine ids. These
+		 * are just 32 bit unsigned values that automatically
+		 * roll over from (2^32 - 1) to 0 (it's assumed routines
+		 * will have ended by the time their ID is re-used).
+		 */
+		class RoutineIdGenerator {
+			public:
+				RoutineIdGenerator(uint32_t initialValue = 0);
+				
+				uint32_t generateId();
+				
+			private:
+				// Non-copyable.
+				RoutineIdGenerator(const RoutineIdGenerator&) = delete;
+				RoutineIdGenerator& operator=(const RoutineIdGenerator&) = delete;
+				
+				std::mutex mutex_;
+				uint32_t nextId_;
+				
+		};
+		
+	}
+	
+}
+
+#endif

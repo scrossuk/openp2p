@@ -9,18 +9,20 @@
 
 #include <OpenP2P/RootNetwork/CoreMessage.hpp>
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
+#include <OpenP2P/RootNetwork/Message.hpp>
 #include <OpenP2P/RootNetwork/NetworkId.hpp>
 #include <OpenP2P/RootNetwork/NodeId.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/PublicIdentity.hpp>
+#include <OpenP2P/RootNetwork/RoutineIdGenerator.hpp>
 #include <OpenP2P/RootNetwork/RPCService.hpp>
 
 namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		RPCService::RPCService(Socket<Endpoint, Packet>& socket)
-			: socket_(socket), nextRoutine_(0) { }
+		RPCService::RPCService(Socket<Endpoint, Message>& socket, RoutineIdGenerator& routineIdGenerator)
+			: socket_(socket), routineIdGenerator_(routineIdGenerator) { }
 		
 		RPCService::~RPCService() { }
 		
@@ -33,56 +35,52 @@ namespace OpenP2P {
 			// so the ID field is zeroed.
 			const auto destinationId = NodeId::Zero();
 			
-			const uint32_t routineId = nextRoutine_++;
-			socket_.send(endpoint, CoreMessage::IdentifyRequest().createPacket(routineId, destinationId));
+			const auto routineId = routineIdGenerator_.generateId();
+			socket_.send(endpoint, CoreMessage::IdentifyRequest().createMessage(routineId, NodeId::Zero(), destinationId));
 			
 			while (true) {
 				Endpoint receiveEndpoint;
-				Packet receivePacket;
-				const bool result = socket_.receive(receiveEndpoint, receivePacket);
+				Message receiveMessage;
+				const bool result = socket_.receive(receiveEndpoint, receiveMessage);
 				if (!result) {
 					Event::Wait(socket_.eventSource());
 					continue;
 				}
 				
-				if (receivePacket.header.routine != routineId ||
-					receivePacket.header.state != STATE_1 ||
-					receivePacket.header.type != CoreMessage::IDENTIFY) {
+				if (receiveMessage.routine != routineId ||
+					receiveMessage.routineState != STATE_1 ||
+					receiveMessage.type != CoreMessage::IDENTIFY) {
 					continue;
 				}
 				
 				printf("Got IDENTIFY reply.\n");
 				
-				BufferIterator iterator(receivePacket.payload);
-				BinaryIStream blockingReader(iterator);
-				
-				// TODO.
-				return NodeId::Zero();
+				return receiveMessage.sourceId;
 			}
 		}
 		
 		Endpoint RPCService::pingNode(const Endpoint& endpoint, const NodeId& nodeId) {
-			const uint32_t routineId = nextRoutine_++;
-			socket_.send(endpoint, CoreMessage::PingRequest().createPacket(routineId, nodeId));
+			const auto routineId = routineIdGenerator_.generateId();
+			socket_.send(endpoint, CoreMessage::PingRequest().createMessage(routineId, NodeId::Zero(), nodeId));
 			
 			while (true) {
 				Endpoint receiveEndpoint;
-				Packet receivePacket;
-				const bool result = socket_.receive(receiveEndpoint, receivePacket);
+				Message receiveMessage;
+				const bool result = socket_.receive(receiveEndpoint, receiveMessage);
 				if (!result) {
 					Event::Wait(socket_.eventSource());
 					continue;
 				}
 				
-				if (receivePacket.header.routine != routineId ||
-					receivePacket.header.state != STATE_1 ||
-					receivePacket.header.type != CoreMessage::PING) {
+				if (receiveMessage.routine != routineId ||
+					receiveMessage.routineState != STATE_1 ||
+					receiveMessage.type != CoreMessage::PING) {
 					continue;
 				}
 				
 				printf("Got PING reply.\n");
 				
-				BufferIterator iterator(receivePacket.payload);
+				BufferIterator iterator(receiveMessage.payload);
 				BinaryIStream blockingReader(iterator);
 				
 				return Endpoint::Read(blockingReader);
@@ -90,30 +88,30 @@ namespace OpenP2P {
 		}
 		
 		std::vector<NetworkId> RPCService::queryNetworks(const Endpoint& endpoint, const NodeId& nodeId) {
-			const uint32_t routineId = nextRoutine_++;
-			socket_.send(endpoint, CoreMessage::QueryNetworksRequest().createPacket(routineId, nodeId));
+			const auto routineId = routineIdGenerator_.generateId();
+			socket_.send(endpoint, CoreMessage::QueryNetworksRequest().createMessage(routineId, NodeId::Zero(), nodeId));
 			
 			while (true) {
 				Endpoint receiveEndpoint;
-				Packet receivePacket;
-				const bool result = socket_.receive(receiveEndpoint, receivePacket);
+				Message receiveMessage;
+				const bool result = socket_.receive(receiveEndpoint, receiveMessage);
 				if (!result) {
 					Event::Wait(socket_.eventSource());
 					continue;
 				}
 				
-				if (receivePacket.header.routine != routineId ||
-					receivePacket.header.state != STATE_1 ||
-					receivePacket.header.type != CoreMessage::QUERY_NETWORKS) {
+				if (receiveMessage.routine != routineId ||
+					receiveMessage.routineState != STATE_1 ||
+					receiveMessage.type != CoreMessage::QUERY_NETWORKS) {
 					continue;
 				}
 				
 				printf("Got QUERY_SUBNETWORKS reply.\n");
 				
-				BufferIterator iterator(receivePacket.payload);
+				BufferIterator iterator(receiveMessage.payload);
 				BinaryIStream blockingReader(iterator);
 				
-				const size_t networkCount = receivePacket.payload.size() / NETWORK_ID_SIZE_BYTES;
+				const size_t networkCount = receiveMessage.payload.size() / NETWORK_ID_SIZE_BYTES;
 				
 				std::vector<NetworkId> networks;
 				
@@ -130,47 +128,52 @@ namespace OpenP2P {
 			
 			while (true) {
 				Endpoint receiveEndpoint;
-				Packet receivePacket;
-				const bool result = socket_.receive(receiveEndpoint, receivePacket);
+				Message receiveMessage;
+				const bool result = socket_.receive(receiveEndpoint, receiveMessage);
 				if (!result) {
 					Event::Wait(socket_.eventSource());
 					continue;
 				}
 				
-				if (receivePacket.header.state != STATE_0) {
-					printf("Not a request.\n");
+				if (receiveMessage.routineState != STATE_0) {
+					// Not a request.
 					continue;
 				}
 				
-				switch (receivePacket.header.type) {
+				if (receiveMessage.subnetwork) {
+					// Request is for a subnetwork.
+					continue;
+				}
+				
+				switch (receiveMessage.type) {
 					case CoreMessage::IDENTIFY: {
-						const auto& senderId = receivePacket.header.destinationId;
+						const auto& senderId = receiveMessage.destinationId;
 						
 						printf("Handling IDENTIFY request.\n");
 						
-						const auto sendPacket = CoreMessage::IdentifyReply(receiveEndpoint).createPacket(
-							receivePacket.header.routine, senderId);
-						socket_.send(receiveEndpoint, sendPacket);
+						const auto sendMessage = CoreMessage::IdentifyReply(receiveEndpoint).createMessage(
+							receiveMessage.routine, NodeId::Zero(), senderId);
+						socket_.send(receiveEndpoint, sendMessage);
 						break;
 					}
 					case CoreMessage::PING: {
-						const auto& senderId = receivePacket.header.destinationId;
+						const auto& senderId = receiveMessage.destinationId;
 						
 						printf("Handling PING request.\n");
 						
-						const auto sendPacket = CoreMessage::PingReply(receiveEndpoint).createPacket(
-							receivePacket.header.routine, senderId);
-						socket_.send(receiveEndpoint, sendPacket);
+						const auto sendMessage = CoreMessage::PingReply(receiveEndpoint).createMessage(
+							receiveMessage.routine, NodeId::Zero(), senderId);
+						socket_.send(receiveEndpoint, sendMessage);
 						break;
 					}
 					case CoreMessage::QUERY_NETWORKS: {
-						const auto& senderId = receivePacket.header.destinationId;
+						const auto& senderId = receiveMessage.destinationId;
 						
 						printf("Handling QUERY_SUBNETWORKS request.\n");
 						
-						const auto sendPacket = CoreMessage::QueryNetworksReply(networks_).createPacket(
-							receivePacket.header.routine, senderId);
-						socket_.send(receiveEndpoint, sendPacket);
+						const auto sendMessage = CoreMessage::QueryNetworksReply(networks_).createMessage(
+							receiveMessage.routine, NodeId::Zero(), senderId);
+						socket_.send(receiveEndpoint, sendMessage);
 						break;
 					}
 					default: {

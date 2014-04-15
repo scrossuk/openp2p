@@ -11,17 +11,20 @@
 
 #include <OpenP2P/RootNetwork/AuthenticatedSocket.hpp>
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
+#include <OpenP2P/RootNetwork/IdentityDatabase.hpp>
+#include <OpenP2P/RootNetwork/Message.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/PrivateIdentity.hpp>
 #include <OpenP2P/RootNetwork/PublicIdentity.hpp>
-#include <OpenP2P/RootNetwork/SignedPacket.hpp>
 
 namespace OpenP2P {
 
 	namespace RootNetwork {
 	
-		AuthenticatedSocket::AuthenticatedSocket(PrivateIdentity& identity, Socket<Endpoint, SignedPacket>& socket)
-			: identity_(identity), socket_(socket) { }
+		AuthenticatedSocket::AuthenticatedSocket(IdentityDatabase& identityDatabase, PrivateIdentity& privateIdentity, Socket<Endpoint, SignedPacket>& socket)
+			: identityDatabase_(identityDatabase),
+			privateIdentity_(privateIdentity),
+			socket_(socket) { }
 			
 		bool AuthenticatedSocket::isValid() const {
 			return socket_.isValid();
@@ -31,40 +34,48 @@ namespace OpenP2P {
 			return socket_.eventSource();
 		}
 		
-		bool AuthenticatedSocket::receive(Endpoint& endpoint, Packet& packet) {
+		bool AuthenticatedSocket::receive(Endpoint& endpoint, Message& message) {
 			SignedPacket signedPacket;
 			
 			if (!socket_.receive(endpoint, signedPacket)) {
 				return false;
 			}
 			
-			// TODO: record message counter.
-			PublicIdentity publicIdentity(signedPacket.signature.publicKey, 0);
+			const auto& packet = signedPacket.packet;
 			
-			if (!publicIdentity.verify(signedPacket.packet, signedPacket.signature)) {
-				printf("Packet signature is invalid.\n");
+			auto& publicIdentity = identityDatabase_.getIdentity(signedPacket.signature.publicKey);
+			if (!publicIdentity.verify(packet, signedPacket.signature)) {
 				return false;
 			}
 			
-			printf("Received signed packet from '%s'.\n",
-				   NodeId::Generate(signedPacket.signature.publicKey).hexString().c_str());
-				   
-			packet = signedPacket.packet;
-			
+			message.sourceId = publicIdentity.id();
+			message.destinationId = packet.header.destinationId;
+			message.isError = packet.header.err;
+			message.subnetwork = packet.header.sub ? boost::make_optional(packet.header.subnetworkId) : boost::none;
+			message.type = packet.header.type;
+			message.routine = packet.header.routine;
+			message.routineState = packet.header.state;
+			message.payload = packet.payload;
 			return true;
 		}
 		
-		bool AuthenticatedSocket::send(const Endpoint& endpoint, const Packet& packet) {
-			// TODO: write message counter.
-			const auto signature = identity_.sign(packet);
-			
-			printf("Sending signed packet from '%s'.\n",
-				   NodeId::Generate(signature.publicKey).hexString().c_str());
-				   
+		bool AuthenticatedSocket::send(const Endpoint& endpoint, const Message& message) {
 			SignedPacket signedPacket;
-			signedPacket.packet = packet;
-			signedPacket.signature = signature;
+			auto& packet = signedPacket.packet;
+			packet.header.version = VERSION_1;
+			packet.header.state = message.routineState;
+			packet.header.err = message.isError;
+			packet.header.sub = message.subnetwork;
+			packet.header.type = message.type;
+			packet.header.length = message.payload.size();
+			packet.header.routine = message.routine;
+			packet.header.messageCounter = privateIdentity_.nextPacketCount();
+			packet.header.destinationId = message.destinationId;
+			packet.header.subnetworkId = message.subnetwork ? *(message.subnetwork) : NetworkId();
 			
+			packet.payload = message.payload;
+			
+			signedPacket.signature = privateIdentity_.sign(signedPacket.packet);
 			return socket_.send(endpoint, signedPacket);
 		}
 		

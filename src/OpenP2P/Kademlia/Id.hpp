@@ -1,39 +1,45 @@
 #ifndef OPENP2P_KADEMLIA_ID_HPP
 #define OPENP2P_KADEMLIA_ID_HPP
 
+#include <assert.h>
 #include <stdint.h>
+
+#include <array>
 #include <cstddef>
-#include <boost/array.hpp>
-#include <OpenP2P/BinaryStream.hpp>
 
 namespace OpenP2P {
 
 	namespace Kademlia {
 	
-		//Size given in bytes
-		template <size_t IdSize>
+		template <size_t ID_SIZE>
 		struct Id {
-			boost::array<uint8_t, IdSize> data;
+			constexpr size_t ID_SIZE_IN_BITS = ID_SIZE * 8;
 			
-			static Id<IdSize> Zero() {
-				Id<IdSize> id;
-				
-				for (size_t i = 0; i < IdSize; ++i) {
-					id.data[i] = 0;
-				}
-				
+			std::array<uint8_t, ID_SIZE> data;
+			
+			static Id<ID_SIZE> Zero() {
+				Id<ID_SIZE> id;
+				id.data.fill(0x00);
 				return id;
 			}
 			
-			static Id<IdSize> Max() {
+			static Id<ID_SIZE> Max() {
 				return ~(Zero());
+			}
+			
+			bool bitAt(size_t index) const {
+				const auto bitsInByte = 8;
+				assert(index < (ID_SIZE * bitsInByte));
+				const auto byte = data.at(index / bitsInByte);
+				const auto bitIndex = bitsInByte - 1 - (index % bitsInByte);
+				return ((byte >> bitIndex) & 1) == 1;
 			}
 		};
 		
-		template <size_t IdSize>
-		bool operator==(const Id<IdSize>& a, const Id<IdSize>& b) {
-			for (size_t i = 0; i < IdSize; i++) {
-				if (a.data[i] != b.data[i]) {
+		template <size_t ID_SIZE>
+		bool operator==(const Id<ID_SIZE>& a, const Id<ID_SIZE>& b) {
+			for (size_t i = 0; i < ID_SIZE; i++) {
+				if (a.data.at(i) != b.data.at(i)) {
 					return false;
 				}
 			}
@@ -41,52 +47,42 @@ namespace OpenP2P {
 			return true;
 		}
 		
-		template <size_t IdSize>
-		bool operator!=(const Id<IdSize>& a, const Id<IdSize>& b) {
+		template <size_t ID_SIZE>
+		bool operator!=(const Id<ID_SIZE>& a, const Id<ID_SIZE>& b) {
 			return !(a == b);
 		}
 		
-		template <size_t IdSize>
-		Id<IdSize> operator^(const Id<IdSize>& a, const Id<IdSize>& b) {
-			Id<IdSize> result;
+		template <size_t ID_SIZE>
+		Id<ID_SIZE> operator^(const Id<ID_SIZE>& a, const Id<ID_SIZE>& b) {
+			Id<ID_SIZE> result;
 			
-			for (size_t i = 0; i < IdSize; i++) {
+			for (size_t i = 0; i < ID_SIZE; i++) {
 				result.data[i] = a.data[i] ^ b.data[i];
 			}
 			
 			return result;
 		}
 		
-		template <size_t IdSize>
-		Id<IdSize> operator~(const Id<IdSize>& other) {
-			Id<IdSize> reverse;
+		template <size_t ID_SIZE>
+		Id<ID_SIZE> operator~(const Id<ID_SIZE>& other) {
+			Id<ID_SIZE> reverse;
 			
-			for (size_t i = 0; i < IdSize; ++i) {
-				reverse.data[i] = ~(other.data[i]);
+			for (size_t i = 0; i < ID_SIZE; ++i) {
+				reverse.data.at(i) = ~(other.data.at(i));
 			}
 			
 			return reverse;
 		}
 		
-		template <size_t IdSize>
-		bool operator<(const Id<IdSize>& a, const Id<IdSize>& b) {
-			for (size_t i = 0; i < IdSize; i++) {
-				if (a.data[i] != b.data[i]) {
-					return a.data[i] < b.data[i];
+		template <size_t ID_SIZE>
+		bool operator<(const Id<ID_SIZE>& a, const Id<ID_SIZE>& b) {
+			for (size_t i = 0; i < ID_SIZE; i++) {
+				if (a.data.at(i) != b.data.at(i)) {
+					return a.data.at(i) < b.data.at(i);
 				}
 			}
 			
 			return false;
-		}
-		
-		template <size_t IdSize>
-		BinaryIStream& operator>>(BinaryIStream& stream, Id<IdSize>& id) {
-			return stream >> id.data;
-		}
-		
-		template <size_t IdSize>
-		BinaryOStream& operator<<(BinaryOStream& stream, const Id<IdSize>& id) {
-			return stream << id.data;
 		}
 		
 	}

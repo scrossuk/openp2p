@@ -4,9 +4,9 @@
 #include <vector>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
+#include <OpenP2P/RootNetwork/Message.hpp>
 #include <OpenP2P/RootNetwork/NetworkId.hpp>
 #include <OpenP2P/RootNetwork/NodeId.hpp>
-#include <OpenP2P/RootNetwork/Packet.hpp>
 
 namespace OpenP2P {
 
@@ -41,7 +41,7 @@ namespace OpenP2P {
 				
 				Buffer toPayload() const;
 				
-				Packet createPacket(uint32_t routine, const NodeId& destinationId) const;
+				Message createMessage(uint32_t routine, const NodeId& sourceId, const NodeId& destinationId) const;
 				
 			private:
 				CoreMessage(Kind kind, State state);

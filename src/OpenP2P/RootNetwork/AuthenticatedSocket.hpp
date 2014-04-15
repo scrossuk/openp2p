@@ -6,8 +6,9 @@
 #include <OpenP2P/Event/Source.hpp>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
+#include <OpenP2P/RootNetwork/IdentityDatabase.hpp>
+#include <OpenP2P/RootNetwork/Message.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
-#include <OpenP2P/RootNetwork/SignedPacket.hpp>
 
 namespace OpenP2P {
 
@@ -15,24 +16,25 @@ namespace OpenP2P {
 	
 		class PrivateIdentity;
 		
-		class AuthenticatedSocket: public Socket<Endpoint, Packet> {
+		class AuthenticatedSocket: public Socket<Endpoint, Message> {
 			public:
-				AuthenticatedSocket(PrivateIdentity& identity, Socket<Endpoint, SignedPacket>& socket);
+				AuthenticatedSocket(IdentityDatabase& identityDatabase, PrivateIdentity& privateIdentity, Socket<Endpoint, SignedPacket>& socket);
 				
 				bool isValid() const;
 				
 				Event::Source eventSource() const;
 				
-				bool receive(Endpoint& endpoint, Packet& packet);
+				bool receive(Endpoint& endpoint, Message& message);
 				
-				bool send(const Endpoint& endpoint, const Packet& packet);
+				bool send(const Endpoint& endpoint, const Message& message);
 				
 			private:
 				// Non-blocking.
 				AuthenticatedSocket(const AuthenticatedSocket&) = delete;
 				AuthenticatedSocket& operator=(AuthenticatedSocket) = delete;
 				
-				PrivateIdentity& identity_;
+				IdentityDatabase& identityDatabase_;
+				PrivateIdentity& privateIdentity_;
 				Socket<Endpoint, SignedPacket>& socket_;
 				
 		};

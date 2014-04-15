@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 #include <OpenP2P/RootNetwork/Key.hpp>
+#include <OpenP2P/RootNetwork/NodeId.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
-#include <OpenP2P/RootNetwork/SignedPacket.hpp>
 
 namespace OpenP2P {
 
@@ -15,13 +15,11 @@ namespace OpenP2P {
 			public:
 				PrivateIdentity(const PrivateKey&, uint64_t packetCount = 0);
 				
-				inline uint64_t nextPacketCount() const {
-					return nextPacketCount_;
-				}
+				uint64_t nextPacketCount() const;
 				
-				inline const PrivateKey& privateKey() const {
-					return privateKey_;
-				}
+				const PrivateKey& privateKey() const;
+				
+				NodeId id() const;
 				
 				PacketSignature sign(const Packet&);
 				

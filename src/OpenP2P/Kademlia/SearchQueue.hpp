@@ -1,21 +1,15 @@
 #ifndef OPENP2P_KADEMLIA_SEARCHQUEUE_HPP
 #define OPENP2P_KADEMLIA_SEARCHQUEUE_HPP
 
-#include <cstddef>
-#include <queue>
 #include <map>
-#include <boost/optional.hpp>
-
-#include <OpenP2P/Kademlia/Id.hpp>
+#include <vector>
 
 namespace OpenP2P {
 
 	namespace Kademlia {
 	
-		template <class EndpointType, size_t ID_SIZE>
+		template <typename IdType>
 		class SearchQueue {
-				typedef Id<ID_SIZE> IdType;
-				
 				struct Compare {
 					const IdType& id_;
 					
@@ -35,7 +29,7 @@ namespace OpenP2P {
 				
 			public:
 				SearchQueue(const IdType& targetId) : targetId_(targetId), map_(Compare(targetId_)) { }
-					
+				
 				IdType distance() const {
 					return map_.empty() ? IdType::Max() : map_.begin()->first ^ targetId_;
 				}
@@ -45,7 +39,7 @@ namespace OpenP2P {
 				}
 				
 				void add(const IdType& id) {
-					map_.insert(id);
+					map_.emplace(id, false);
 				}
 				
 				bool isNearestVisited() const {

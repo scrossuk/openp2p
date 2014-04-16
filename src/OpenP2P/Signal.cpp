@@ -1,44 +1,39 @@
-#include <map>
-#include <boost/thread.hpp>
+#include <condition_variable>
+#include <mutex>
 
-#include <OpenP2P/Condition.hpp>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Signal.hpp>
-#include <OpenP2P/Timeout.hpp>
 
 namespace OpenP2P {
 
 	Signal::Signal() : isActivated_(false) { }
 	
 	void Signal::activate() {
-		Lock lock(mutex_);
-		cond_.notifyAll();
+		std::lock_guard<std::mutex> lock(mutex_);
+		condition_.notify_all();
 		isActivated_ = true;
 	}
 	
 	void Signal::reset() {
-		Lock lock(mutex_);
+		std::lock_guard<std::mutex> lock(mutex_);
 		isActivated_ = false;
 	}
 	
-	bool Signal::isActivated() {
-		Lock lock(mutex_);
+	bool Signal::isActivated() const {
+		std::lock_guard<std::mutex> lock(mutex_);
 		return isActivated_;
 	}
 	
-	bool Signal::wait(Timeout timeout) {
-		Lock lock(mutex_);
+	void Signal::wait() {
+		std::unique_lock<std::mutex> lock(mutex_);
 		
-		if (!isActivated_) {
-			return cond_.wait(lock, timeout);
-		} else {
-			return true;
+		while (!isActivated_) {
+			condition_.wait(lock);
 		}
 	}
 	
 	void Signal::cancel() {
-		cond_.notifyAll();
+		std::lock_guard<std::mutex> lock(mutex_);
+		condition_.notify_all();
 	}
 	
 }

@@ -1,15 +1,12 @@
 #ifndef OPENP2P_SIGNAL_HPP
 #define OPENP2P_SIGNAL_HPP
 
-#include <boost/utility.hpp>
-
-#include <OpenP2P/Condition.hpp>
-#include <OpenP2P/Mutex.hpp>
-#include <OpenP2P/Timeout.hpp>
+#include <condition_variable>
+#include <mutex>
 
 namespace OpenP2P {
 
-	class Signal: boost::noncopyable {
+	class Signal {
 		public:
 			Signal();
 			
@@ -17,15 +14,19 @@ namespace OpenP2P {
 			
 			void reset();
 			
-			bool isActivated();
+			bool isActivated() const;
 			
-			bool wait(Timeout timeout = Timeout::Infinite());
+			void wait();
 			
 			void cancel();
 			
 		private:
-			Mutex mutex_;
-			Condition cond_;
+			// Non-copyable.
+			Signal(const Signal&) = delete;
+			Signal& operator=(const Signal&) = delete;
+			
+			mutable std::mutex mutex_;
+			std::condition_variable condition_;
 			bool isActivated_;
 			
 	};

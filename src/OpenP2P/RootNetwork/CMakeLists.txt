@@ -2,8 +2,9 @@ add_library(openp2p-rootnetwork STATIC
 	AuthenticatedSocket.cpp
 	CoreMessage.cpp
 	Endpoint.cpp
-	IdentityDatabase.cpp
+	EndpointMapSocket.cpp
 	NetworkId.cpp
+	NodeDatabase.cpp
 	NodeId.cpp
 	Packet.cpp
 	PacketSocket.cpp

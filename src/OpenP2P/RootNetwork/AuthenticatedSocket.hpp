@@ -6,8 +6,8 @@
 #include <OpenP2P/Event/Source.hpp>
 
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
-#include <OpenP2P/RootNetwork/IdentityDatabase.hpp>
 #include <OpenP2P/RootNetwork/Message.hpp>
+#include <OpenP2P/RootNetwork/NodeDatabase.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 
 namespace OpenP2P {
@@ -18,7 +18,7 @@ namespace OpenP2P {
 		
 		class AuthenticatedSocket: public Socket<Endpoint, Message> {
 			public:
-				AuthenticatedSocket(IdentityDatabase& identityDatabase, PrivateIdentity& privateIdentity, Socket<Endpoint, SignedPacket>& socket);
+				AuthenticatedSocket(NodeDatabase& nodeDatabase, PrivateIdentity& privateIdentity, Socket<Endpoint, SignedPacket>& socket);
 				
 				bool isValid() const;
 				
@@ -33,7 +33,7 @@ namespace OpenP2P {
 				AuthenticatedSocket(const AuthenticatedSocket&) = delete;
 				AuthenticatedSocket& operator=(AuthenticatedSocket) = delete;
 				
-				IdentityDatabase& identityDatabase_;
+				NodeDatabase& nodeDatabase_;
 				PrivateIdentity& privateIdentity_;
 				Socket<Endpoint, SignedPacket>& socket_;
 				

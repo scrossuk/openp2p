@@ -3,12 +3,12 @@
 
 #include <vector>
 
+#include <OpenP2P/Event/Source.hpp>
+
 namespace OpenP2P {
 
 	namespace Event {
 	
-		class Source;
-		
 		void Wait(const std::vector<Source>& sources);
 		
 		inline void Wait(Source source) {

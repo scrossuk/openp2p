@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
 	
 	TCP::Resolver resolver;
 	
-	const auto endpointList = resolver.resolve(domain, "http", Timeout::Seconds(5.0));
+	const auto endpointList = resolver.resolve(domain, "http");
 	
 	if (!endpointList) {
 		std::cout << "Failed to resolve." << std::endl;

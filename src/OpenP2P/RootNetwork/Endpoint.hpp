@@ -27,6 +27,8 @@ namespace OpenP2P {
 			
 			static Endpoint Read(BlockingReader& reader);
 			
+			bool operator<(const Endpoint& endpoint) const;
+			
 			void writeTo(BlockingWriter& writer) const;
 		};
 		

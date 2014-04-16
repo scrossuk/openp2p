@@ -3,8 +3,8 @@
 
 #include <OpenP2P/RootNetwork/AuthenticatedSocket.hpp>
 #include <OpenP2P/RootNetwork/Endpoint.hpp>
-#include <OpenP2P/RootNetwork/IdentityDatabase.hpp>
 #include <OpenP2P/RootNetwork/NetworkId.hpp>
+#include <OpenP2P/RootNetwork/NodeDatabase.hpp>
 #include <OpenP2P/RootNetwork/NodeId.hpp>
 #include <OpenP2P/RootNetwork/Packet.hpp>
 #include <OpenP2P/RootNetwork/PacketSocket.hpp>

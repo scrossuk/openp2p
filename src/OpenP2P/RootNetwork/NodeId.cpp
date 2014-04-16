@@ -21,6 +21,10 @@ namespace OpenP2P {
 			return NodeId();
 		}
 		
+		NodeId NodeId::Max() {
+			return ~(NodeId::Zero());
+		}
+		
 		NodeId NodeId::FromReader(BlockingReader& reader) {
 			NodeId id;
 			reader.readAll(id.data_.data(), id.data_.size());
@@ -47,12 +51,44 @@ namespace OpenP2P {
 			writer.writeAll(data_.data(), data_.size());
 		}
 		
+		bool NodeId::bitAt(size_t index) const {
+			constexpr auto bitsInByte = 8;
+			assert(index < NodeId::SIZE_IN_BITS);
+			const auto byte = data_.at(index / bitsInByte);
+			const auto bitIndex = bitsInByte - 1 - (index % bitsInByte);
+			return ((byte >> bitIndex) & 1) == 1;
+		}
+		
 		bool NodeId::operator==(const NodeId& other) const {
 			return data_ == other.data_;
 		}
 		
+		bool NodeId::operator!=(const NodeId& other) const {
+			return !(*this == other);
+		}
+		
 		bool NodeId::operator<(const NodeId& other) const {
 			return data_ < other.data_;
+		}
+		
+		NodeId NodeId::operator^(const NodeId& other) const {
+			NodeId result;
+			
+			for (size_t i = 0; i < data_.size(); i++) {
+				result.data_.at(i) = data_.at(i) ^ other.data_.at(i);
+			}
+			
+			return result;
+		}
+		
+		NodeId NodeId::operator~() const {
+			NodeId reverse;
+			
+			for (size_t i = 0; i < data_.size(); i++) {
+				reverse.data_.at(i) = ~(data_.at(i));
+			}
+			
+			return reverse;
 		}
 		
 		std::size_t NodeId::hash() const {

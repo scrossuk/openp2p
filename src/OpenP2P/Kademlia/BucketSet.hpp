@@ -2,23 +2,17 @@
 #define OPENP2P_KADEMLIA_BUCKETSET_HPP
 
 #include <array>
-#include <cstddef>
 #include <list>
 #include <mutex>
-
-#include <OpenP2P/Kademlia/Id.hpp>
+#include <vector>
 
 namespace OpenP2P {
 
 	namespace Kademlia {
 	
-		template <class EndpointType, size_t ID_SIZE, size_t MAX_BUCKET_SIZE = 20>
+		template <typename IdType, size_t MAX_BUCKET_SIZE = 20>
 		class BucketSet {
-				typedef Id<IdSize> IdType;
-				
 			public:
-				constexpr size_t ID_SIZE_IN_BITS = ID_SIZE * 8;
-				
 				BucketSet(const IdType& id) : id_(id) { }
 				
 				const IdType& getId() const {
@@ -66,7 +60,7 @@ namespace OpenP2P {
 						}
 						
 						const auto rightPosition = index + dist + 1;
-						if (rightPosition < ID_SIZE_IN_BITS) {
+						if (rightPosition < IdType::SIZE_IN_BITS) {
 							for (const auto& nodeId: buckets_[rightPosition]) {
 								if (group.size() >= maxGroupSize) {
 									break;
@@ -79,20 +73,20 @@ namespace OpenP2P {
 					return group;
 				}
 				
+			private:
 				size_t getBucket(const IdType& id) const {
-					for (size_t i = 0; i < ID_SIZE_IN_BITS; ++i) {
+					for (size_t i = 0; i < IdType::SIZE_IN_BITS; ++i) {
 						if (id_.bitAt(i) != id.bitAt(i)) {
 							return i;
 						}
 					}
 					
-					return ID_SIZE_IN_BITS - 1;
+					return IdType::SIZE_IN_BITS - 1;
 				}
 				
-			private:
 				mutable std::mutex mutex_;
 				IdType id_;
-				std::array<std::list<IdType>, ID_SIZE_IN_BITS> buckets_;
+				std::array<std::list<IdType>, IdType::SIZE_IN_BITS> buckets_;
 				
 		};
 		

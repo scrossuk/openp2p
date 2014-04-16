@@ -71,6 +71,7 @@ namespace OpenP2P {
 		
 		Acceptor::~Acceptor() { }
 		
+		// TODO: make this non-blocking!
 		bool Acceptor::accept(Stream& stream) {
 			bool acceptResult = false;
 			
@@ -78,13 +79,9 @@ namespace OpenP2P {
 			
 			impl_->acceptor.async_accept(stream.getInternal(), boost::bind(acceptCallback, &signal, &acceptResult, _1));
 			
-			if (signal.wait()) {
-				return acceptResult;
-			} else {
-				impl_->acceptor.cancel();
-				signal.wait();
-				return false;
-			}
+			signal.wait();
+			
+			return acceptResult;
 		}
 		
 	}

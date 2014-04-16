@@ -58,6 +58,25 @@ namespace OpenP2P {
 			}
 			return endpoint;
 		}
+		
+		bool Endpoint::operator<(const Endpoint& endpoint) const {
+			if (kind != endpoint.kind) {
+				return kind < endpoint.kind;
+			}
+			
+			switch (kind) {
+				case LOCAL:
+					return false;
+				case UDPIPV4:
+				case UDPIPV6:
+					return udpEndpoint < endpoint.udpEndpoint;
+				case TCPIPV4:
+				case TCPIPV6:
+					return tcpEndpoint < endpoint.tcpEndpoint;
+				default:
+					return false;
+			}
+		}
 			
 		void Endpoint::writeTo(BlockingWriter& writer) const {
 			Binary::WriteUint8(writer, static_cast<uint8_t>(kind));

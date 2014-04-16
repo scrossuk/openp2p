@@ -4,10 +4,6 @@
 #include <memory>
 
 #include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/Condition.hpp>
-#include <OpenP2P/IOService.hpp>
-#include <OpenP2P/Lock.hpp>
-#include <OpenP2P/Mutex.hpp>
 #include <OpenP2P/Socket.hpp>
 
 #include <OpenP2P/UDP/Endpoint.hpp>

@@ -17,17 +17,27 @@ namespace OpenP2P {
 	
 		class NodeId {
 			public:
+				static constexpr size_t SIZE_IN_BITS = NODE_ID_SIZE_BITS;
+				
 				NodeId();
 				
 				static NodeId Zero();
+				static NodeId Max();
+				
 				static NodeId FromReader(BlockingReader& reader);
 				
 				static NodeId Generate(const PublicKey& publicKey);
 				
 				void writeTo(BlockingWriter& writer) const;
 				
+				bool bitAt(size_t index) const;
+				
 				bool operator==(const NodeId&) const;
+				bool operator!=(const NodeId&) const;
 				bool operator<(const NodeId&) const;
+				
+				NodeId operator^(const NodeId&) const;
+				NodeId operator~() const;
 				
 				std::size_t hash() const;
 				

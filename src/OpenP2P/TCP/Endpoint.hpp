@@ -18,6 +18,10 @@ namespace OpenP2P {
 				
 			inline Endpoint(const IP::Address& pAddress, uint16_t pPort)
 				: address(pAddress), port(pPort) { }
+			
+			inline bool operator<(const Endpoint& other) const {
+				return (address != other.address) ? (address < other.address) : (port < other.port);
+			}
 		};
 		
 	}

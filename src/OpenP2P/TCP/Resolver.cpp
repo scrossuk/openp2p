@@ -6,7 +6,6 @@
 
 #include <OpenP2P/IOService.hpp>
 #include <OpenP2P/Signal.hpp>
-#include <OpenP2P/Timeout.hpp>
 
 #include <OpenP2P/TCP/Endpoint.hpp>
 #include <OpenP2P/TCP/Resolver.hpp>
@@ -39,7 +38,8 @@ namespace OpenP2P {
 		
 		Resolver::Resolver() : internalResolver_(GetIOService()) { }
 		
-		boost::optional< std::vector<TCP::Endpoint> > Resolver::resolve(const std::string& host, const std::string& service, Timeout timeout) {
+		// TODO: make this non-blocking!
+		boost::optional< std::vector<TCP::Endpoint> > Resolver::resolve(const std::string& host, const std::string& service) {
 			boost::asio::ip::tcp::resolver::query query(host, service);
 			
 			bool resolveResult = false;
@@ -48,16 +48,11 @@ namespace OpenP2P {
 			
 			std::vector<TCP::Endpoint> endpointList;
 			
-			internalResolver_.async_resolve(query,
-											boost::bind(resolveCallback, &signal, &resolveResult, &endpointList, _1, _2));
+			internalResolver_.async_resolve(query, boost::bind(resolveCallback, &signal, &resolveResult, &endpointList, _1, _2));
 											
-			if (signal.wait(timeout)) {
-				return resolveResult ? boost::make_optional(endpointList) : boost::optional< std::vector<TCP::Endpoint> >();
-			} else {
-				internalResolver_.cancel();
-				signal.wait();
-				return boost::optional< std::vector<TCP::Endpoint> >();
-			}
+			signal.wait();
+			
+			return resolveResult ? boost::make_optional(endpointList) : boost::none;
 		}
 		
 	}

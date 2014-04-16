@@ -50,13 +50,13 @@ int main(int argc, char** argv) {
 	Crypt::AutoSeededRandomPool rand;
 	Crypt::ECDSA::PrivateKey privateKey(rand, Crypt::ECDSA::brainpoolP256r1);
 	
-	RootNetwork::IdentityDatabase identityDatabase;
+	RootNetwork::NodeDatabase nodeDatabase;
 	RootNetwork::PrivateIdentity privateIdentity(privateKey);
 	
 	printf("My id is '%s'.\n", privateIdentity.id().hexString().c_str());
 	
 	// Sign all outgoing packets and verify incoming packets.
-	RootNetwork::AuthenticatedSocket authenticatedSocket(identityDatabase, privateIdentity, packetSocket);
+	RootNetwork::AuthenticatedSocket authenticatedSocket(nodeDatabase, privateIdentity, packetSocket);
 	
 	// Multiplex messages for processing incoming requests in
 	// one thread while performing outgoing requests in another.

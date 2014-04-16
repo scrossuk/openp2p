@@ -8,8 +8,6 @@
 #include <boost/optional.hpp>
 #include <boost/utility.hpp>
 
-#include <OpenP2P/Timeout.hpp>
-
 #include <OpenP2P/TCP/Endpoint.hpp>
 
 namespace OpenP2P {
@@ -20,7 +18,7 @@ namespace OpenP2P {
 			public:
 				Resolver();
 				
-				boost::optional< std::vector<TCP::Endpoint> > resolve(const std::string& host, const std::string& service, Timeout timeout = Timeout::Infinite());
+				boost::optional< std::vector<TCP::Endpoint> > resolve(const std::string& host, const std::string& service);
 				
 			private:
 				boost::asio::ip::tcp::resolver internalResolver_;

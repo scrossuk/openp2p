@@ -42,7 +42,7 @@ namespace OpenP2P {
 				return false;
 			}
 			
-			nextPacketCount_++;
+			nextPacketCount_ = packet.header.messageCounter + 1;
 			
 			Crypt::ECDSA::VerifyStream verifyStream(publicKey_, sig.signature);
 			BinaryOStream binStream(verifyStream);

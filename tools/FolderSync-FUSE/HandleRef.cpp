@@ -8,7 +8,7 @@
 #include "HandleRef.hpp"
 #include "NodeSystem.hpp"
 
-namespace OpenP2P {
+namespace p2p {
 
 	namespace FolderSync {
 	

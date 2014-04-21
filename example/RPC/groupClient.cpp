@@ -1,8 +1,8 @@
 #include <stdint.h>
 #include <string>
 #include <iostream>
-#include <OpenP2P.hpp>
-#include <OpenP2P/UDP.hpp>
+#include <p2p.hpp>
+#include <p2p/UDP.hpp>
 
 #include "TestIdGenerator.hpp"
 #include "TestRPCSocket.hpp"

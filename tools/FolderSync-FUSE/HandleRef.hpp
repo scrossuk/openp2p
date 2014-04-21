@@ -4,7 +4,7 @@
 #include <FUSE/Handle.hpp>
 #include <FUSE/Path.hpp>
 
-namespace OpenP2P {
+namespace p2p {
 
 	namespace FolderSync {
 	

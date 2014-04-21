@@ -1,9 +1,9 @@
 #include <iostream>
-#include <OpenP2P.hpp>
-#include <OpenP2P/Crypt.hpp>
-#include <OpenP2P/Stream/BinaryStream.hpp>
+#include <p2p.hpp>
+#include <p2p/Crypt.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
 
-using namespace OpenP2P::Crypt;
+using namespace p2p::Crypt;
 
 int main() {
 	std::cout << "Create private key" << std::endl;
@@ -13,13 +13,13 @@ int main() {
 	
 	std::cout << "Create sign stream" << std::endl;
 	ECDSA::SignStream signStream(rand, privateKey);
-	OpenP2P::BinaryOStream binSign(signStream);
+	p2p::BinaryOStream binSign(signStream);
 	
 	std::cout << "Signing..." << std::endl;
 	
-	OpenP2P::Binary::WriteUint32(binSign, 42);
+	p2p::Binary::WriteUint32(binSign, 42);
 	
-	OpenP2P::Buffer signature = signStream.signature();
+	p2p::Buffer signature = signStream.signature();
 	
 	std::cout << "Signed: size = " << signature.size() << " bytes" << std::endl;
 	
@@ -28,12 +28,12 @@ int main() {
 	
 	std::cout << "Create verify stream" << std::endl;
 	ECDSA::VerifyStream verifyStream(publicKey, signature);
-	OpenP2P::BinaryOStream binVerify(verifyStream);
+	p2p::BinaryOStream binVerify(verifyStream);
 	
 	
 	std::cout << "Verifying..." << std::endl;
 	
-	OpenP2P::Binary::WriteUint32(binVerify, 42);
+	p2p::Binary::WriteUint32(binVerify, 42);
 	
 	std::cout << "Signature is " << (verifyStream.isSignatureValid() ? "valid" : "not valid") << std::endl;
 	

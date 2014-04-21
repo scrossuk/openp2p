@@ -1,12 +1,12 @@
 #include <stdint.h>
 #include <iostream>
-#include <OpenP2P.hpp>
+#include <p2p.hpp>
 
-#include <OpenP2P/Stream/BinaryStream.hpp>
-#include <OpenP2P/TCP.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/TCP.hpp>
 
 int main() {
-	using namespace OpenP2P;
+	using namespace p2p;
 	
 	TCP::Stream tcpStream;
 	std::cout << "---Connecting" << std::endl;

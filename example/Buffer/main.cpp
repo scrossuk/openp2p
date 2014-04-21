@@ -1,10 +1,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/Stream/BinaryStream.hpp>
+#include <p2p/Buffer.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
 
-using namespace OpenP2P;
+using namespace p2p;
 
 int main() {
 	int a = -4000, b = 42, c = 1;

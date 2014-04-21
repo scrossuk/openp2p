@@ -1,12 +1,12 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <OpenP2P.hpp>
-#include <OpenP2P/Event/Generator.hpp>
-#include <OpenP2P/Event/Source.hpp>
-#include <OpenP2P/Event/Wait.hpp>
+#include <p2p.hpp>
+#include <p2p/Event/Generator.hpp>
+#include <p2p/Event/Source.hpp>
+#include <p2p/Event/Wait.hpp>
 
-using namespace OpenP2P;
+using namespace p2p;
 
 #define COLOR_RESET  "\x1B[0m"
 #define COLOR_RED  "\x1B[31m"

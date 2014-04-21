@@ -59,10 +59,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 
 # --- Subdirectories
 
-# All headers are in the /src directory.
-# (TODO: move them to /include).
+# All headers are in the /include directory.
 include_directories (
-	"${PROJECT_SOURCE_DIR}/src"
+	"${PROJECT_SOURCE_DIR}/include"
 	)
 
 # Documentation.

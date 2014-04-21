@@ -1,8 +1,8 @@
-#include <OpenP2P.hpp>
-#include <OpenP2P/RPC.hpp>
-#include <OpenP2P/UDP.hpp>
+#include <p2p.hpp>
+#include <p2p/RPC.hpp>
+#include <p2p/UDP.hpp>
 
-using namespace OpenP2P;
+using namespace p2p;
 
 class TestRPCSocket: public RPC::Socket<IP::Endpoint, uint32_t> {
 	public:

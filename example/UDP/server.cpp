@@ -2,14 +2,14 @@
 
 #include <map>
 
-#include <OpenP2P.hpp>
-#include <OpenP2P/Buffer.hpp>
-#include <OpenP2P/Event/Source.hpp>
-#include <OpenP2P/Event/Wait.hpp>
-#include <OpenP2P/Stream/BinaryStream.hpp>
-#include <OpenP2P/UDP.hpp>
+#include <p2p.hpp>
+#include <p2p/Buffer.hpp>
+#include <p2p/Event/Source.hpp>
+#include <p2p/Event/Wait.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/UDP.hpp>
 
-using namespace OpenP2P;
+using namespace p2p;
 
 int main() {
 	UDP::Socket socket(45557);

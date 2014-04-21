@@ -2,11 +2,11 @@
 #include <iostream>
 #include <vector>
 
-#include <OpenP2P.hpp>
-#include <OpenP2P/Stream/BinaryStream.hpp>
-#include <OpenP2P/TCP.hpp>
+#include <p2p.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/TCP.hpp>
 
-using namespace OpenP2P;
+using namespace p2p;
 
 template <typename T>
 class Container {

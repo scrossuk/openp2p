@@ -1,6 +1,6 @@
-#include <OpenP2P.hpp>
+#include <p2p.hpp>
 
-class TestIdGenerator: public OpenP2P::IdGenerator<uint32_t> {
+class TestIdGenerator: public p2p::IdGenerator<uint32_t> {
 	public:
 		TestIdGenerator() : id_(0) { }
 		

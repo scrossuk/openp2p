@@ -14,11 +14,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <OpenP2P/FolderSync/Block.hpp>
-#include <OpenP2P/FolderSync/BlockId.hpp>
-#include <OpenP2P/FolderSync/Database.hpp>
-#include <OpenP2P/FolderSync/Directory.hpp>
-#include <OpenP2P/FolderSync/Node.hpp>
+#include <p2p/FolderSync/Block.hpp>
+#include <p2p/FolderSync/BlockId.hpp>
+#include <p2p/FolderSync/Database.hpp>
+#include <p2p/FolderSync/Directory.hpp>
+#include <p2p/FolderSync/Node.hpp>
 
 #include <FUSE/ErrorException.hpp>
 #include <FUSE/Handle.hpp>
@@ -27,7 +27,7 @@
 #include "HandleRef.hpp"
 #include "NodeSystem.hpp"
 
-namespace OpenP2P {
+namespace p2p {
 
 	namespace FolderSync {
 	

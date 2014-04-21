@@ -1,10 +1,10 @@
 #include <iostream>
 #include <sstream>
-#include <OpenP2P.hpp>
-#include <OpenP2P/Stream/BinaryStream.hpp>
-#include <OpenP2P/OFTorrent.hpp>
+#include <p2p.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/OFTorrent.hpp>
 
-using namespace OpenP2P;
+using namespace p2p;
 
 class BlockGen: public OFTorrent::OutputStreamGenerator {
 	public:

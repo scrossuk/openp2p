@@ -2,11 +2,11 @@
 #include <cstddef>
 #include <string>
 #include <iostream>
-#include <OpenP2P.hpp>
-#include <OpenP2P/TCP.hpp>
-#include <OpenP2P/Stream/BinaryStream.hpp>
+#include <p2p.hpp>
+#include <p2p/TCP.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
 
-using namespace OpenP2P;
+using namespace p2p;
 
 void output(const uint8_t* data, size_t size) {
 	for (size_t i = 0; i < size; i++) {

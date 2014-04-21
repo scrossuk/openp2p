@@ -1,0 +1,36 @@
+#ifndef P2P_ROOTNETWORK_PRIVATEIDENTITY_HPP
+#define P2P_ROOTNETWORK_PRIVATEIDENTITY_HPP
+
+#include <stdint.h>
+
+#include <p2p/Root/Key.hpp>
+#include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/Packet.hpp>
+
+namespace p2p {
+
+	namespace Root {
+	
+		class PrivateIdentity {
+			public:
+				PrivateIdentity(const PrivateKey&, uint64_t packetCount = 0);
+				
+				uint64_t nextPacketCount() const;
+				
+				const PrivateKey& privateKey() const;
+				
+				NodeId id() const;
+				
+				PacketSignature sign(const Packet&);
+				
+			private:
+				PrivateKey privateKey_;
+				uint64_t nextPacketCount_;
+				
+		};
+		
+	}
+	
+}
+
+#endif

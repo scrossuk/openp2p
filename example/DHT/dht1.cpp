@@ -2,12 +2,12 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/optional.hpp>
-#include <OpenP2P.hpp>
-#include <OpenP2P/Kademlia.hpp>
-#include <OpenP2P/UDP.hpp>
+#include <p2p.hpp>
+#include <p2p/Kademlia.hpp>
+#include <p2p/UDP.hpp>
 
-void printData(const OpenP2P::Buffer& buffer) {
-	OpenP2P::BufferIterator iterator(buffer);
+void printData(const p2p::Buffer& buffer) {
+	p2p::BufferIterator iterator(buffer);
 	
 	uint8_t v;
 	
@@ -18,35 +18,35 @@ void printData(const OpenP2P::Buffer& buffer) {
 	std::cout << std::endl;
 }
 
-typedef OpenP2P::Kademlia::Id<1> IdType;
-typedef OpenP2P::Kademlia::Node<OpenP2P::UDP::Endpoint, 1> NodeType;
-typedef OpenP2P::Kademlia::NodeGroup<OpenP2P::UDP::Endpoint, 1> GroupType;
+typedef p2p::Kademlia::Id<1> IdType;
+typedef p2p::Kademlia::Node<p2p::UDP::Endpoint, 1> NodeType;
+typedef p2p::Kademlia::NodeGroup<p2p::UDP::Endpoint, 1> GroupType;
 
 int main() {
-	OpenP2P::UDP::Socket socket(46667);
+	p2p::UDP::Socket socket(46667);
 	
 	std::cout << "UDP socket created" << std::endl;
 	
-	OpenP2P::Kademlia::IdGenerator<1> generator;
+	p2p::Kademlia::IdGenerator<1> generator;
 	
 	std::cout << "Created ID Generator" << std::endl;
 	
-	OpenP2P::RPC::Protocol<OpenP2P::UDP::Endpoint, IdType> protocol(socket, generator);
+	p2p::RPC::Protocol<p2p::UDP::Endpoint, IdType> protocol(socket, generator);
 	
 	std::cout << "Created RPC Protocol" << std::endl;
 	
-	OpenP2P::Kademlia::MapDatabase<1> database;
+	p2p::Kademlia::MapDatabase<1> database;
 	
 	std::cout << "Created database" << std::endl;
 	
 	IdType myId;
 	myId.data[0] = 'A';
 	
-	OpenP2P::Kademlia::DHT<OpenP2P::UDP::Endpoint, 1> dht(protocol, myId, database);
+	p2p::Kademlia::DHT<p2p::UDP::Endpoint, 1> dht(protocol, myId, database);
 	
 	std::cout << "Created DHT" << std::endl;
 	
-	boost::optional<NodeType> r1 = dht.addEndpoint(OpenP2P::UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 46668), OpenP2P::Timeout(2.0));
+	boost::optional<NodeType> r1 = dht.addEndpoint(p2p::UDP::Endpoint(boost::asio::ip::address_v4::loopback(), 46668), p2p::Timeout(2.0));
 	
 	if (r1) {
 		std::cout << "Endpoint found " << (*r1).endpoint.port() << " " << r1->id.data[0] << std::endl;
@@ -58,7 +58,7 @@ int main() {
 	
 	IdType findId;
 	findId.data[0] = 'B';
-	boost::optional<NodeType> r2 = dht.findNode(findId, OpenP2P::Timeout(2.0));
+	boost::optional<NodeType> r2 = dht.findNode(findId, p2p::Timeout(2.0));
 	
 	if (r2) {
 		std::cout << "Node found" << std::endl;
@@ -85,7 +85,7 @@ int main() {
 	
 	IdType dataId;
 	dataId.data[0] = 'C';
-	bool r3 = dht.store(dataId, OpenP2P::MakeBuffer<TextStream>("Hello world"), OpenP2P::Timeout(2.0));
+	bool r3 = dht.store(dataId, p2p::MakeBuffer<TextStream>("Hello world"), p2p::Timeout(2.0));
 	
 	if (r3) {
 		std::cout << "Store successful" << std::endl;
@@ -95,7 +95,7 @@ int main() {
 	
 	std::cout << "Retrieving..." << std::endl;
 	
-	boost::optional<OpenP2P::Buffer> r4 = dht.findValue(dataId, OpenP2P::Timeout(2.0));
+	boost::optional<p2p::Buffer> r4 = dht.findValue(dataId, p2p::Timeout(2.0));
 	
 	if (r4) {
 		std::cout << "Found data..." << std::endl;

@@ -1,10 +1,10 @@
 #include <iostream>
-#include <OpenP2P.hpp>
-#include <OpenP2P/Crypt.hpp>
-#include <OpenP2P/Crypt/Hash/SHA256Stream.hpp>
-#include <OpenP2P/Stream/BinaryStream.hpp>
+#include <p2p.hpp>
+#include <p2p/Crypt.hpp>
+#include <p2p/Crypt/Hash/SHA256Stream.hpp>
+#include <p2p/Stream/BinaryStream.hpp>
 
-using namespace OpenP2P::Crypt;
+using namespace p2p::Crypt;
 
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
 	}
 	
 	Hash::SHA256Stream hashStream;
-	OpenP2P::BinaryOStream blockingStream(hashStream);
+	p2p::BinaryOStream blockingStream(hashStream);
 	
 	const std::string text = argv[1];
 	
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 	
 	blockingStream.writeAll((const uint8_t*) text.c_str(), text.size());
 	
-	const OpenP2P::Buffer digest = hashStream.calculateDigest();
+	const p2p::Buffer digest = hashStream.calculateDigest();
 	
 	printf("Hash length: %llu bytes\n", (unsigned long long) digest.size());
 	

@@ -12,7 +12,9 @@
 #include <p2p/Root/PrivateIdentity.hpp>
 #include <p2p/Root/PublicIdentity.hpp>
 #include <p2p/Root/RoutineIdGenerator.hpp>
-#include <p2p/Root/RPCService.hpp>
 #include <p2p/Root/TransportSocket.hpp>
+
+#include <p2p/Root/Core/RPCMessage.hpp>
+#include <p2p/Root/Core/RPCService.hpp>
 
 #endif

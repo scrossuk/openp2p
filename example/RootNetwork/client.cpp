@@ -25,7 +25,7 @@ class EventThread: public Runnable {
 		}
 		
 	private:
-		Root::RPCService service_;
+		Root::Core::RPCService service_;
 	
 };
 
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
 	EventThread eventThreadRunnable(eventSocket, routineIdGenerator);
 	Thread eventThread(eventThreadRunnable);
 	
-	Root::RPCService service(rpcSocket, routineIdGenerator);
+	Root::Core::RPCService service(rpcSocket, routineIdGenerator);
 	
 	const auto peerId = service.identifyEndpoint(UDP::Endpoint(IP::V4Address::Localhost(), otherPort));
 	

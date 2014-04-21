@@ -1,6 +1,5 @@
 add_library(openp2p-rootnetwork STATIC
 	AuthenticatedSocket.cpp
-	CoreMessage.cpp
 	Endpoint.cpp
 	EndpointMapSocket.cpp
 	NetworkId.cpp
@@ -11,6 +10,11 @@ add_library(openp2p-rootnetwork STATIC
 	PrivateIdentity.cpp
 	PublicIdentity.cpp
 	RoutineIdGenerator.cpp
-	RPCService.cpp
 	TransportSocket.cpp
+	
+	Core/RPCMessage.cpp
+	Core/RPCService.cpp
+	
+	DHT/RPCMessage.cpp
+	DHT/RPCService.cpp
 	)

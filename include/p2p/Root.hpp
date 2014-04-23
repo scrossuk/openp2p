@@ -14,7 +14,8 @@
 #include <p2p/Root/RoutineIdGenerator.hpp>
 #include <p2p/Root/TransportSocket.hpp>
 
+#include <p2p/Root/Core/RPCClient.hpp>
 #include <p2p/Root/Core/RPCMessage.hpp>
-#include <p2p/Root/Core/RPCService.hpp>
+#include <p2p/Root/Core/RPCServer.hpp>
 
 #endif

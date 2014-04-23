@@ -22,11 +22,6 @@ namespace p2p {
 		 * sent between nodes.
 		 */
 		struct Message {
-			NodeId sourceId;
-			NodeId destinationId;
-			
-			bool isError;
-			
 			boost::optional<NetworkId> subnetwork;
 			uint8_t type;
 			
@@ -36,7 +31,7 @@ namespace p2p {
 			Buffer payload;
 			
 			inline Message()
-				: isError(false),
+				: subnetwork(boost::none),
 				type(0),
 				routine(0),
 				routineState(STATE_0) { }

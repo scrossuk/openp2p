@@ -16,7 +16,7 @@ namespace p2p {
 	
 		class PrivateIdentity;
 		
-		class AuthenticatedSocket: public Socket<Endpoint, Message> {
+		class AuthenticatedSocket: public Socket<std::pair<Endpoint, NodeId>, Message> {
 			public:
 				AuthenticatedSocket(NodeDatabase& nodeDatabase, PrivateIdentity& privateIdentity, Socket<Endpoint, SignedPacket>& socket);
 				
@@ -24,9 +24,9 @@ namespace p2p {
 				
 				Event::Source eventSource() const;
 				
-				bool receive(Endpoint& endpoint, Message& message);
+				bool receive(std::pair<Endpoint, NodeId>& endpoint, Message& message);
 				
-				bool send(const Endpoint& endpoint, const Message& message);
+				bool send(const std::pair<Endpoint, NodeId>& endpoint, const Message& message);
 				
 			private:
 				// Non-blocking.

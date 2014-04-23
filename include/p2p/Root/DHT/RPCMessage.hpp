@@ -7,6 +7,8 @@
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/NodeInfo.hpp>
+#include <p2p/Root/Types.hpp>
 
 namespace p2p {
 
@@ -14,11 +16,6 @@ namespace p2p {
 	
 		namespace DHT {
 		
-			struct NodeInfo {
-				NodeId nodeId;
-				std::vector<Endpoint> endpointList;
-			};
-			
 			class RPCMessage {
 				public:
 					static RPCMessage GetNearestNodesRequest(const NodeId& targetId);
@@ -44,7 +41,7 @@ namespace p2p {
 					
 					Buffer toPayload() const;
 					
-					Message createMessage(uint32_t routine, const NodeId& sourceId, const NodeId& destinationId) const;
+					Message createMessage(RoutineId routine) const;
 					
 				private:
 					RPCMessage(Kind kind, State state);

@@ -8,38 +8,40 @@
 #include <p2p/Event/Timer.hpp>
 #include <p2p/Event/Wait.hpp>
 
+#include <p2p/Kademlia/BucketSet.hpp>
+#include <p2p/Kademlia/SearchQueue.hpp>
+
 namespace p2p {
 
 	namespace Kademlia {
 	
 		template <typename IdType>
-		class RPC {
+		class RPCSocket {
 			public:
 				virtual Event::Source eventSource() const = 0;
 				
-				virtual void sendFind(const IdType& destId, const IdType& searchId) = 0;
-				
-				virtual bool receiveFind(IdType& sourceId, std::vector<IdType>& group) = 0;
+				virtual RPC::Operation<std::vector<IdType>> performFind(const IdType& destId, const IdType& searchId) = 0;
 				
 		};
 		
 		template <typename IdType, size_t MIN_ITERATION_COUNT = 2, size_t TIMEOUT_MILLISECONDS = 250, size_t PARALLEL_REQUESTS = 3, size_t GROUP_SIZE = 20>
-		std::vector<IdType> iterativeSearch(BucketSet& bucketSet, RPC& rpc, const IdType& searchId) {
+		std::vector<IdType> iterativeSearch(BucketSet& bucketSet, RPCSocket<IdType>& socket, const IdType& searchId) {
 			SearchQueue<IdType> searchQueue(searchId);
 			for (const auto& initialId: bucketSet.getNearest(searchId, GROUP_SIZE)) {
 				searchQueue.add(initialId);
 			}
 			
-			size_t activeRequestCount = 0;
+			std::list<RPC::Operation<std::vector<IdType>>> activeRequests;
+			
 			size_t iterationCount = 0;
 			
 			while (true) {
 				// Send out the requests.
 				const auto requestGroup = searchQueue.getNearestUnvisited(PARALLEL_REQUESTS);
 				for (const auto& requestId: requestGroup) {
-					rpc.sendFind(requestId, searchId);
+					auto rpc = socket.performFind(requestId, searchId);
+					activeRequests.push_back(std::move(rpc));
 					searchQueue.setVisited(requestId);
-					activeRequestCount++;
 				}
 				
 				// Set a timer, after which more requests will be sent.
@@ -49,18 +51,34 @@ namespace p2p {
 				
 				size_t responseCount = 0;
 				
-				while (activeRequestCount > 0 && !timer.isActive()) {
-					IdType sourceId;
-					std::vector<IdType> receivedGroup;
-					if (rpc.receiveFind(sourceId, receivedGroup)) {
-						activeRequestCount--;
-						for (const auto& receivedId: receivedGroup) {
-							bucketSet.add(receivedId);
-							searchQueue.add(receiveId);
+				while (!activeRequests.empty() && !timer.isActive()) {
+					std::vector<Event::Source> eventSources;
+					eventSources.reserve(activeRequests.size() + 1);
+					
+					for (auto iterator = activeRequests.begin(); iterator != activeRequests.end(); ) {
+						const auto& rpc = *iterator;
+						if (rpc.isComplete()) {
+							auto nextIterator = iterator;
+							++nextIterator;
+							
+							const auto& receivedGroup = rpc.get();
+							for (const auto& receivedId: receivedGroup) {
+								bucketSet.add(receivedId);
+								searchQueue.add(receiveId);
+							}
+							
+							activeRequests.erase(iterator);
+							
+							iterator = std::move(nextIterator);
+						} else {
+							eventSources.push_back(rpc.eventSource());
+							++iterator;
 						}
 					}
 					
-					Event::Wait({ rpc.eventSource(), timer });
+					eventSources.push_back(timer.eventSource());
+					
+					Event::Wait(eventSources);
 				}
 				
 				iterationCount++

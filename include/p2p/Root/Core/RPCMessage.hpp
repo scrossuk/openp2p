@@ -43,7 +43,7 @@ namespace p2p {
 					
 					Buffer toPayload() const;
 					
-					Message createMessage(uint32_t routine, const NodeId& sourceId, const NodeId& destinationId) const;
+					Message createMessage(uint32_t routine) const;
 					
 				private:
 					RPCMessage(Kind kind, State state);

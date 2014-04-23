@@ -16,7 +16,7 @@ namespace p2p {
 		
 		class EndpointMapSocket: public Socket<NodeId, Message> {
 			public:
-				EndpointMapSocket(Socket<Endpoint, Message>& socket, NodeDatabase& database);
+				EndpointMapSocket(Socket<std::pair<Endpoint, NodeId>, Message>& socket, NodeDatabase& database);
 				
 				bool isValid() const;
 				
@@ -30,7 +30,7 @@ namespace p2p {
 				EndpointMapSocket(const EndpointMapSocket&) = delete;
 				EndpointMapSocket& operator=(EndpointMapSocket) = delete;
 				
-				Socket<Endpoint, Message>& socket_;
+				Socket<std::pair<Endpoint, NodeId>, Message>& socket_;
 				NodeDatabase& database_;
 				
 		};

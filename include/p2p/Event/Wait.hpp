@@ -11,10 +11,6 @@ namespace p2p {
 	
 		void Wait(const std::vector<Source>& sources);
 		
-		inline void Wait(Source source) {
-			Wait(std::vector<Source>(1, source));
-		}
-		
 	}
 	
 }

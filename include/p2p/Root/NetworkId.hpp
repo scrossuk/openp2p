@@ -27,6 +27,7 @@ namespace p2p {
 				void writeTo(BlockingWriter& writer) const;
 				
 				bool operator==(const NetworkId&) const;
+				bool operator!=(const NetworkId&) const;
 				bool operator<(const NetworkId&) const;
 				
 				std::size_t hash() const;

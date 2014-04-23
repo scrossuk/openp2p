@@ -3,6 +3,8 @@
 
 #include <p2p.hpp>
 #include <p2p/Crypt/AutoSeededRandomPool.hpp>
+#include <p2p/Event/Signal.hpp>
+#include <p2p/Event/Wait.hpp>
 #include <p2p/MultiplexSocket.hpp>
 #include <p2p/Root.hpp>
 #include <p2p/UDP.hpp>
@@ -11,21 +13,24 @@ using namespace p2p;
 
 class EventThread: public Runnable {
 	public:
-		EventThread(Socket<Root::Endpoint, Root::Message>& socket, Root::RoutineIdGenerator& routineIdGenerator)
-			: service_(socket, routineIdGenerator) { }
+		EventThread(Root::Core::RPCClient& client, Root::Core::RPCServer& server)
+			: client_(client), server_(server) { }
 		
 		void run() {
-			service_.addNetwork("test");
-			service_.addNetwork("p2p.rootdht");
-			service_.processRequests();
+			while (!signal_.isActive()) {
+				while (client_.processResponse() || server_.processRequest()) { }
+				Event::Wait({ client_.eventSource(), server_.eventSource(), signal_.eventSource() });
+			}
 		}
 		
 		void cancel() {
-			// TODO...
+			signal_.activate();
 		}
 		
 	private:
-		Root::Core::RPCService service_;
+		Root::Core::RPCClient& client_;
+		Root::Core::RPCServer& server_;
+		Event::Signal signal_;
 	
 };
 
@@ -60,34 +65,39 @@ int main(int argc, char** argv) {
 	
 	// Multiplex messages for processing incoming requests in
 	// one thread while performing outgoing requests in another.
-	MultiplexHost<Root::Endpoint, Root::Message> multiplexHost(authenticatedSocket);
-	MultiplexClient<Root::Endpoint, Root::Message> eventSocket(multiplexHost);
-	MultiplexClient<Root::Endpoint, Root::Message> rpcSocket(multiplexHost);
+	MultiplexHost<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> multiplexHost(authenticatedSocket);
+	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> eventSocket(multiplexHost);
+	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> rpcSocket(multiplexHost);
+	
+	Root::Core::RPCServer server(eventSocket);
+	server.addNetwork("test");
+	server.addNetwork("p2p.rootdht");
 	
 	// Routine ID generator.
 	Root::RoutineIdGenerator routineIdGenerator;
+	Root::Core::RPCClient client(rpcSocket, routineIdGenerator);
 	
-	EventThread eventThreadRunnable(eventSocket, routineIdGenerator);
+	EventThread eventThreadRunnable(client, server);
 	Thread eventThread(eventThreadRunnable);
 	
-	Root::Core::RPCService service(rpcSocket, routineIdGenerator);
-	
-	const auto peerId = service.identifyEndpoint(UDP::Endpoint(IP::V4Address::Localhost(), otherPort));
+	const auto peerId = client.identify(UDP::Endpoint(IP::V4Address::Localhost(), otherPort)).wait();
 	
 	printf("Peer's id is '%s'.\n", peerId.hexString().c_str());
 	
-	const auto endpoint = service.pingNode(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), Root::NodeId());
+	const auto endpoint = client.ping(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
 	
 	printf("My endpoint is '%s'.\n", endpoint.udpEndpoint.toString().c_str());
 	
-	const auto networks = service.queryNetworks(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), Root::NodeId());
+	const auto networks = client.queryNetworks(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
 	
 	printf("Node supports %llu networks.\n", (unsigned long long) networks.size());
 	
 	for (size_t i = 0; i < networks.size(); i++) {
 		printf("    Network %llu: %s.\n", (unsigned long long) i, networks.at(i).hexString().c_str());
 		if (networks.at(i) == Root::NetworkId::Generate("test")) {
-			printf("         -> Supports 'test' network.\n");
+			printf("         -> Supports Test network.\n");
+		} else if (networks.at(i) == Root::NetworkId::Generate("p2p.rootdht")) {
+			printf("         -> Supports DHT network.\n");
 		}
 	}
 	

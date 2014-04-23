@@ -47,23 +47,26 @@ namespace p2p {
 			
 		}
 		
-		bool AuthenticatedSocket::receive(Endpoint& endpoint, Message& message) {
+		bool AuthenticatedSocket::receive(std::pair<Endpoint, NodeId>& endpoint, Message& message) {
 			SignedPacket signedPacket;
 			
-			if (!socket_.receive(endpoint, signedPacket)) {
+			if (!socket_.receive(endpoint.first, signedPacket)) {
 				return false;
 			}
 			
 			const auto& packet = signedPacket.packet;
+			
+			if (packet.header.destinationId != privateIdentity_.id() && packet.header.destinationId != NodeId::Zero()) {
+				// Routing not currently supported, so just reject this.
+				return false;
+			}
 			
 			auto& publicIdentity = getIdentity(nodeDatabase_, signedPacket.signature.publicKey);
 			if (!publicIdentity.verify(packet, signedPacket.signature)) {
 				return false;
 			}
 			
-			message.sourceId = publicIdentity.id();
-			message.destinationId = packet.header.destinationId;
-			message.isError = packet.header.err;
+			endpoint.second = publicIdentity.id();
 			message.subnetwork = packet.header.sub ? boost::make_optional(packet.header.subnetworkId) : boost::none;
 			message.type = packet.header.type;
 			message.routine = packet.header.routine;
@@ -72,24 +75,23 @@ namespace p2p {
 			return true;
 		}
 		
-		bool AuthenticatedSocket::send(const Endpoint& endpoint, const Message& message) {
+		bool AuthenticatedSocket::send(const std::pair<Endpoint, NodeId>& endpoint, const Message& message) {
 			SignedPacket signedPacket;
 			auto& packet = signedPacket.packet;
 			packet.header.version = VERSION_1;
 			packet.header.state = message.routineState;
-			packet.header.err = message.isError;
 			packet.header.sub = message.subnetwork;
 			packet.header.type = message.type;
 			packet.header.length = message.payload.size();
 			packet.header.routine = message.routine;
 			packet.header.messageCounter = privateIdentity_.nextPacketCount();
-			packet.header.destinationId = message.destinationId;
+			packet.header.destinationId = endpoint.second;
 			packet.header.subnetworkId = message.subnetwork ? *(message.subnetwork) : NetworkId();
 			
 			packet.payload = message.payload;
 			
 			signedPacket.signature = privateIdentity_.sign(signedPacket.packet);
-			return socket_.send(endpoint, signedPacket);
+			return socket_.send(endpoint.first, signedPacket);
 		}
 		
 	}

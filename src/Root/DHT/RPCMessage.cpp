@@ -70,7 +70,7 @@ namespace p2p {
 							targetId().writeTo(writer);
 						} else if (state() == STATE_1) {
 							for (const auto& nodeInfo: nodeList()) {
-								// nodeInfo.writeTo(writer);
+								nodeInfo.writeTo(writer);
 							}
 						}
 						break;
@@ -89,7 +89,7 @@ namespace p2p {
 							targetId().writeTo(writer);
 						} else if (state() == STATE_1) {
 							for (const auto& nodeInfo: nodeList()) {
-								// nodeInfo.writeTo(writer);
+								nodeInfo.writeTo(writer);
 							}
 						}
 						break;
@@ -101,11 +101,8 @@ namespace p2p {
 				return payload;
 			}
 			
-			Message RPCMessage::createMessage(uint32_t routine, const NodeId& sourceId, const NodeId& destinationId) const {
+			Message RPCMessage::createMessage(uint32_t routine) const {
 				Message message;
-				message.sourceId = sourceId;
-				message.destinationId = destinationId;
-				message.isError = false;
 				message.subnetwork = boost::make_optional(NetworkId::Generate("p2p.rootdht"));
 				message.type = static_cast<uint8_t>(kind());
 				message.routine = routine;

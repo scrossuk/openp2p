@@ -51,6 +51,10 @@ namespace p2p {
 			return data_ == other.data_;
 		}
 		
+		bool NetworkId::operator!=(const NetworkId& other) const {
+			return data_ != other.data_;
+		}
+		
 		bool NetworkId::operator<(const NetworkId& other) const {
 			return data_ < other.data_;
 		}

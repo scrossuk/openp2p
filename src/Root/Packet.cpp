@@ -21,7 +21,6 @@ namespace p2p {
 			const uint8_t flagsByte = Binary::ReadUint8(reader);
 			
 			header.state = static_cast<State>((flagsByte >> 6) & 0x03);
-			header.err = (((flagsByte >> 5) & 0x01) == 1);
 			header.sub = (((flagsByte >> 4) & 0x01) == 1);
 			header.type = ((flagsByte >> 0) & 0x0F);
 			
@@ -40,7 +39,6 @@ namespace p2p {
 		void WritePacketHeader(BlockingWriter& writer, const PacketHeader& header) {
 			Binary::WriteUint8(writer, header.version);
 			const uint8_t flagsByte = (static_cast<uint8_t>(header.state) << 6) |
-				(header.err ? (1 << 5) : 0) |
 				(header.sub ? (1 << 4) : 0) |
 				static_cast<uint8_t>(header.type);
 			Binary::WriteUint8(writer, flagsByte);

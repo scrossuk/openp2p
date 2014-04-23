@@ -23,7 +23,7 @@ namespace p2p {
 				if (!stream_.isValid()) {
 					throw std::runtime_error("readAll() failed; stream is invalid.");
 				}
-				Event::Wait(stream_.eventSource());
+				Event::Wait({ stream_.eventSource() });
 			} else {
 				pos += readSize;
 			}
@@ -39,7 +39,7 @@ namespace p2p {
 				if (!stream_.isValid()) {
 					throw std::runtime_error("readSome() failed; stream is invalid.");
 				}
-				Event::Wait(stream_.eventSource());
+				Event::Wait({ stream_.eventSource() });
 			} else {
 				return readSize;
 			}
@@ -56,7 +56,7 @@ namespace p2p {
 				if (!stream_.isValid()) {
 					throw std::runtime_error("writeAll() failed; stream is invalid.");
 				}
-				Event::Wait(stream_.eventSource());
+				Event::Wait({ stream_.eventSource() });
 			} else {
 				pos += writeSize;
 			}
@@ -72,7 +72,7 @@ namespace p2p {
 				if (!stream_.isValid()) {
 					throw std::runtime_error("writeSome() failed; stream is invalid.");
 				}
-				Event::Wait(stream_.eventSource());
+				Event::Wait({ stream_.eventSource() });
 			} else {
 				return writeSize;
 			}

@@ -16,23 +16,20 @@
 #include <p2p/Root/RoutineIdGenerator.hpp>
 
 #include <p2p/Root/DHT/RPCMessage.hpp>
-#include <p2p/Root/DHT/RPCService.hpp>
+#include <p2p/Root/DHT/RPCServer.hpp>
 
 namespace p2p {
 
 	namespace Root {
 	
 		namespace DHT {
-		
-			RPCService::RPCService(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator)
-				: socket_(socket), routineIdGenerator_(routineIdGenerator) { }
-				
-			RPCService::~RPCService() { }
 			
-			void RPCService::getNearestNodes(const NodeId& destId, const NodeId& targetId) {
-				(void) destId;
-				(void) targetId;
-			}
+			RPCServer::RPCServer(Socket<NodeId, Message>& socket)
+				: socket_(socket) { }
+			
+			RPCServer::~RPCServer() { }
+			
+			// TODO
 			
 		}
 		

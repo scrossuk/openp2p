@@ -78,6 +78,7 @@ namespace p2p {
 					case SUBSCRIBE:
 						if (state() == STATE_0) {
 							targetId().writeTo(writer);
+							Binary::WriteUint16(writer, endpointList().size());
 							for (const auto& endpoint: endpointList()) {
 								endpoint.writeTo(writer);
 							}

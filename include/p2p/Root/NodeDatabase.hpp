@@ -13,11 +13,11 @@ namespace p2p {
 
 	namespace Root {
 	
-		struct NodeInfo {
+		struct NodeEntry {
 			PublicIdentity identity;
 			std::set<Endpoint> endpointSet;
 			
-			inline NodeInfo(PublicIdentity pIdentity)
+			inline NodeEntry(PublicIdentity pIdentity)
 				: identity(std::move(pIdentity)) { }
 		};
 		
@@ -27,18 +27,18 @@ namespace p2p {
 				
 				bool isKnownId(const NodeId& id) const;
 				
-				void addNode(const NodeId& id, NodeInfo nodeInfo);
+				void addNode(const NodeId& id, NodeEntry nodeInfo);
 				
-				NodeInfo& nodeInfo(const NodeId& id);
+				NodeEntry& nodeInfo(const NodeId& id);
 				
-				const NodeInfo& nodeInfo(const NodeId& id) const;
+				const NodeEntry& nodeInfo(const NodeId& id) const;
 				
 			private:
 				// Non-copyable.
 				NodeDatabase(const NodeDatabase&) = delete;
 				NodeDatabase& operator=(const NodeDatabase&) = delete;
 				
-				std::unordered_map<NodeId, NodeInfo> map_;
+				std::unordered_map<NodeId, NodeEntry> map_;
 				
 		};
 		

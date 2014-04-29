@@ -3,8 +3,12 @@
 
 #include <p2p/Socket.hpp>
 
+#include <p2p/Event/Source.hpp>
+
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NodeId.hpp>
+
+#include <p2p/Root/DHT/ServerDelegate.hpp>
 
 namespace p2p {
 
@@ -14,8 +18,12 @@ namespace p2p {
 		
 			class RPCServer {
 				public:
-					RPCServer(Socket<NodeId, Message>& socket);
+					RPCServer(Socket<NodeId, Message>& socket, ServerDelegate& delegate);
 					~RPCServer();
+					
+					Event::Source eventSource() const;
+					
+					bool processRequest();
 					
 				private:
 					// Non-copyable.
@@ -23,6 +31,7 @@ namespace p2p {
 					RPCServer& operator=(RPCServer) = delete;
 					
 					Socket<NodeId, Message>& socket_;
+					ServerDelegate& delegate_;
 					
 			};
 			

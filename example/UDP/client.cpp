@@ -36,7 +36,7 @@ int main() {
 				return -1;
 			}
 			
-			Event::Wait(socket.eventSource());
+			Event::Wait({ socket.eventSource() });
 		}
 		
 		BufferIterator iterator(data);

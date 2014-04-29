@@ -23,7 +23,7 @@ int main() {
 		Buffer data;
 		
 		if (!socket.receive(endpoint, data)) {
-			Event::Wait(socket.eventSource());
+			Event::Wait({ socket.eventSource() });
 			continue;
 		}
 		

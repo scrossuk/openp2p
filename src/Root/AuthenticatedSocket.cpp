@@ -39,7 +39,7 @@ namespace p2p {
 			PublicIdentity& getIdentity(NodeDatabase& nodeDatabase, const PublicKey& key) {
 				const auto nodeId = NodeId::Generate(key);
 				if (!nodeDatabase.isKnownId(nodeId)) {
-					nodeDatabase.addNode(nodeId, NodeInfo(PublicIdentity(key, 0)));
+					nodeDatabase.addNode(nodeId, NodeEntry(PublicIdentity(key, 0)));
 				}
 				
 				return nodeDatabase.nodeInfo(nodeId).identity;

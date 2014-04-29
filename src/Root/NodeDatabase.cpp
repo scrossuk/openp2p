@@ -15,15 +15,15 @@ namespace p2p {
 			return map_.find(id) != map_.end();
 		}
 		
-		void NodeDatabase::addNode(const NodeId& id, NodeInfo pNodeInfo) {
-			map_.emplace(id, std::move(pNodeInfo));
+		void NodeDatabase::addNode(const NodeId& id, NodeEntry pNodeEntry) {
+			map_.emplace(id, std::move(pNodeEntry));
 		}
 		
-		NodeInfo& NodeDatabase::nodeInfo(const NodeId& id) {
+		NodeEntry& NodeDatabase::nodeInfo(const NodeId& id) {
 			return map_.at(id);
 		}
 		
-		const NodeInfo& NodeDatabase::nodeInfo(const NodeId& id) const {
+		const NodeEntry& NodeDatabase::nodeInfo(const NodeId& id) const {
 			return map_.at(id);
 		}
 		

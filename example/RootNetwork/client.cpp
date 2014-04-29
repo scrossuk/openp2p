@@ -34,6 +34,25 @@ class EventThread: public Runnable {
 	
 };
 
+class DHTServerDelegate: public Root::DHT::ServerDelegate {
+	public:
+		std::vector<Root::NodeInfo> getNearestNodes(const Root::NodeId& targetId) {
+			(void) targetId;
+			return {};
+		}
+		
+		void subscribe(const Root::NodeId& targetId, const Root::NodeInfo& nodeInfo) {
+			(void) targetId;
+			(void) nodeInfo;
+		}
+		
+		std::vector<Root::NodeInfo> getSubscribers(const Root::NodeId& targetId) {
+			(void) targetId;
+			return {};
+		}
+		
+};
+
 int main(int argc, char** argv) {
 	if (argc != 3) {
 		printf("Usage: client [my port] [other port]\n");
@@ -66,11 +85,15 @@ int main(int argc, char** argv) {
 	// Multiplex messages for processing incoming requests in
 	// one thread while performing outgoing requests in another.
 	MultiplexHost<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> multiplexHost(authenticatedSocket);
-	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> eventSocket(multiplexHost);
-	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> rpcSocket(multiplexHost);
+	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> coreSocket(multiplexHost);
+	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> dhtMultiplexSocket(multiplexHost);
+	
+	Root::EndpointMapSocket dhtSocket(dhtMultiplexSocket, nodeDatabase);
+	
+	DHTServerDelegate dhtDelegate;
+	Root::DHT::Service dhtService(dhtSocket, dhtDelegate);
 	
 	Root::Core::RPCServer server(eventSocket);
-	server.addNetwork("test");
 	server.addNetwork("p2p.rootdht");
 	
 	// Routine ID generator.
@@ -92,14 +115,23 @@ int main(int argc, char** argv) {
 	
 	printf("Node supports %llu networks.\n", (unsigned long long) networks.size());
 	
+	bool supportsDHT = false;
+	
 	for (size_t i = 0; i < networks.size(); i++) {
 		printf("    Network %llu: %s.\n", (unsigned long long) i, networks.at(i).hexString().c_str());
-		if (networks.at(i) == Root::NetworkId::Generate("test")) {
-			printf("         -> Supports Test network.\n");
-		} else if (networks.at(i) == Root::NetworkId::Generate("p2p.rootdht")) {
+		if (networks.at(i) == Root::NetworkId::Generate("p2p.rootdht")) {
 			printf("         -> Supports DHT network.\n");
+			supportsDHT = true;
 		}
 	}
+	
+	if (!supportsDHT) {
+		printf("Node does not support DHT...\n");
+		return 0;
+	}
+	
+	const auto myNearestNodes = dhtService.getNearestNodes(peerId, privateIdentity.id()).wait();
+	printf("Peer reports %llu nearest nodes.\n", (unsigned long long) myNearestNodes.size());
 	
 	return 0;
 }

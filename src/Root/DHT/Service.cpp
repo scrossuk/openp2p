@@ -16,7 +16,7 @@
 #include <p2p/Root/RoutineIdGenerator.hpp>
 
 #include <p2p/Root/DHT/RPCMessage.hpp>
-#include <p2p/Root/DHT/RPCServer.hpp>
+#include <p2p/Root/DHT/Service.hpp>
 #include <p2p/Root/DHT/ServerDelegate.hpp>
 
 namespace p2p {
@@ -25,36 +25,16 @@ namespace p2p {
 	
 		namespace DHT {
 			
-			NodeId readNodeId(const Buffer& payload) {
-				BufferIterator iterator(payload);
-				BinaryIStream reader(iterator);
-				return NodeId::FromReader(reader);
-			}
-			
-			std::pair<NodeId, std::vector<Endpoint>> readSubscribe(const Buffer& payload) {
-				BufferIterator iterator(payload);
-				BinaryIStream reader(iterator);
-				
-				const auto targetId = NodeId::FromReader(reader);
-				
-				std::vector<Endpoint> endpointList;
-				while (iterator.position() < payload.size()) {
-					endpointList.push_back(Endpoint::Read(reader));
-				}
-				
-				return std::make_pair(targetId, std::move(endpointList));
-			}
-			
-			RPCServer::RPCServer(Socket<NodeId, Message>& socket, ServerDelegate& delegate)
+			Service::Service(Socket<NodeId, Message>& socket, ServerDelegate& delegate)
 				: socket_(socket), delegate_(delegate) { }
 			
-			RPCServer::~RPCServer() { }
+			Service::~Service() { }
 			
-			Event::Source RPCServer::eventSource() const {
+			Event::Source Service::eventSource() const {
 				return socket_.eventSource();
 			}
 			
-			bool RPCServer::processRequest() {
+			bool Service::processRequest() {
 				NodeId senderId;
 				Message message;
 				const bool result = socket_.receive(senderId, message);

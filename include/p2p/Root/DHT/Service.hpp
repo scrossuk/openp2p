@@ -26,7 +26,7 @@ namespace p2p {
 		
 			class Service {
 				public:
-					Service(Socket<NodeId, Message>& socket, ServerDelegate& delegate);
+					Service(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator, ServerDelegate& delegate);
 					~Service();
 					
 					Event::Source eventSource() const;
@@ -44,6 +44,7 @@ namespace p2p {
 					Service(const Service&) = delete;
 					Service& operator=(Service) = delete;
 					
+					Socket<NodeId, Message>& socket_;
 					MultiplexHost<Root::NodeId, Root::Message> multiplexHost_;
 					MultiplexClient<Root::NodeId, Root::Message> clientSocket_;
 					MultiplexClient<Root::NodeId, Root::Message> serverSocket_;

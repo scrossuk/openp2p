@@ -13,13 +13,13 @@ using namespace p2p;
 
 class EventThread: public Runnable {
 	public:
-		EventThread(Root::Core::RPCClient& client, Root::Core::RPCServer& server)
-			: client_(client), server_(server) { }
+		EventThread(Root::Core::Service& coreService, Root::DHT::Service& dhtService)
+			: coreService_(coreService), dhtService_(dhtService) { }
 		
 		void run() {
 			while (!signal_.isActive()) {
-				while (client_.processResponse() || server_.processRequest()) { }
-				Event::Wait({ client_.eventSource(), server_.eventSource(), signal_.eventSource() });
+				while (coreService_.processMessage() || dhtService_.processMessage()) { }
+				Event::Wait({ coreService_.eventSource(), dhtService_.eventSource(), signal_.eventSource() });
 			}
 		}
 		
@@ -28,8 +28,8 @@ class EventThread: public Runnable {
 		}
 		
 	private:
-		Root::Core::RPCClient& client_;
-		Root::Core::RPCServer& server_;
+		Root::Core::Service& coreService_;
+		Root::DHT::Service& dhtService_;
 		Event::Signal signal_;
 	
 };
@@ -37,8 +37,8 @@ class EventThread: public Runnable {
 class DHTServerDelegate: public Root::DHT::ServerDelegate {
 	public:
 		std::vector<Root::NodeInfo> getNearestNodes(const Root::NodeId& targetId) {
-			(void) targetId;
-			return {};
+			// Return a fake node...
+			return { Root::NodeInfo(targetId, { UDP::Endpoint(IP::V4Address::Localhost(), 10000) }) };
 		}
 		
 		void subscribe(const Root::NodeId& targetId, const Root::NodeInfo& nodeInfo) {
@@ -90,28 +90,27 @@ int main(int argc, char** argv) {
 	
 	Root::EndpointMapSocket dhtSocket(dhtMultiplexSocket, nodeDatabase);
 	
-	DHTServerDelegate dhtDelegate;
-	Root::DHT::Service dhtService(dhtSocket, dhtDelegate);
-	
-	Root::Core::RPCServer server(eventSocket);
-	server.addNetwork("p2p.rootdht");
-	
 	// Routine ID generator.
 	Root::RoutineIdGenerator routineIdGenerator;
-	Root::Core::RPCClient client(rpcSocket, routineIdGenerator);
 	
-	EventThread eventThreadRunnable(client, server);
+	Root::Core::Service coreService(coreSocket, routineIdGenerator);
+	coreService.addNetwork("p2p.rootdht");
+	
+	DHTServerDelegate dhtDelegate;
+	Root::DHT::Service dhtService(dhtSocket, routineIdGenerator, dhtDelegate);
+	
+	EventThread eventThreadRunnable(coreService, dhtService);
 	Thread eventThread(eventThreadRunnable);
 	
-	const auto peerId = client.identify(UDP::Endpoint(IP::V4Address::Localhost(), otherPort)).wait();
+	const auto peerId = coreService.identify(UDP::Endpoint(IP::V4Address::Localhost(), otherPort)).wait();
 	
 	printf("Peer's id is '%s'.\n", peerId.hexString().c_str());
 	
-	const auto endpoint = client.ping(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
+	const auto endpoint = coreService.ping(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
 	
 	printf("My endpoint is '%s'.\n", endpoint.udpEndpoint.toString().c_str());
 	
-	const auto networks = client.queryNetworks(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
+	const auto networks = coreService.queryNetworks(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
 	
 	printf("Node supports %llu networks.\n", (unsigned long long) networks.size());
 	

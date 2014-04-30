@@ -16,8 +16,10 @@ add_library(openp2p-rootnetwork STATIC
 	Core/RPCClient.cpp
 	Core/RPCMessage.cpp
 	Core/RPCServer.cpp
+	Core/Service.cpp
 	
 	DHT/RPCClient.cpp
 	DHT/RPCMessage.cpp
 	DHT/RPCServer.cpp
+	DHT/Service.cpp
 	)

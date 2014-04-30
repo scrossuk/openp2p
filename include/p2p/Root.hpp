@@ -3,6 +3,7 @@
 
 #include <p2p/Root/AuthenticatedSocket.hpp>
 #include <p2p/Root/Endpoint.hpp>
+#include <p2p/Root/EndpointMapSocket.hpp>
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeDatabase.hpp>
 #include <p2p/Root/NodeId.hpp>
@@ -17,5 +18,12 @@
 #include <p2p/Root/Core/RPCClient.hpp>
 #include <p2p/Root/Core/RPCMessage.hpp>
 #include <p2p/Root/Core/RPCServer.hpp>
+#include <p2p/Root/Core/Service.hpp>
+
+#include <p2p/Root/DHT/RPCClient.hpp>
+#include <p2p/Root/DHT/RPCMessage.hpp>
+#include <p2p/Root/DHT/RPCServer.hpp>
+#include <p2p/Root/DHT/ServerDelegate.hpp>
+#include <p2p/Root/DHT/Service.hpp>
 
 #endif

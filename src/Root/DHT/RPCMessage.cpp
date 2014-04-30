@@ -59,6 +59,21 @@ namespace p2p {
 				return state_;
 			}
 			
+			const NodeId& RPCMessage::targetId() const {
+				// TODO: error checking!
+				return targetId_;
+			}
+			
+			const std::vector<Endpoint>& RPCMessage::endpointList() const {
+				// TODO: error checking!
+				return myEndpoints_;
+			}
+			
+			const std::vector<NodeInfo>& RPCMessage::nodeList() const {
+				// TODO: error checking!
+				return nodeList_;
+			}
+			
 			Buffer RPCMessage::toPayload() const {
 				Buffer payload;
 				BufferBuilder payloadBuilder(payload);

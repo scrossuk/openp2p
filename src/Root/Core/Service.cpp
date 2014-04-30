@@ -15,22 +15,21 @@
 #include <p2p/Root/PublicIdentity.hpp>
 #include <p2p/Root/RoutineIdGenerator.hpp>
 
-#include <p2p/Root/DHT/RPCMessage.hpp>
-#include <p2p/Root/DHT/Service.hpp>
-#include <p2p/Root/DHT/ServerDelegate.hpp>
+#include <p2p/Root/Core/RPCMessage.hpp>
+#include <p2p/Root/Core/Service.hpp>
 
 namespace p2p {
 
 	namespace Root {
 	
-		namespace DHT {
+		namespace Core {
 			
-			Service::Service(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator, ServerDelegate& delegate)
+			Service::Service(Socket<NodePair, Message>& socket, RoutineIdGenerator& routineIdGenerator)
 				: socket_(socket), multiplexHost_(socket),
 				clientSocket_(multiplexHost_),
 				serverSocket_(multiplexHost_),
 				client_(clientSocket_, routineIdGenerator),
-				server_(serverSocket_, delegate) { }
+				server_(serverSocket_) { }
 			
 			Service::~Service() { }
 			
@@ -42,16 +41,20 @@ namespace p2p {
 				return client_.processResponse() || server_.processRequest();
 			}
 			
-			RPC::Operation<std::vector<NodeInfo>> Service::getNearestNodes(const NodeId& destId, const NodeId& targetId) {
-				return client_.getNearestNodes(destId, targetId);
+			void Service::addNetwork(const std::string& networkName) {
+				server_.addNetwork(networkName);
 			}
 			
-			RPC::Operation<Empty> Service::subscribe(const NodeId& destId, const NodeId& targetId, const std::vector<Endpoint>& myEndpoints) {
-				return client_.subscribe(destId, targetId, myEndpoints);
+			RPC::Operation<NodeId> Service::identify(const Endpoint& endpoint) {
+				return client_.identify(endpoint);
 			}
 			
-			RPC::Operation<std::vector<NodeInfo>> Service::getSubscribers(const NodeId& destId, const NodeId& targetId) {
-				return client_.getSubscribers(destId, targetId);
+			RPC::Operation<Endpoint> Service::ping(const Endpoint& endpoint, const NodeId& nodeId) {
+				return client_.ping(endpoint, nodeId);
+			}
+			
+			RPC::Operation<std::vector<NetworkId>> Service::queryNetworks(const Endpoint& endpoint, const NodeId& nodeId) {
+				return client_.queryNetworks(endpoint, nodeId);
 			}
 			
 		}

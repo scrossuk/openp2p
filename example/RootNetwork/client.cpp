@@ -37,6 +37,7 @@ class EventThread: public Runnable {
 class DHTServerDelegate: public Root::DHT::ServerDelegate {
 	public:
 		std::vector<Root::NodeInfo> getNearestNodes(const Root::NodeId& targetId) {
+			printf("Received request for nearest nodes to ID '%s'.\n", targetId.hexString().c_str());
 			// Return a fake node...
 			return { Root::NodeInfo(targetId, { UDP::Endpoint(IP::V4Address::Localhost(), 10000) }) };
 		}
@@ -44,10 +45,12 @@ class DHTServerDelegate: public Root::DHT::ServerDelegate {
 		void subscribe(const Root::NodeId& targetId, const Root::NodeInfo& nodeInfo) {
 			(void) targetId;
 			(void) nodeInfo;
+			printf("Received subscribe request for ID '%s'.\n", targetId.hexString().c_str());
 		}
 		
 		std::vector<Root::NodeInfo> getSubscribers(const Root::NodeId& targetId) {
 			(void) targetId;
+			printf("Received request for subscribers to ID '%s'.\n", targetId.hexString().c_str());
 			return {};
 		}
 		

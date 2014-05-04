@@ -43,13 +43,13 @@ namespace p2p {
 					bucket.push_front(id);
 				}
 				
-				std::vector<NodeType> getNearest(const IdType& id, size_t maxGroupSize) const {
+				std::vector<IdType> getNearest(const IdType& id, size_t maxGroupSize = MAX_BUCKET_SIZE) const {
 					std::lock_guard<std::mutex> lock(mutex_);
 					
 					const size_t index = getBucket(id);
-					std::vector<NodeType> group;
+					std::vector<IdType> group;
 					
-					for (size_t dist = 0; dist < IdSize && group.size() < maxGroupSize; dist++) {
+					for (size_t dist = 0; dist < IdType::SIZE_IN_BITS && group.size() < maxGroupSize; dist++) {
 						if (index >= dist) {
 							for (const auto& nodeId: buckets_.at(index - dist)) {
 								if (group.size() >= maxGroupSize) {

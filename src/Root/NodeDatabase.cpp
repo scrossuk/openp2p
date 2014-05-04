@@ -19,11 +19,11 @@ namespace p2p {
 			map_.emplace(id, std::move(pNodeEntry));
 		}
 		
-		NodeEntry& NodeDatabase::nodeInfo(const NodeId& id) {
+		NodeEntry& NodeDatabase::nodeEntry(const NodeId& id) {
 			return map_.at(id);
 		}
 		
-		const NodeEntry& NodeDatabase::nodeInfo(const NodeId& id) const {
+		const NodeEntry& NodeDatabase::nodeEntry(const NodeId& id) const {
 			return map_.at(id);
 		}
 		

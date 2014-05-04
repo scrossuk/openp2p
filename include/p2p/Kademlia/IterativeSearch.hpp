@@ -11,6 +11,8 @@
 #include <p2p/Kademlia/BucketSet.hpp>
 #include <p2p/Kademlia/SearchQueue.hpp>
 
+#include <p2p/RPC/Operation.hpp>
+
 namespace p2p {
 
 	namespace Kademlia {
@@ -25,7 +27,7 @@ namespace p2p {
 		};
 		
 		template <typename IdType, size_t MIN_ITERATION_COUNT = 2, size_t TIMEOUT_MILLISECONDS = 250, size_t PARALLEL_REQUESTS = 3, size_t GROUP_SIZE = 20>
-		std::vector<IdType> iterativeSearch(BucketSet& bucketSet, RPCSocket<IdType>& socket, const IdType& searchId) {
+		std::vector<IdType> iterativeSearch(BucketSet<IdType>& bucketSet, RPCSocket<IdType>& socket, const IdType& searchId) {
 			SearchQueue<IdType> searchQueue(searchId);
 			for (const auto& initialId: bucketSet.getNearest(searchId, GROUP_SIZE)) {
 				searchQueue.add(initialId);
@@ -45,13 +47,13 @@ namespace p2p {
 				}
 				
 				// Set a timer, after which more requests will be sent.
-				Timer timer;
+				Event::Timer timer;
 				timer.setMilliseconds(TIMEOUT_MILLISECONDS);
 				timer.schedule();
 				
 				size_t responseCount = 0;
 				
-				while (!activeRequests.empty() && !timer.isActive()) {
+				while (!activeRequests.empty() && !timer.hasExpired()) {
 					std::vector<Event::Source> eventSources;
 					eventSources.reserve(activeRequests.size() + 1);
 					
@@ -64,7 +66,7 @@ namespace p2p {
 							const auto& receivedGroup = rpc.get();
 							for (const auto& receivedId: receivedGroup) {
 								bucketSet.add(receivedId);
-								searchQueue.add(receiveId);
+								searchQueue.add(receivedId);
 							}
 							
 							activeRequests.erase(iterator);
@@ -81,7 +83,7 @@ namespace p2p {
 					Event::Wait(eventSources);
 				}
 				
-				iterationCount++
+				iterationCount++;
 				
 				if (searchQueue.isNearestVisited() && iterationCount >= MIN_ITERATION_COUNT) {
 					// Didn't make any progress and already completed

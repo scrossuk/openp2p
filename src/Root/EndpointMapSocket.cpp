@@ -35,8 +35,8 @@ namespace p2p {
 				return false;
 			}
 			
-			auto& nodeInfo = database_.nodeInfo(nodeId);
-			nodeInfo.endpointSet.insert(endpoint.first);
+			auto& nodeEntry = database_.nodeEntry(nodeId);
+			nodeEntry.endpointSet.insert(endpoint.first);
 			
 			return true;
 		}
@@ -46,11 +46,11 @@ namespace p2p {
 				return false;
 			}
 			
-			const auto& nodeInfo = database_.nodeInfo(nodeId);
-			const auto destinationId = nodeInfo.identity.id();
+			const auto& nodeEntry = database_.nodeEntry(nodeId);
+			const auto destinationId = nodeEntry.identity.id();
 			
 			// Broadcast message to all endpoints.
-			for (const auto& endpoint: nodeInfo.endpointSet) {
+			for (const auto& endpoint: nodeEntry.endpointSet) {
 				(void) socket_.send(std::make_pair(endpoint, destinationId), message);
 			}
 			

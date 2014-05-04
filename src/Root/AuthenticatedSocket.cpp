@@ -42,7 +42,7 @@ namespace p2p {
 					nodeDatabase.addNode(nodeId, NodeEntry(PublicIdentity(key, 0)));
 				}
 				
-				return nodeDatabase.nodeInfo(nodeId).identity;
+				return nodeDatabase.nodeEntry(nodeId).identity;
 			}
 			
 		}

@@ -1,3 +1,5 @@
+#include <p2p/String.hpp>
+
 #include <p2p/TCP/Endpoint.hpp>
 #include <p2p/UDP/Endpoint.hpp>
 
@@ -113,6 +115,23 @@ namespace p2p {
 				}
 				default:
 					break;	
+			}
+		}
+		
+		std::string Endpoint::toString() const {
+			switch (kind) {
+				case LOCAL:
+					return "Root::Endpoint(kind = LOCAL)";
+				case UDPIPV4:
+					return STR("Root::Endpoint(kind = UDPIPv4, value = %s)", udpEndpoint.toString().c_str());
+				case UDPIPV6:
+					return STR("Root::Endpoint(kind = UDPIPv6, value = %s)", udpEndpoint.toString().c_str());
+				case TCPIPV4:
+					return STR("Root::Endpoint(kind = TCPIPv4, value = %s)", tcpEndpoint.toString().c_str());
+				case TCPIPV6:
+					return STR("Root::Endpoint(kind = TCPIPv6, value = %s)", tcpEndpoint.toString().c_str());
+				default:
+					return "Root::Endpoint(kind = [UNKNOWN])";
 			}
 		}
 		

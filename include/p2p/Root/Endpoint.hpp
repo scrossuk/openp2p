@@ -30,6 +30,8 @@ namespace p2p {
 			bool operator<(const Endpoint& endpoint) const;
 			
 			void writeTo(BlockingWriter& writer) const;
+			
+			std::string toString() const;
 		};
 		
 	}

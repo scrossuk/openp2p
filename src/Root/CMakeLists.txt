@@ -4,6 +4,7 @@ add_library(openp2p-rootnetwork STATIC
 	EndpointMapSocket.cpp
 	NetworkId.cpp
 	NodeDatabase.cpp
+	NodeDetectSocket.cpp
 	NodeId.cpp
 	NodeInfo.cpp
 	Packet.cpp

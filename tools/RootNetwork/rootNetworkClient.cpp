@@ -10,6 +10,8 @@
 #include <p2p/Root.hpp>
 #include <p2p/UDP.hpp>
 
+#include "Logger.hpp"
+
 using namespace p2p;
 
 class EventThread: public Runnable {
@@ -71,10 +73,12 @@ class MessageQueue {
 
 class QueryNodeThread: public Runnable {
 	public:
-		QueryNodeThread(const Root::NodeId& myId, p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet,
+		QueryNodeThread(Logger& logger,
+				const Root::NodeId& myId, p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet,
 				Root::Core::Service& coreService, Root::DHT::Service& dhtService,
 				MessageQueue<Root::NodePair>& messageQueue)
-			: myId_(myId), dhtBucketSet_(dhtBucketSet),
+			: logger_(logger),
+			myId_(myId), dhtBucketSet_(dhtBucketSet),
 			coreService_(coreService), dhtService_(dhtService),
 			messageQueue_(messageQueue) { }
 		
@@ -87,40 +91,40 @@ class QueryNodeThread: public Runnable {
 					const auto& peerId = nodePair.id;
 					const auto& peerEndpoint = nodePair.endpoint;
 					
-					printf("Querying node '%s'...\n", peerId.hexString().c_str());
-					
 					if (myId_ == peerId) {
-						printf("That's me! I'm not going to query myself...\n");
+						// Node is current node.
 						continue;
 					}
 					
 					if (knownNodes.find(peerId) != knownNodes.end()) {
-						printf("Node already queried.\n");
+						// Node already queried.
 						continue;
 					}
+					
+					logger_.log(STR("--- Querying node '%s'...", peerId.hexString().c_str()));
 					
 					knownNodes.insert(peerId);
 					
 					const auto endpoint = coreService_.ping(peerEndpoint, peerId).wait();
 					
-					printf("Node reports my endpoint is '%s'.\n", endpoint.udpEndpoint.toString().c_str());
+					logger_.log(STR("Node reports my endpoint is '%s'.", endpoint.udpEndpoint.toString().c_str()));
 					// TODO: add this endpoint to our set of endpoints.
 					
 					const auto networks = coreService_.queryNetworks(peerEndpoint, peerId).wait();
 					
-					printf("Node supports %llu networks.\n", (unsigned long long) networks.size());
+					logger_.log(STR("Node supports %llu networks.", (unsigned long long) networks.size()));
 					
 					bool supportsDHT = false;
 					for (size_t i = 0; i < networks.size(); i++) {
-						printf("    Network %llu: %s.\n", (unsigned long long) i, networks.at(i).hexString().c_str());
+						logger_.log(STR("    Network %llu: %s.", (unsigned long long) i, networks.at(i).hexString().c_str()));
 						if (networks.at(i) == Root::NetworkId::Generate("p2p.rootdht")) {
-							printf("        -> Supports DHT network.\n");
+							logger_.log("        -> Supports DHT network.");
 							supportsDHT = true;
 						}
 					}
 					
 					if (!supportsDHT) {
-						printf("Node doesn't support DHT.\n");
+						logger_.log("Node doesn't support DHT.");
 						continue;
 					}
 					
@@ -129,14 +133,14 @@ class QueryNodeThread: public Runnable {
 					const auto peerNearestNodes = dhtService_.getNearestNodes(peerId, myId_).wait();
 					
 					if (peerNearestNodes.empty()) {
-						printf("Node doesn't seem to know any other nodes.\n");
+						logger_.log("Node doesn't seem to know any other nodes.");
 						continue;
 					}
 					
-					printf("Node reports our nearest nodes as:\n");
+					logger_.log("Node reports our nearest nodes as:");
 					
 					for (const auto& dhtNode: peerNearestNodes) {
-						printf("    Node '%s'\n", dhtNode.id.hexString().c_str());
+						logger_.log(STR("    Node '%s'", dhtNode.id.hexString().c_str()));
 						assert(!dhtNode.endpointSet.empty());
 						
 						// Query all our nearest nodes.
@@ -153,6 +157,7 @@ class QueryNodeThread: public Runnable {
 		}
 		
 	private:
+		Logger& logger_;
 		Root::NodeId myId_;
 		p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet_;
 		Root::Core::Service& coreService_;
@@ -215,41 +220,23 @@ class ClientIdentityDelegate: public Root::IdentityDelegate {
 		
 };
 
-class InterceptSocket: public p2p::Socket<Root::NodePair, Root::Message> {
+class NodeDetectDelegate: public Root::NodeDetectDelegate {
 	public:
-		InterceptSocket(Root::NodeDatabase& nodeDatabase, MessageQueue<Root::NodePair>& messageQueue, p2p::Socket<Root::NodePair, Root::Message>& socket)
-			: nodeDatabase_(nodeDatabase), messageQueue_(messageQueue), socket_(socket) { }
+		NodeDetectDelegate(Root::NodeDatabase& nodeDatabase, MessageQueue<Root::NodePair>& messageQueue)
+			: nodeDatabase_(nodeDatabase), messageQueue_(messageQueue) { }
 		
-		bool isValid() const {
-			return socket_.isValid();
-		}
-		
-		Event::Source eventSource() const {
-			return socket_.eventSource();
-		}
-		
-		bool receive(Root::NodePair& nodePair, Root::Message& message) {
-			const bool result = socket_.receive(nodePair, message);
-			if (!result) return false;
+		void detectedNodePair(const Root::NodePair& nodePair) {
+			if (!nodeDatabase_.isKnownId(nodePair.id)) return;
 			
-			if (nodeDatabase_.isKnownId(nodePair.id)) {
-				if (nodeDatabase_.nodeEntry(nodePair.id).endpointSet.empty()) {
-					messageQueue_.send(nodePair);
-				}
+			if (nodeDatabase_.nodeEntry(nodePair.id).endpointSet.empty()) {
+				messageQueue_.send(nodePair);
 			}
-			
-			return result;
-		}
-		
-		bool send(const Root::NodePair& nodePair, const Root::Message& message) {
-			return socket_.send(nodePair, message);
 		}
 		
 	private:
 		Root::NodeDatabase& nodeDatabase_;
 		MessageQueue<Root::NodePair>& messageQueue_;
-		p2p::Socket<Root::NodePair, Root::Message>& socket_;
-		
+	
 };
 
 std::string readLine() {
@@ -278,20 +265,16 @@ std::string readLine() {
 std::vector<std::string> parse(const std::string& args);
 
 int main(int argc, char** argv) {
+	Logger logger;
+	
 	if (argc != 2) {
-		printf("Usage: rootNetworkClient [my port]\n");
+		logger.log("Usage: rootNetworkClient [my port]");
 		return -1;
 	}
 	
 	const auto myPort = atoi(argv[1]);
 	
 	UDP::Socket udpSocket(myPort);
-	
-	// Send/receive data on appropriate transport.
-	Root::TransportSocket transportSocket(udpSocket);
-	
-	// Serialize/unserialize packets.
-	Root::PacketSocket packetSocket(transportSocket);
 	
 	// Generate a private key for our node.
 	Crypt::AutoSeededRandomPool rand;
@@ -300,19 +283,27 @@ int main(int argc, char** argv) {
 	Root::NodeDatabase nodeDatabase;
 	Root::PrivateIdentity privateIdentity(privateKey);
 	
-	printf("My id is '%s'.\n", privateIdentity.id().hexString().c_str());
+	logger.log("========");
+	logger.log(STR("======== My id is '%s'.", privateIdentity.id().hexString().c_str()));
+	logger.log("========");
 	
-	ClientIdentityDelegate identityDelegate(nodeDatabase, privateIdentity);
+	// Send/receive data on appropriate transport.
+	Root::TransportSocket transportSocket(udpSocket);
+	
+	// Serialize/unserialize packets.
+	Root::PacketSocket packetSocket(transportSocket);
 	
 	// Sign all outgoing packets and verify incoming packets.
+	ClientIdentityDelegate identityDelegate(nodeDatabase, privateIdentity);
 	Root::AuthenticatedSocket authenticatedSocket(identityDelegate, packetSocket);
 	
 	MessageQueue<Root::NodePair> messageQueue;
 	
-	InterceptSocket interceptSocket(nodeDatabase, messageQueue, authenticatedSocket);
+	NodeDetectDelegate nodeDetectDelegate(nodeDatabase, messageQueue);
+	Root::NodeDetectSocket nodeDetectSocket(authenticatedSocket, nodeDetectDelegate);
 	
 	// Multiplex messages for core and DHT services.
-	MultiplexHost<Root::NodePair, Root::Message> multiplexHost(interceptSocket);
+	MultiplexHost<Root::NodePair, Root::Message> multiplexHost(nodeDetectSocket);
 	MultiplexClient<Root::NodePair, Root::Message> coreSocket(multiplexHost);
 	MultiplexClient<Root::NodePair, Root::Message> dhtMultiplexSocket(multiplexHost);
 	
@@ -332,22 +323,18 @@ int main(int argc, char** argv) {
 	EventThread eventThreadRunnable(coreService, dhtService);
 	Thread eventThread(eventThreadRunnable);
 	
-	QueryNodeThread queryNodeThreadRunnable(privateIdentity.id(), dhtBucketSet, coreService, dhtService, messageQueue);
+	QueryNodeThread queryNodeThreadRunnable(logger, privateIdentity.id(), dhtBucketSet, coreService, dhtService, messageQueue);
 	Thread queryNodeThread(queryNodeThreadRunnable);
 	
 	while (true) {
-		printf("$ ");
-		fflush(stdout);
+		logger.showPrompt();
 		
 		const auto rawCommand = readLine();
 		if (rawCommand.empty()) break;
 		
-		printf("\r");
-		fflush(stdout);
-		
 		const auto commandArgs = parse(rawCommand);
 		if (commandArgs.empty()) {
-			printf("error: Command not specified.\n");
+			logger.log("error: Command not specified.");
 			continue;
 		}
 		
@@ -355,37 +342,40 @@ int main(int argc, char** argv) {
 		
 		if (command == "a" || command == "add") {
 			if (commandArgs.size() != 2) {
-				printf("%s: incorrect number of arguments\n", command.c_str());
+				logger.log(STR("%s: incorrect number of arguments", command.c_str()));
 				continue;
 			}
 			
 			const auto nodePort = atoi(commandArgs.at(1).c_str());
-			printf("%s: querying for node at port '%d'...\n", command.c_str(), nodePort);
+			logger.log(STR("%s: querying for node at port '%d'...", command.c_str(), nodePort));
 			
 			const auto peerEndpoint = UDP::Endpoint(IP::V4Address::Localhost(), nodePort);
 			
 			const auto peerId = coreService.identify(peerEndpoint).wait();
 			
-			printf("%s: node's id is '%s'.\n", command.c_str(), peerId.hexString().c_str());
+			logger.log(STR("%s: node's id is '%s'.", command.c_str(), peerId.hexString().c_str()));
 			
 			messageQueue.send(Root::NodePair(peerId, peerEndpoint));
 			
-			printf("%s: submitted node to be queried\n", command.c_str());
+			logger.log(STR("%s: submitted node to be queried", command.c_str()));
 		} else if (command == "ls" || command == "list") {
 			for (const auto& nodeEntryPair: nodeDatabase.map()) {
 				const auto& nodeEntry = nodeEntryPair.second;
-				printf("%s:     Node '%s'.\n", command.c_str(), nodeEntry.identity.id().hexString().c_str());
+				logger.log(STR("%s:     Node '%s' ->", command.c_str(), nodeEntry.identity.id().hexString().c_str()));
+				for (const auto& endpoint: nodeEntry.endpointSet) {
+					logger.log(STR("%s:         %s", command.c_str(), endpoint.toString().c_str()));
+				}
 			}
 		} else if (command == "q" || command == "quit") {
-			printf("%s: exiting...\n", command.c_str());
+			logger.log(STR("%s: exiting...", command.c_str()));
 			break;
 		} else if (command == "h" || command == "help") {
-			printf("%s: available commands:\n", command.c_str());
-			printf("%s:     add (a) [port]: Add a node by its UDP port.\n", command.c_str());
-			printf("%s:     help (h): Display this help text.\n", command.c_str());
-			printf("%s:     quit (q): Exit application.\n", command.c_str());
+			logger.log(STR("%s: available commands:", command.c_str()));
+			logger.log(STR("%s:     add (a) [port]: Add a node by its UDP port.", command.c_str()));
+			logger.log(STR("%s:     help (h): Display this help text.", command.c_str()));
+			logger.log(STR("%s:     quit (q): Exit application.", command.c_str()));
 		} else {
-			printf("%s: command not found\n", command.c_str());
+			logger.log(STR("%s: command not found", command.c_str()));
 		}
 	}
 	

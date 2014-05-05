@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <p2p/String.hpp>
 #include <p2p/IP/Address.hpp>
 
 namespace p2p {
@@ -22,6 +23,12 @@ namespace p2p {
 			inline bool operator<(const Endpoint& other) const {
 				return (address != other.address) ? (address < other.address) : (port < other.port);
 			}
+			
+			inline std::string toString() const {
+				return STR("UDP::Endpoint(address = %s, port = %u)",
+					address.toString().c_str(), (unsigned) port);
+			}
+			
 		};
 		
 	}

@@ -1,4 +1,5 @@
 add_executable(rootNetworkClient
+	Logger.cpp
 	rootNetworkClient.cpp
 	stringtoargcargv.cpp
 	)

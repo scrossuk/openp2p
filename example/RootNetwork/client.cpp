@@ -56,6 +56,29 @@ class DHTServerDelegate: public Root::DHT::ServerDelegate {
 		
 };
 
+class ClientIdentityDelegate: public Root::IdentityDelegate {
+	public:
+		ClientIdentityDelegate(Root::NodeDatabase& nodeDatabase, Root::PrivateIdentity& privateIdentity)
+			: nodeDatabase_(nodeDatabase), privateIdentity_(privateIdentity) { }
+		
+		Root::PrivateIdentity& getPrivateIdentity() {
+			return privateIdentity_;
+		}
+		
+		Root::PublicIdentity& getPublicIdentity(const Root::PublicKey& key) {
+			const auto nodeId = Root::NodeId::Generate(key);
+			if (!nodeDatabase_.isKnownId(nodeId)) {
+				nodeDatabase_.addNode(nodeId, Root::NodeEntry(Root::PublicIdentity(key, 0)));
+			}
+			return nodeDatabase_.nodeEntry(nodeId).identity;
+		}
+		
+	private:
+		Root::NodeDatabase& nodeDatabase_;
+		Root::PrivateIdentity& privateIdentity_;
+		
+};
+
 int main(int argc, char** argv) {
 	if (argc != 3) {
 		printf("Usage: client [my port] [other port]\n");
@@ -83,13 +106,14 @@ int main(int argc, char** argv) {
 	printf("My id is '%s'.\n", privateIdentity.id().hexString().c_str());
 	
 	// Sign all outgoing packets and verify incoming packets.
-	Root::AuthenticatedSocket authenticatedSocket(nodeDatabase, privateIdentity, packetSocket);
+	ClientIdentityDelegate identityDelegate(nodeDatabase, privateIdentity);
+	Root::AuthenticatedSocket authenticatedSocket(identityDelegate, packetSocket);
 	
 	// Multiplex messages for processing incoming requests in
 	// one thread while performing outgoing requests in another.
-	MultiplexHost<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> multiplexHost(authenticatedSocket);
-	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> coreSocket(multiplexHost);
-	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> dhtMultiplexSocket(multiplexHost);
+	MultiplexHost<Root::NodePair, Root::Message> multiplexHost(authenticatedSocket);
+	MultiplexClient<Root::NodePair, Root::Message> coreSocket(multiplexHost);
+	MultiplexClient<Root::NodePair, Root::Message> dhtMultiplexSocket(multiplexHost);
 	
 	Root::EndpointMapSocket dhtSocket(dhtMultiplexSocket, nodeDatabase);
 	

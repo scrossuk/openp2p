@@ -10,6 +10,7 @@
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NetworkId.hpp>
+#include <p2p/Root/NodePair.hpp>
 
 namespace p2p {
 
@@ -19,7 +20,7 @@ namespace p2p {
 		
 			class RPCServer {
 				public:
-					RPCServer(Socket<std::pair<Endpoint, NodeId>, Message>& socket);
+					RPCServer(Socket<NodePair, Message>& socket);
 					~RPCServer();
 					
 					Event::Source eventSource() const;
@@ -33,7 +34,7 @@ namespace p2p {
 					RPCServer(const RPCServer&) = delete;
 					RPCServer& operator=(RPCServer) = delete;
 					
-					Socket<std::pair<Endpoint, NodeId>, Message>& socket_;
+					Socket<NodePair, Message>& socket_;
 					std::vector<NetworkId> networks_;
 					
 			};

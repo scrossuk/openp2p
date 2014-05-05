@@ -69,13 +69,11 @@ class MessageQueue {
 		
 };
 
-typedef std::pair<Root::NodeId, Root::Endpoint> NodePair;
-
 class QueryNodeThread: public Runnable {
 	public:
 		QueryNodeThread(const Root::NodeId& myId, p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet,
 				Root::Core::Service& coreService, Root::DHT::Service& dhtService,
-				MessageQueue<NodePair>& messageQueue)
+				MessageQueue<Root::NodePair>& messageQueue)
 			: myId_(myId), dhtBucketSet_(dhtBucketSet),
 			coreService_(coreService), dhtService_(dhtService),
 			messageQueue_(messageQueue) { }
@@ -86,8 +84,8 @@ class QueryNodeThread: public Runnable {
 			while (!signal_.isActive()) {
 				while (!messageQueue_.empty()) {
 					const auto nodePair = messageQueue_.receive();
-					const auto& peerId = nodePair.first;
-					const auto& peerEndpoint = nodePair.second;
+					const auto& peerId = nodePair.id;
+					const auto& peerEndpoint = nodePair.endpoint;
 					
 					printf("Querying node '%s'...\n", peerId.hexString().c_str());
 					
@@ -139,10 +137,10 @@ class QueryNodeThread: public Runnable {
 					
 					for (const auto& dhtNode: peerNearestNodes) {
 						printf("    Node '%s'\n", dhtNode.id.hexString().c_str());
-						assert(!dhtNode.endpointList.empty());
+						assert(!dhtNode.endpointSet.empty());
 						
 						// Query all our nearest nodes.
-						messageQueue_.send(std::make_pair(dhtNode.id, dhtNode.endpointList.front()));
+						messageQueue_.send(Root::NodePair(dhtNode.id, *(dhtNode.endpointSet.begin())));
 					}
 				}
 				
@@ -159,7 +157,7 @@ class QueryNodeThread: public Runnable {
 		p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet_;
 		Root::Core::Service& coreService_;
 		Root::DHT::Service& dhtService_;
-		MessageQueue<NodePair>& messageQueue_;
+		MessageQueue<Root::NodePair>& messageQueue_;
 		Event::Signal signal_;
 	
 };
@@ -217,9 +215,9 @@ class ClientIdentityDelegate: public Root::IdentityDelegate {
 		
 };
 
-class InterceptSocket: public p2p::Socket<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> {
+class InterceptSocket: public p2p::Socket<Root::NodePair, Root::Message> {
 	public:
-		InterceptSocket(Root::NodeDatabase& nodeDatabase, MessageQueue<NodePair>& messageQueue, p2p::Socket<std::pair<Root::Endpoint, Root::NodeId>, Root::Message>& socket)
+		InterceptSocket(Root::NodeDatabase& nodeDatabase, MessageQueue<Root::NodePair>& messageQueue, p2p::Socket<Root::NodePair, Root::Message>& socket)
 			: nodeDatabase_(nodeDatabase), messageQueue_(messageQueue), socket_(socket) { }
 		
 		bool isValid() const {
@@ -230,27 +228,27 @@ class InterceptSocket: public p2p::Socket<std::pair<Root::Endpoint, Root::NodeId
 			return socket_.eventSource();
 		}
 		
-		bool receive(std::pair<Root::Endpoint, Root::NodeId>& endpoint, Root::Message& message) {
-			const bool result = socket_.receive(endpoint, message);
+		bool receive(Root::NodePair& nodePair, Root::Message& message) {
+			const bool result = socket_.receive(nodePair, message);
 			if (!result) return false;
 			
-			if (nodeDatabase_.isKnownId(endpoint.second)) {
-				if (nodeDatabase_.nodeEntry(endpoint.second).endpointSet.empty()) {
-					messageQueue_.send(std::make_pair(endpoint.second, endpoint.first));
+			if (nodeDatabase_.isKnownId(nodePair.id)) {
+				if (nodeDatabase_.nodeEntry(nodePair.id).endpointSet.empty()) {
+					messageQueue_.send(nodePair);
 				}
 			}
 			
 			return result;
 		}
 		
-		bool send(const std::pair<Root::Endpoint, Root::NodeId>& endpoint, const Root::Message& message) {
-			return socket_.send(endpoint, message);
+		bool send(const Root::NodePair& nodePair, const Root::Message& message) {
+			return socket_.send(nodePair, message);
 		}
 		
 	private:
 		Root::NodeDatabase& nodeDatabase_;
-		MessageQueue<NodePair>& messageQueue_;
-		p2p::Socket<std::pair<Root::Endpoint, Root::NodeId>, Root::Message>& socket_;
+		MessageQueue<Root::NodePair>& messageQueue_;
+		p2p::Socket<Root::NodePair, Root::Message>& socket_;
 		
 };
 
@@ -309,14 +307,14 @@ int main(int argc, char** argv) {
 	// Sign all outgoing packets and verify incoming packets.
 	Root::AuthenticatedSocket authenticatedSocket(identityDelegate, packetSocket);
 	
-	MessageQueue<NodePair> messageQueue;
+	MessageQueue<Root::NodePair> messageQueue;
 	
 	InterceptSocket interceptSocket(nodeDatabase, messageQueue, authenticatedSocket);
 	
 	// Multiplex messages for core and DHT services.
-	MultiplexHost<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> multiplexHost(interceptSocket);
-	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> coreSocket(multiplexHost);
-	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> dhtMultiplexSocket(multiplexHost);
+	MultiplexHost<Root::NodePair, Root::Message> multiplexHost(interceptSocket);
+	MultiplexClient<Root::NodePair, Root::Message> coreSocket(multiplexHost);
+	MultiplexClient<Root::NodePair, Root::Message> dhtMultiplexSocket(multiplexHost);
 	
 	Root::EndpointMapSocket dhtSocket(dhtMultiplexSocket, nodeDatabase);
 	
@@ -370,7 +368,7 @@ int main(int argc, char** argv) {
 			
 			printf("%s: node's id is '%s'.\n", command.c_str(), peerId.hexString().c_str());
 			
-			messageQueue.send(std::make_pair(peerId, peerEndpoint));
+			messageQueue.send(Root::NodePair(peerId, peerEndpoint));
 			
 			printf("%s: submitted node to be queried\n", command.c_str());
 		} else if (command == "ls" || command == "list") {

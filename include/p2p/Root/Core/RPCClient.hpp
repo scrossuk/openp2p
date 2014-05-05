@@ -8,6 +8,7 @@
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NetworkId.hpp>
+#include <p2p/Root/NodePair.hpp>
 #include <p2p/Root/RoutineIdGenerator.hpp>
 
 #include <p2p/RPC/Host.hpp>
@@ -20,7 +21,7 @@ namespace p2p {
 		
 			class RPCClient {
 				public:
-					RPCClient(Socket<std::pair<Endpoint, NodeId>, Message>& socket, RoutineIdGenerator& routineIdGenerator);
+					RPCClient(Socket<NodePair, Message>& socket, RoutineIdGenerator& routineIdGenerator);
 					~RPCClient();
 					
 					Event::Source eventSource() const;
@@ -38,7 +39,7 @@ namespace p2p {
 					RPCClient(const RPCClient&) = delete;
 					RPCClient& operator=(RPCClient) = delete;
 					
-					Socket<std::pair<Endpoint, NodeId>, Message>& socket_;
+					Socket<NodePair, Message>& socket_;
 					RoutineIdGenerator& routineIdGenerator_;
 					RPC::Host<NodeId, RoutineId> identifyHost_;
 					RPC::Host<Endpoint, RoutineId> pingHost_;

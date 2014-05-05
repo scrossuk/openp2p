@@ -6,7 +6,9 @@
 #include <p2p/Event/Source.hpp>
 
 #include <p2p/Root/Endpoint.hpp>
+#include <p2p/Root/Key.hpp>
 #include <p2p/Root/Message.hpp>
+#include <p2p/Root/NodePair.hpp>
 #include <p2p/Root/Packet.hpp>
 #include <p2p/Root/PrivateIdentity.hpp>
 #include <p2p/Root/PublicIdentity.hpp>
@@ -25,7 +27,7 @@ namespace p2p {
 				
 		};
 		
-		class AuthenticatedSocket: public Socket<std::pair<Endpoint, NodeId>, Message> {
+		class AuthenticatedSocket: public Socket<NodePair, Message> {
 			public:
 				AuthenticatedSocket(IdentityDelegate& delegate, Socket<Endpoint, SignedPacket>& socket);
 				
@@ -33,9 +35,9 @@ namespace p2p {
 				
 				Event::Source eventSource() const;
 				
-				bool receive(std::pair<Endpoint, NodeId>& endpoint, Message& message);
+				bool receive(NodePair& nodePair, Message& message);
 				
-				bool send(const std::pair<Endpoint, NodeId>& endpoint, const Message& message);
+				bool send(const NodePair& nodePair, const Message& message);
 				
 			private:
 				// Non-blocking.

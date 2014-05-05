@@ -22,12 +22,12 @@ namespace p2p {
 			inline NodeEntry(PublicIdentity pIdentity)
 				: identity(std::move(pIdentity)) { }
 			
+			inline NodeId id() const {
+				return identity.id();
+			}
+			
 			inline NodeInfo toNodeInfo() const {
-				std::vector<Endpoint> endpointList;
-				for (const Endpoint& endpoint: endpointSet) {
-					endpointList.push_back(endpoint);
-				}
-				return NodeInfo(identity.id(), endpointList);
+				return NodeInfo(id(), endpointSet);
 			}
 		};
 		

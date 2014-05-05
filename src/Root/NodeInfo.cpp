@@ -14,9 +14,9 @@ namespace p2p {
 			const auto nodeId = NodeId::FromReader(reader);
 			const auto endpointCount = Binary::ReadUint16(reader);
 			
-			std::vector<Endpoint> nodeEndpoints;
+			std::set<Endpoint> nodeEndpoints;
 			for (uint16_t i = 0; i < endpointCount; i++) {
-				nodeEndpoints.push_back(Endpoint::Read(reader));
+				nodeEndpoints.insert(Endpoint::Read(reader));
 			}
 			
 			return NodeInfo(nodeId, std::move(nodeEndpoints));
@@ -24,8 +24,8 @@ namespace p2p {
 		
 		void NodeInfo::writeTo(BlockingWriter& writer) const {
 			id.writeTo(writer);
-			Binary::WriteUint16(writer, endpointList.size());
-			for (const auto& endpoint: endpointList) {
+			Binary::WriteUint16(writer, endpointSet.size());
+			for (const auto& endpoint: endpointSet) {
 				endpoint.writeTo(writer);
 			}
 		}

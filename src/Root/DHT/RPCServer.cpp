@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include <queue>
+#include <set>
 
 #include <p2p/Socket.hpp>
 
@@ -31,18 +31,18 @@ namespace p2p {
 				return NodeId::FromReader(reader);
 			}
 			
-			std::pair<NodeId, std::vector<Endpoint>> readSubscribe(const Buffer& payload) {
+			std::pair<NodeId, std::set<Endpoint>> readSubscribe(const Buffer& payload) {
 				BufferIterator iterator(payload);
 				BinaryIStream reader(iterator);
 				
 				const auto targetId = NodeId::FromReader(reader);
 				
-				std::vector<Endpoint> endpointList;
+				std::set<Endpoint> endpointSet;
 				while (iterator.position() < payload.size()) {
-					endpointList.push_back(Endpoint::Read(reader));
+					endpointSet.insert(Endpoint::Read(reader));
 				}
 				
-				return std::make_pair(targetId, std::move(endpointList));
+				return std::make_pair(targetId, std::move(endpointSet));
 			}
 			
 			RPCServer::RPCServer(Socket<NodeId, Message>& socket, ServerDelegate& delegate)

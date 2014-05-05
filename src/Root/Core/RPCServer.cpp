@@ -11,6 +11,7 @@
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/NodePair.hpp>
 
 #include <p2p/Root/Core/RPCMessage.hpp>
 #include <p2p/Root/Core/RPCServer.hpp>
@@ -21,7 +22,7 @@ namespace p2p {
 	
 		namespace Core {
 		
-			RPCServer::RPCServer(Socket<std::pair<Endpoint, NodeId>, Message>& socket)
+			RPCServer::RPCServer(Socket<NodePair, Message>& socket)
 				: socket_(socket) { }
 				
 			RPCServer::~RPCServer() { }
@@ -35,9 +36,9 @@ namespace p2p {
 			}
 			
 			bool RPCServer::processRequest() {
-				std::pair<Endpoint, NodeId> endpoint;
+				NodePair nodePair;
 				Message message;
-				const bool result = socket_.receive(endpoint, message);
+				const bool result = socket_.receive(nodePair, message);
 				
 				if (!result) {
 					return false;
@@ -55,20 +56,20 @@ namespace p2p {
 				
 				switch (message.type) {
 					case RPCMessage::IDENTIFY: {
-						const auto sendMessage = RPCMessage::IdentifyReply(endpoint.first).createMessage(message.routine);
-						socket_.send(endpoint, sendMessage);
+						const auto sendMessage = RPCMessage::IdentifyReply(nodePair.endpoint).createMessage(message.routine);
+						socket_.send(nodePair, sendMessage);
 						return true;
 					}
 					
 					case RPCMessage::PING: {
-						const auto sendMessage = RPCMessage::PingReply(endpoint.first).createMessage(message.routine);
-						socket_.send(endpoint, sendMessage);
+						const auto sendMessage = RPCMessage::PingReply(nodePair.endpoint).createMessage(message.routine);
+						socket_.send(nodePair, sendMessage);
 						return true;
 					}
 					
 					case RPCMessage::QUERY_NETWORKS: {
 						const auto sendMessage = RPCMessage::QueryNetworksReply(networks_).createMessage(message.routine);
-						socket_.send(endpoint, sendMessage);
+						socket_.send(nodePair, sendMessage);
 						return true;
 					}
 					

@@ -9,6 +9,7 @@
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/NodePair.hpp>
 #include <p2p/Root/PrivateIdentity.hpp>
 #include <p2p/Root/PublicIdentity.hpp>
 #include <p2p/Root/RoutineIdGenerator.hpp>
@@ -22,7 +23,7 @@ namespace p2p {
 	
 		namespace Core {
 		
-			RPCClient::RPCClient(Socket<std::pair<Endpoint, NodeId>, Message>& socket, RoutineIdGenerator& routineIdGenerator)
+			RPCClient::RPCClient(Socket<NodePair, Message>& socket, RoutineIdGenerator& routineIdGenerator)
 				: socket_(socket), routineIdGenerator_(routineIdGenerator) { }
 			
 			RPCClient::~RPCClient() { }
@@ -32,9 +33,9 @@ namespace p2p {
 			}
 			
 			bool RPCClient::processResponse() {
-				std::pair<Endpoint, NodeId> endpoint;
+				NodePair nodePair;
 				Message message;
-				const bool result = socket_.receive(endpoint, message);
+				const bool result = socket_.receive(nodePair, message);
 				
 				if (!result) {
 					return false;
@@ -52,7 +53,7 @@ namespace p2p {
 				
 				switch (message.type) {
 					case RPCMessage::IDENTIFY: {
-						identifyHost_.completeOperation(message.routine, endpoint.second);
+						identifyHost_.completeOperation(message.routine, nodePair.id);
 						return true;
 					}
 					
@@ -92,19 +93,19 @@ namespace p2p {
 				const auto nodeId = NodeId::Zero();
 				
 				const auto routineId = routineIdGenerator_.generateId();
-				socket_.send(std::make_pair(endpoint, nodeId), RPCMessage::IdentifyRequest().createMessage(routineId));
+				socket_.send(NodePair(nodeId, endpoint), RPCMessage::IdentifyRequest().createMessage(routineId));
 				return identifyHost_.startOperation(routineId);
 			}
 			
 			RPC::Operation<Endpoint> RPCClient::ping(const Endpoint& endpoint, const NodeId& nodeId) {
 				const auto routineId = routineIdGenerator_.generateId();
-				socket_.send(std::make_pair(endpoint, nodeId), RPCMessage::PingRequest().createMessage(routineId));
+				socket_.send(NodePair(nodeId, endpoint), RPCMessage::PingRequest().createMessage(routineId));
 				return pingHost_.startOperation(routineId);
 			}
 			
 			RPC::Operation<std::vector<NetworkId>> RPCClient::queryNetworks(const Endpoint& endpoint, const NodeId& nodeId) {
 				const auto routineId = routineIdGenerator_.generateId();
-				socket_.send(std::make_pair(endpoint, nodeId), RPCMessage::QueryNetworksRequest().createMessage(routineId));
+				socket_.send(NodePair(nodeId, endpoint), RPCMessage::QueryNetworksRequest().createMessage(routineId));
 				return queryNetworksHost_.startOperation(routineId);
 			}
 			

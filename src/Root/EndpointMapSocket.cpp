@@ -7,12 +7,13 @@
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NodeDatabase.hpp>
 #include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/NodePair.hpp>
 
 namespace p2p {
 
 	namespace Root {
 	
-		EndpointMapSocket::EndpointMapSocket(Socket<std::pair<Endpoint, NodeId>, Message>& socket, NodeDatabase& database)
+		EndpointMapSocket::EndpointMapSocket(Socket<NodePair, Message>& socket, NodeDatabase& database)
 			: socket_(socket), database_(database) { }
 		
 		bool EndpointMapSocket::isValid() const {
@@ -24,19 +25,19 @@ namespace p2p {
 		}
 		
 		bool EndpointMapSocket::receive(NodeId& nodeId, Message& message) {
-			std::pair<Endpoint, NodeId> endpoint;
-			if (!socket_.receive(endpoint, message)) {
+			NodePair nodePair;
+			if (!socket_.receive(nodePair, message)) {
 				return false;
 			}
 			
-			nodeId = endpoint.second;
+			nodeId = nodePair.id;
 			
 			if (!database_.isKnownId(nodeId)) {
 				return false;
 			}
 			
 			auto& nodeEntry = database_.nodeEntry(nodeId);
-			nodeEntry.endpointSet.insert(endpoint.first);
+			nodeEntry.endpointSet.insert(nodePair.endpoint);
 			
 			return true;
 		}
@@ -51,7 +52,7 @@ namespace p2p {
 			
 			// Broadcast message to all endpoints.
 			for (const auto& endpoint: nodeEntry.endpointSet) {
-				(void) socket_.send(std::make_pair(endpoint, destinationId), message);
+				(void) socket_.send(NodePair(destinationId, endpoint), message);
 			}
 			
 			return true;

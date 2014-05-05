@@ -7,6 +7,7 @@
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeDatabase.hpp>
 #include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/NodePair.hpp>
 #include <p2p/Root/Packet.hpp>
 #include <p2p/Root/PacketSocket.hpp>
 #include <p2p/Root/Parameters.hpp>

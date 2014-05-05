@@ -12,6 +12,7 @@
 #include <p2p/Root/AuthenticatedSocket.hpp>
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Message.hpp>
+#include <p2p/Root/NodePair.hpp>
 #include <p2p/Root/Packet.hpp>
 #include <p2p/Root/PrivateIdentity.hpp>
 #include <p2p/Root/PublicIdentity.hpp>
@@ -31,10 +32,10 @@ namespace p2p {
 			return socket_.eventSource();
 		}
 		
-		bool AuthenticatedSocket::receive(std::pair<Endpoint, NodeId>& endpoint, Message& message) {
+		bool AuthenticatedSocket::receive(NodePair& nodePair, Message& message) {
 			SignedPacket signedPacket;
 			
-			if (!socket_.receive(endpoint.first, signedPacket)) {
+			if (!socket_.receive(nodePair.endpoint, signedPacket)) {
 				return false;
 			}
 			
@@ -50,7 +51,8 @@ namespace p2p {
 				return false;
 			}
 			
-			endpoint.second = publicIdentity.id();
+			nodePair.id = publicIdentity.id();
+			
 			message.subnetwork = packet.header.sub ? boost::make_optional(packet.header.subnetworkId) : boost::none;
 			message.type = packet.header.type;
 			message.routine = packet.header.routine;
@@ -59,7 +61,7 @@ namespace p2p {
 			return true;
 		}
 		
-		bool AuthenticatedSocket::send(const std::pair<Endpoint, NodeId>& endpoint, const Message& message) {
+		bool AuthenticatedSocket::send(const NodePair& nodePair, const Message& message) {
 			auto& privateIdentity = delegate_.getPrivateIdentity();
 			
 			SignedPacket signedPacket;
@@ -71,13 +73,13 @@ namespace p2p {
 			packet.header.length = message.payload.size();
 			packet.header.routine = message.routine;
 			packet.header.messageCounter = privateIdentity.nextPacketCount();
-			packet.header.destinationId = endpoint.second;
+			packet.header.destinationId = nodePair.id;
 			packet.header.subnetworkId = message.subnetwork ? *(message.subnetwork) : NetworkId();
 			
 			packet.payload = message.payload;
 			
 			signedPacket.signature = privateIdentity.sign(signedPacket.packet);
-			return socket_.send(endpoint.first, signedPacket);
+			return socket_.send(nodePair.endpoint, signedPacket);
 		}
 		
 	}

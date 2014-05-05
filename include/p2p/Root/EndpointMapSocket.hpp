@@ -9,6 +9,7 @@
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NodeDatabase.hpp>
 #include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/NodePair.hpp>
 
 namespace p2p {
 	
@@ -16,7 +17,7 @@ namespace p2p {
 		
 		class EndpointMapSocket: public Socket<NodeId, Message> {
 			public:
-				EndpointMapSocket(Socket<std::pair<Endpoint, NodeId>, Message>& socket, NodeDatabase& database);
+				EndpointMapSocket(Socket<NodePair, Message>& socket, NodeDatabase& database);
 				
 				bool isValid() const;
 				
@@ -30,7 +31,7 @@ namespace p2p {
 				EndpointMapSocket(const EndpointMapSocket&) = delete;
 				EndpointMapSocket& operator=(EndpointMapSocket) = delete;
 				
-				Socket<std::pair<Endpoint, NodeId>, Message>& socket_;
+				Socket<NodePair, Message>& socket_;
 				NodeDatabase& database_;
 				
 		};

@@ -13,6 +13,7 @@
 
 #include <p2p/Root/Message.hpp>
 #include <p2p/Root/NodeId.hpp>
+#include <p2p/Root/NodePair.hpp>
 
 #include <p2p/Root/Core/RPCClient.hpp>
 #include <p2p/Root/Core/RPCServer.hpp>
@@ -23,8 +24,6 @@ namespace p2p {
 	
 		namespace Core {
 		
-			typedef std::pair<Endpoint, NodeId> NodePair;
-			
 			class Service {
 				public:
 					Service(Socket<NodePair, Message>& socket, RoutineIdGenerator& routineIdGenerator);

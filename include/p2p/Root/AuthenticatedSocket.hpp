@@ -7,8 +7,9 @@
 
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Message.hpp>
-#include <p2p/Root/NodeDatabase.hpp>
 #include <p2p/Root/Packet.hpp>
+#include <p2p/Root/PrivateIdentity.hpp>
+#include <p2p/Root/PublicIdentity.hpp>
 
 namespace p2p {
 
@@ -16,9 +17,17 @@ namespace p2p {
 	
 		class PrivateIdentity;
 		
+		class IdentityDelegate {
+			public:
+				virtual PrivateIdentity& getPrivateIdentity() = 0;
+				
+				virtual PublicIdentity& getPublicIdentity(const PublicKey& publicKey) = 0;
+				
+		};
+		
 		class AuthenticatedSocket: public Socket<std::pair<Endpoint, NodeId>, Message> {
 			public:
-				AuthenticatedSocket(NodeDatabase& nodeDatabase, PrivateIdentity& privateIdentity, Socket<Endpoint, SignedPacket>& socket);
+				AuthenticatedSocket(IdentityDelegate& delegate, Socket<Endpoint, SignedPacket>& socket);
 				
 				bool isValid() const;
 				
@@ -33,8 +42,7 @@ namespace p2p {
 				AuthenticatedSocket(const AuthenticatedSocket&) = delete;
 				AuthenticatedSocket& operator=(AuthenticatedSocket) = delete;
 				
-				NodeDatabase& nodeDatabase_;
-				PrivateIdentity& privateIdentity_;
+				IdentityDelegate& delegate_;
 				Socket<Endpoint, SignedPacket>& socket_;
 				
 		};

@@ -43,6 +43,10 @@ namespace p2p {
 				
 				const NodeEntry& nodeEntry(const NodeId& id) const;
 				
+				inline const std::unordered_map<NodeId, NodeEntry>& map() const {
+					return map_;
+				}
+				
 			private:
 				// Non-copyable.
 				NodeDatabase(const NodeDatabase&) = delete;

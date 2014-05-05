@@ -12,7 +12,6 @@
 #include <p2p/Root/AuthenticatedSocket.hpp>
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Message.hpp>
-#include <p2p/Root/NodeDatabase.hpp>
 #include <p2p/Root/Packet.hpp>
 #include <p2p/Root/PrivateIdentity.hpp>
 #include <p2p/Root/PublicIdentity.hpp>
@@ -21,10 +20,8 @@ namespace p2p {
 
 	namespace Root {
 	
-		AuthenticatedSocket::AuthenticatedSocket(NodeDatabase& nodeDatabase, PrivateIdentity& privateIdentity, Socket<Endpoint, SignedPacket>& socket)
-			: nodeDatabase_(nodeDatabase),
-			privateIdentity_(privateIdentity),
-			socket_(socket) { }
+		AuthenticatedSocket::AuthenticatedSocket(IdentityDelegate& delegate, Socket<Endpoint, SignedPacket>& socket)
+			: delegate_(delegate), socket_(socket) { }
 			
 		bool AuthenticatedSocket::isValid() const {
 			return socket_.isValid();
@@ -32,19 +29,6 @@ namespace p2p {
 		
 		Event::Source AuthenticatedSocket::eventSource() const {
 			return socket_.eventSource();
-		}
-		
-		namespace {
-			
-			PublicIdentity& getIdentity(NodeDatabase& nodeDatabase, const PublicKey& key) {
-				const auto nodeId = NodeId::Generate(key);
-				if (!nodeDatabase.isKnownId(nodeId)) {
-					nodeDatabase.addNode(nodeId, NodeEntry(PublicIdentity(key, 0)));
-				}
-				
-				return nodeDatabase.nodeEntry(nodeId).identity;
-			}
-			
 		}
 		
 		bool AuthenticatedSocket::receive(std::pair<Endpoint, NodeId>& endpoint, Message& message) {
@@ -56,12 +40,12 @@ namespace p2p {
 			
 			const auto& packet = signedPacket.packet;
 			
-			if (packet.header.destinationId != privateIdentity_.id() && packet.header.destinationId != NodeId::Zero()) {
+			if (packet.header.destinationId != delegate_.getPrivateIdentity().id() && packet.header.destinationId != NodeId::Zero()) {
 				// Routing not currently supported, so just reject this.
 				return false;
 			}
 			
-			auto& publicIdentity = getIdentity(nodeDatabase_, signedPacket.signature.publicKey);
+			auto& publicIdentity = delegate_.getPublicIdentity(signedPacket.signature.publicKey);
 			if (!publicIdentity.verify(packet, signedPacket.signature)) {
 				return false;
 			}
@@ -76,6 +60,8 @@ namespace p2p {
 		}
 		
 		bool AuthenticatedSocket::send(const std::pair<Endpoint, NodeId>& endpoint, const Message& message) {
+			auto& privateIdentity = delegate_.getPrivateIdentity();
+			
 			SignedPacket signedPacket;
 			auto& packet = signedPacket.packet;
 			packet.header.version = VERSION_1;
@@ -84,13 +70,13 @@ namespace p2p {
 			packet.header.type = message.type;
 			packet.header.length = message.payload.size();
 			packet.header.routine = message.routine;
-			packet.header.messageCounter = privateIdentity_.nextPacketCount();
+			packet.header.messageCounter = privateIdentity.nextPacketCount();
 			packet.header.destinationId = endpoint.second;
 			packet.header.subnetworkId = message.subnetwork ? *(message.subnetwork) : NetworkId();
 			
 			packet.payload = message.payload;
 			
-			signedPacket.signature = privateIdentity_.sign(signedPacket.packet);
+			signedPacket.signature = privateIdentity.sign(signedPacket.packet);
 			return socket_.send(endpoint.first, signedPacket);
 		}
 		

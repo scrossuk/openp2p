@@ -35,6 +35,135 @@ class EventThread: public Runnable {
 	
 };
 
+template <typename T>
+class MessageQueue {
+	public:
+		MessageQueue() { }
+		
+		Event::Source eventSource() const {
+			return signal_.eventSource();
+		}
+		
+		bool empty() const {
+			std::lock_guard<std::mutex> lock(mutex_);
+			return queue_.empty();
+		}
+		
+		T receive() {
+			std::lock_guard<std::mutex> lock(mutex_);
+			auto message = std::move(queue_.front());
+			queue_.pop();
+			return message;
+		}
+		
+		void send(T message) {
+			std::lock_guard<std::mutex> lock(mutex_);
+			queue_.push(std::move(message));
+			signal_.activate();
+		}
+		
+	private:
+		mutable std::mutex mutex_;
+		std::queue<T> queue_;
+		Event::Signal signal_;
+		
+};
+
+typedef std::pair<Root::NodeId, Root::Endpoint> NodePair;
+
+class QueryNodeThread: public Runnable {
+	public:
+		QueryNodeThread(const Root::NodeId& myId, p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet,
+				Root::Core::Service& coreService, Root::DHT::Service& dhtService,
+				MessageQueue<NodePair>& messageQueue)
+			: myId_(myId), dhtBucketSet_(dhtBucketSet),
+			coreService_(coreService), dhtService_(dhtService),
+			messageQueue_(messageQueue) { }
+		
+		void run() {
+			std::set<Root::NodeId> knownNodes;
+			
+			while (!signal_.isActive()) {
+				while (!messageQueue_.empty()) {
+					const auto nodePair = messageQueue_.receive();
+					const auto& peerId = nodePair.first;
+					const auto& peerEndpoint = nodePair.second;
+					
+					printf("Querying node '%s'...\n", peerId.hexString().c_str());
+					
+					if (myId_ == peerId) {
+						printf("That's me! I'm not going to query myself...\n");
+						continue;
+					}
+					
+					if (knownNodes.find(peerId) != knownNodes.end()) {
+						printf("Node already queried.\n");
+						continue;
+					}
+					
+					knownNodes.insert(peerId);
+					
+					const auto endpoint = coreService_.ping(peerEndpoint, peerId).wait();
+					
+					printf("Node reports my endpoint is '%s'.\n", endpoint.udpEndpoint.toString().c_str());
+					// TODO: add this endpoint to our set of endpoints.
+					
+					const auto networks = coreService_.queryNetworks(peerEndpoint, peerId).wait();
+					
+					printf("Node supports %llu networks.\n", (unsigned long long) networks.size());
+					
+					bool supportsDHT = false;
+					for (size_t i = 0; i < networks.size(); i++) {
+						printf("    Network %llu: %s.\n", (unsigned long long) i, networks.at(i).hexString().c_str());
+						if (networks.at(i) == Root::NetworkId::Generate("p2p.rootdht")) {
+							printf("        -> Supports DHT network.\n");
+							supportsDHT = true;
+						}
+					}
+					
+					if (!supportsDHT) {
+						printf("Node doesn't support DHT.\n");
+						continue;
+					}
+					
+					dhtBucketSet_.add(peerId);
+					
+					const auto peerNearestNodes = dhtService_.getNearestNodes(peerId, myId_).wait();
+					
+					if (peerNearestNodes.empty()) {
+						printf("Node doesn't seem to know any other nodes.\n");
+						continue;
+					}
+					
+					printf("Node reports our nearest nodes as:\n");
+					
+					for (const auto& dhtNode: peerNearestNodes) {
+						printf("    Node '%s'\n", dhtNode.id.hexString().c_str());
+						assert(!dhtNode.endpointList.empty());
+						
+						// Query all our nearest nodes.
+						messageQueue_.send(std::make_pair(dhtNode.id, dhtNode.endpointList.front()));
+					}
+				}
+				
+				Event::Wait({ messageQueue_.eventSource(), signal_.eventSource() });
+			}
+		}
+		
+		void cancel() {
+			signal_.activate();
+		}
+		
+	private:
+		Root::NodeId myId_;
+		p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet_;
+		Root::Core::Service& coreService_;
+		Root::DHT::Service& dhtService_;
+		MessageQueue<NodePair>& messageQueue_;
+		Event::Signal signal_;
+	
+};
+
 class DHTServerDelegate: public Root::DHT::ServerDelegate {
 	public:
 		DHTServerDelegate(p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet, p2p::Root::NodeDatabase& nodeDatabase)
@@ -62,6 +191,66 @@ class DHTServerDelegate: public Root::DHT::ServerDelegate {
 	private:
 		p2p::Kademlia::BucketSet<Root::NodeId>& dhtBucketSet_;
 		p2p::Root::NodeDatabase& nodeDatabase_;
+		
+};
+
+class ClientIdentityDelegate: public Root::IdentityDelegate {
+	public:
+		ClientIdentityDelegate(Root::NodeDatabase& nodeDatabase, Root::PrivateIdentity& privateIdentity)
+			: nodeDatabase_(nodeDatabase), privateIdentity_(privateIdentity) { }
+		
+		Root::PrivateIdentity& getPrivateIdentity() {
+			return privateIdentity_;
+		}
+		
+		Root::PublicIdentity& getPublicIdentity(const Root::PublicKey& key) {
+			const auto nodeId = Root::NodeId::Generate(key);
+			if (!nodeDatabase_.isKnownId(nodeId)) {
+				nodeDatabase_.addNode(nodeId, Root::NodeEntry(Root::PublicIdentity(key, 0)));
+			}
+			return nodeDatabase_.nodeEntry(nodeId).identity;
+		}
+		
+	private:
+		Root::NodeDatabase& nodeDatabase_;
+		Root::PrivateIdentity& privateIdentity_;
+		
+};
+
+class InterceptSocket: public p2p::Socket<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> {
+	public:
+		InterceptSocket(Root::NodeDatabase& nodeDatabase, MessageQueue<NodePair>& messageQueue, p2p::Socket<std::pair<Root::Endpoint, Root::NodeId>, Root::Message>& socket)
+			: nodeDatabase_(nodeDatabase), messageQueue_(messageQueue), socket_(socket) { }
+		
+		bool isValid() const {
+			return socket_.isValid();
+		}
+		
+		Event::Source eventSource() const {
+			return socket_.eventSource();
+		}
+		
+		bool receive(std::pair<Root::Endpoint, Root::NodeId>& endpoint, Root::Message& message) {
+			const bool result = socket_.receive(endpoint, message);
+			if (!result) return false;
+			
+			if (nodeDatabase_.isKnownId(endpoint.second)) {
+				if (nodeDatabase_.nodeEntry(endpoint.second).endpointSet.empty()) {
+					messageQueue_.send(std::make_pair(endpoint.second, endpoint.first));
+				}
+			}
+			
+			return result;
+		}
+		
+		bool send(const std::pair<Root::Endpoint, Root::NodeId>& endpoint, const Root::Message& message) {
+			return socket_.send(endpoint, message);
+		}
+		
+	private:
+		Root::NodeDatabase& nodeDatabase_;
+		MessageQueue<NodePair>& messageQueue_;
+		p2p::Socket<std::pair<Root::Endpoint, Root::NodeId>, Root::Message>& socket_;
 		
 };
 
@@ -115,11 +304,17 @@ int main(int argc, char** argv) {
 	
 	printf("My id is '%s'.\n", privateIdentity.id().hexString().c_str());
 	
+	ClientIdentityDelegate identityDelegate(nodeDatabase, privateIdentity);
+	
 	// Sign all outgoing packets and verify incoming packets.
-	Root::AuthenticatedSocket authenticatedSocket(nodeDatabase, privateIdentity, packetSocket);
+	Root::AuthenticatedSocket authenticatedSocket(identityDelegate, packetSocket);
+	
+	MessageQueue<NodePair> messageQueue;
+	
+	InterceptSocket interceptSocket(nodeDatabase, messageQueue, authenticatedSocket);
 	
 	// Multiplex messages for core and DHT services.
-	MultiplexHost<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> multiplexHost(authenticatedSocket);
+	MultiplexHost<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> multiplexHost(interceptSocket);
 	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> coreSocket(multiplexHost);
 	MultiplexClient<std::pair<Root::Endpoint, Root::NodeId>, Root::Message> dhtMultiplexSocket(multiplexHost);
 	
@@ -139,7 +334,8 @@ int main(int argc, char** argv) {
 	EventThread eventThreadRunnable(coreService, dhtService);
 	Thread eventThread(eventThreadRunnable);
 	
-	std::set<Root::NodeId> knownNodes;
+	QueryNodeThread queryNodeThreadRunnable(privateIdentity.id(), dhtBucketSet, coreService, dhtService, messageQueue);
+	Thread queryNodeThread(queryNodeThreadRunnable);
 	
 	while (true) {
 		printf("$ ");
@@ -168,49 +364,19 @@ int main(int argc, char** argv) {
 			const auto nodePort = atoi(commandArgs.at(1).c_str());
 			printf("%s: querying for node at port '%d'...\n", command.c_str(), nodePort);
 			
-			const auto nodeEndpoint = UDP::Endpoint(IP::V4Address::Localhost(), nodePort);
+			const auto peerEndpoint = UDP::Endpoint(IP::V4Address::Localhost(), nodePort);
 			
-			const auto peerId = coreService.identify(nodeEndpoint).wait();
+			const auto peerId = coreService.identify(peerEndpoint).wait();
 			
 			printf("%s: node's id is '%s'.\n", command.c_str(), peerId.hexString().c_str());
 			
-			if (knownNodes.find(peerId) != knownNodes.end()) {
-				printf("%s: we already know about this node...\n", command.c_str());
-				continue;
-			}
+			messageQueue.send(std::make_pair(peerId, peerEndpoint));
 			
-			knownNodes.insert(peerId);
-			
-			const auto endpoint = coreService.ping(nodeEndpoint, peerId).wait();
-			
-			printf("%s: node reports my endpoint is '%s'.\n", command.c_str(), endpoint.udpEndpoint.toString().c_str());
-			
-			const auto networks = coreService.queryNetworks(nodeEndpoint, peerId).wait();
-			
-			printf("%s: node supports %llu networks.\n", command.c_str(), (unsigned long long) networks.size());
-			
-			bool supportsDHT = false;
-			for (size_t i = 0; i < networks.size(); i++) {
-				printf("%s:    Network %llu: %s.\n", command.c_str(), (unsigned long long) i, networks.at(i).hexString().c_str());
-				if (networks.at(i) == Root::NetworkId::Generate("p2p.rootdht")) {
-					printf("%s:         -> Supports DHT network.\n", command.c_str());
-					supportsDHT = true;
-				}
-			}
-			
-			if (!supportsDHT) {
-				printf("%s: Node doesn't support DHT.\n", command.c_str());
-				continue;
-			}
-			
-			dhtBucketSet.add(peerId);
-			
-			const auto peerNearestNodes = dhtService.getNearestNodes(peerId, privateIdentity.id()).wait();
-			
-			printf("%s: peer's nearest nodes are:\n", command.c_str());
-			
-			for (const auto& dhtNode: peerNearestNodes) {
-				printf("%s:     Node '%s'\n", command.c_str(), dhtNode.id.hexString().c_str());
+			printf("%s: submitted node to be queried\n", command.c_str());
+		} else if (command == "ls" || command == "list") {
+			for (const auto& nodeEntryPair: nodeDatabase.map()) {
+				const auto& nodeEntry = nodeEntryPair.second;
+				printf("%s:     Node '%s'.\n", command.c_str(), nodeEntry.identity.id().hexString().c_str());
 			}
 		} else if (command == "q" || command == "quit") {
 			printf("%s: exiting...\n", command.c_str());

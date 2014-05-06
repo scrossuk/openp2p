@@ -1,7 +1,7 @@
 #ifndef P2P_OFTORRENT_STREAMGENERATOR_HPP
 #define P2P_OFTORRENT_STREAMGENERATOR_HPP
 
-#include <p2p/Stream.hpp>
+#include <p2p/Transport/Stream.hpp>
 
 namespace p2p {
 

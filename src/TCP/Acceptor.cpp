@@ -2,13 +2,15 @@
 #include <stdexcept>
 
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/ref.hpp>
 
-#include <p2p/IOService.hpp>
-#include <p2p/Signal.hpp>
+#include <p2p/Concurrency/Signal.hpp>
 
 #include <p2p/TCP/Acceptor.hpp>
 #include <p2p/TCP/Stream.hpp>
+
+#include "../Internal/IOService.hpp"
 
 namespace p2p {
 
@@ -16,6 +18,11 @@ namespace p2p {
 	
 		namespace {
 		
+			IOService& GetIOService() {
+				static IOService ioService;
+				return ioService;
+			}
+			
 			void acceptCallback(Signal* signal, bool* acceptResult, const boost::system::error_code& ec) {
 				*acceptResult = !bool(ec);
 				signal->activate();

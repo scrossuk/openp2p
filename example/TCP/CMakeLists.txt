@@ -9,9 +9,9 @@ add_executable(tcpServer
 target_link_libraries(tcpClient
 	openp2p-tcp
 	openp2p-ip
-	openp2p-stream
+	openp2p-transport
 	openp2p-event
-	openp2p
+	openp2p-util
 	boost_thread
 	boost_system
 	pthread
@@ -20,9 +20,10 @@ target_link_libraries(tcpClient
 target_link_libraries(tcpServer
 	openp2p-tcp
 	openp2p-ip
-	openp2p-stream
+	openp2p-transport
+	openp2p-concurrency
 	openp2p-event
-	openp2p
+	openp2p-util
 	boost_thread
 	boost_system
 	pthread)

@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include <p2p/Buffer.hpp>
-#include <p2p/Stream.hpp>
+#include <p2p/Transport.hpp>
+#include <p2p/Transport/Stream.hpp>
 
 namespace p2p {
 

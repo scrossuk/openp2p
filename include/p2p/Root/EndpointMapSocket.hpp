@@ -1,7 +1,7 @@
 #ifndef P2P_ROOTNETWORK_ENDPOINTMAPSOCKET_HPP
 #define P2P_ROOTNETWORK_ENDPOINTMAPSOCKET_HPP
 
-#include <p2p/Socket.hpp>
+#include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
 

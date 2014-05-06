@@ -4,10 +4,10 @@
 
 #include <p2p/Crypt/Hash/SHA256Stream.hpp>
 
-#include <p2p/Stream/BinaryStream.hpp>
-
 #include <p2p/Root/NodeId.hpp>
 #include <p2p/Root/Parameters.hpp>
+
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

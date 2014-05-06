@@ -1,7 +1,7 @@
 #ifndef P2P_OFTORRENT_BLOCKSTREAM_HPP
 #define P2P_OFTORRENT_BLOCKSTREAM_HPP
 
-#include <p2p/Stream.hpp>
+#include <p2p/Transport/Stream.hpp>
 #include <p2p/OFTorrent/StreamGenerator.hpp>
 
 namespace p2p {

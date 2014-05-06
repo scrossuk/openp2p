@@ -3,17 +3,26 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
-#include <p2p/IOService.hpp>
 #include <p2p/Event/Generator.hpp>
 #include <p2p/Event/Source.hpp>
 #include <p2p/Event/Timer.hpp>
 
+#include "../Internal/IOService.hpp"
 #include "SourceImpl.hpp"
 
 namespace p2p {
 
 	namespace Event {
 	
+		namespace {
+			
+			IOService& GetIOService() {
+				static IOService ioService;
+				return ioService;
+			}
+			
+		}
+		
 		struct TimerImpl {
 			std::mutex mutex;
 			bool hasExpired;

@@ -6,10 +6,10 @@
 
 #include <p2p/Crypt/Hash/MD5Stream.hpp>
 
-#include <p2p/Stream/BinaryStream.hpp>
-
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/Parameters.hpp>
+
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

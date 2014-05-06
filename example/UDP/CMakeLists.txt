@@ -9,10 +9,9 @@ add_executable(udpServer
 target_link_libraries(udpClient
 	openp2p-udp
 	openp2p-ip
-	openp2p-buffer
-	openp2p-stream
+	openp2p-transport
 	openp2p-event
-	openp2p
+	openp2p-util
 	boost_thread
 	boost_system
 	pthread
@@ -21,10 +20,9 @@ target_link_libraries(udpClient
 target_link_libraries(udpServer
 	openp2p-udp
 	openp2p-ip
-	openp2p-buffer
-	openp2p-stream
+	openp2p-transport
 	openp2p-event
-	openp2p
+	openp2p-util
 	boost_thread
 	boost_system
 	pthread)

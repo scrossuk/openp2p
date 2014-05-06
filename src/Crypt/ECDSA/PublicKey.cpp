@@ -6,7 +6,7 @@
 #include <cryptopp/ecp.h>
 #include <cryptopp/sha.h>
 
-#include <p2p/Buffer.hpp>
+#include <p2p/Transport.hpp>
 
 #include <p2p/Crypt/RandomPool.hpp>
 #include <p2p/Crypt/ECDSA/PublicKey.hpp>

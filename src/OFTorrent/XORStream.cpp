@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-#include <p2p/Stream.hpp>
+#include <p2p/Transport/Stream.hpp>
 
-#include <p2p/Buffer/BufferedStream.hpp>
+#include <p2p/Transport/BufferedStream.hpp>
 
 #include <p2p/OFTorrent/XORStream.hpp>
 

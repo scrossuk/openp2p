@@ -5,7 +5,7 @@
 
 #include <boost/optional.hpp>
 
-#include <p2p/Buffer.hpp>
+#include <p2p/Transport.hpp>
 
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeId.hpp>

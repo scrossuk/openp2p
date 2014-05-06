@@ -4,9 +4,8 @@ add_executable(sha256HashExample
 
 target_link_libraries(sha256HashExample
 	openp2p-crypt
-	openp2p-stream
+	openp2p-transport
 	openp2p-event
-	openp2p
 	boost_thread
 	boost_system
 	cryptopp

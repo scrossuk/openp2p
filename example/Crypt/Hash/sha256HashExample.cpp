@@ -1,8 +1,8 @@
 #include <iostream>
-#include <p2p.hpp>
+
 #include <p2p/Crypt.hpp>
 #include <p2p/Crypt/Hash/SHA256Stream.hpp>
-#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/Transport.hpp>
 
 using namespace p2p::Crypt;
 

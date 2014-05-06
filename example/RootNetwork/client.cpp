@@ -1,11 +1,11 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <p2p.hpp>
+#include <p2p/Concurrency/Thread.hpp>
 #include <p2p/Crypt/AutoSeededRandomPool.hpp>
 #include <p2p/Event/Signal.hpp>
 #include <p2p/Event/Wait.hpp>
-#include <p2p/MultiplexSocket.hpp>
+#include <p2p/Transport/MultiplexSocket.hpp>
 #include <p2p/Root.hpp>
 #include <p2p/UDP.hpp>
 

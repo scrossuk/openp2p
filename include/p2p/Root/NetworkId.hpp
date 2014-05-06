@@ -7,9 +7,9 @@
 #include <functional>
 #include <string>
 
-#include <p2p/Stream/BinaryStream.hpp>
-
 #include <p2p/Root/Parameters.hpp>
+
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

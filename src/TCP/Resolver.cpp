@@ -2,13 +2,15 @@
 #include <vector>
 
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <boost/optional.hpp>
 
-#include <p2p/IOService.hpp>
-#include <p2p/Signal.hpp>
+#include <p2p/Concurrency/Signal.hpp>
 
 #include <p2p/TCP/Endpoint.hpp>
 #include <p2p/TCP/Resolver.hpp>
+
+#include "../Internal/IOService.hpp"
 
 namespace p2p {
 
@@ -16,6 +18,11 @@ namespace p2p {
 	
 		namespace {
 		
+			IOService& GetIOService() {
+				static IOService ioService;
+				return ioService;
+			}
+			
 			void resolveCallback(Signal* signal, bool* resolveResult, std::vector<TCP::Endpoint>* endpointList,
 								 const boost::system::error_code& ec, boost::asio::ip::tcp::resolver::iterator iterator) {
 								 

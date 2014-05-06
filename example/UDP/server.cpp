@@ -2,11 +2,9 @@
 
 #include <map>
 
-#include <p2p.hpp>
-#include <p2p/Buffer.hpp>
 #include <p2p/Event/Source.hpp>
 #include <p2p/Event/Wait.hpp>
-#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/Transport.hpp>
 #include <p2p/UDP.hpp>
 
 using namespace p2p;

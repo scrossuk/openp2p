@@ -6,10 +6,10 @@
 #include <array>
 #include <functional>
 
-#include <p2p/Stream/BinaryStream.hpp>
-
 #include <p2p/Root/Key.hpp>
 #include <p2p/Root/Parameters.hpp>
+
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

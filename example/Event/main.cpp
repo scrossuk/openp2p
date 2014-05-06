@@ -1,10 +1,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <p2p.hpp>
-#include <p2p/Event/Generator.hpp>
-#include <p2p/Event/Source.hpp>
-#include <p2p/Event/Wait.hpp>
+#include <p2p/Concurrency.hpp>
+#include <p2p/Event.hpp>
 
 using namespace p2p;
 

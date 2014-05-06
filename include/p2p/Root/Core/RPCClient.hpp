@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include <p2p/Socket.hpp>
+#include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Message.hpp>

@@ -4,9 +4,8 @@ add_executable(ecdsaTest
 
 target_link_libraries(ecdsaTest
 	openp2p-crypt
-	openp2p-stream
+	openp2p-transport
 	openp2p-event
-	openp2p
 	boost_thread
 	boost_system
 	cryptopp

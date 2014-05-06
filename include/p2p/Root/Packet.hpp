@@ -3,13 +3,11 @@
 
 #include <stdint.h>
 
-#include <p2p/Buffer.hpp>
-
-#include <p2p/Stream/BinaryStream.hpp>
-
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeId.hpp>
 #include <p2p/Root/Types.hpp>
+
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

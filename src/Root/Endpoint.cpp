@@ -1,9 +1,9 @@
-#include <p2p/String.hpp>
-
 #include <p2p/TCP/Endpoint.hpp>
 #include <p2p/UDP/Endpoint.hpp>
 
 #include <p2p/Root/Endpoint.hpp>
+
+#include <p2p/Util/String.hpp>
 
 namespace p2p {
 

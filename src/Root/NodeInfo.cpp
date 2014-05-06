@@ -1,10 +1,10 @@
 #include <vector>
 
-#include <p2p/Stream/BinaryStream.hpp>
-
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/NodeId.hpp>
 #include <p2p/Root/NodeInfo.hpp>
+
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

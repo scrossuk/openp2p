@@ -7,18 +7,27 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
-#include <p2p/IOService.hpp>
-
 #include <p2p/Event/Generator.hpp>
 #include <p2p/Event/Source.hpp>
 
 #include <p2p/TCP/Endpoint.hpp>
 #include <p2p/TCP/Stream.hpp>
 
+#include "../Internal/IOService.hpp"
+
 namespace p2p {
 
 	namespace TCP {
 	
+		namespace {
+			
+			IOService& GetIOService() {
+				static IOService ioService;
+				return ioService;
+			}
+			
+		}
+		
 		struct StreamImpl {
 			boost::asio::ip::tcp::socket socket;
 			std::mutex mutex;

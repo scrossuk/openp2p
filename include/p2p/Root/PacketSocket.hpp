@@ -1,8 +1,8 @@
 #ifndef P2P_ROOTNETWORK_PACKETSOCKET_HPP
 #define P2P_ROOTNETWORK_PACKETSOCKET_HPP
 
-#include <p2p/Buffer.hpp>
-#include <p2p/Socket.hpp>
+#include <p2p/Transport.hpp>
+#include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
 

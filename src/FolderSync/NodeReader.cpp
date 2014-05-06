@@ -9,7 +9,7 @@
 #include <p2p/FolderSync/BlockId.hpp>
 #include <p2p/FolderSync/Node.hpp>
 #include <p2p/FolderSync/NodeReader.hpp>
-#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 	

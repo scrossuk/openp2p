@@ -1,6 +1,5 @@
-#include <p2p/String.hpp>
-
 #include <p2p/IP/Address.hpp>
+#include <p2p/Util/String.hpp>
 
 namespace p2p {
 

@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include <p2p/MultiplexSocket.hpp>
-#include <p2p/Socket.hpp>
+#include <p2p/Transport/MultiplexSocket.hpp>
+#include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
 

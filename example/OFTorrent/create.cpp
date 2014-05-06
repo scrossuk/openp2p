@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
-#include <p2p.hpp>
-#include <p2p/Stream/BinaryStream.hpp>
+
+#include <p2p/Transport.hpp>
 #include <p2p/OFTorrent.hpp>
 
 using namespace p2p;

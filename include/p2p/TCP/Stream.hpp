@@ -7,7 +7,7 @@
 
 #include <boost/asio.hpp>
 
-#include <p2p/Stream.hpp>
+#include <p2p/Transport/Stream.hpp>
 
 #include <p2p/Event/Source.hpp>
 

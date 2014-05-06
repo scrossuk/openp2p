@@ -1,7 +1,7 @@
 #include <boost/asio.hpp>
 
-#include <p2p/String.hpp>
 #include <p2p/IP/V6Address.hpp>
+#include <p2p/Util/String.hpp>
 
 namespace p2p {
 

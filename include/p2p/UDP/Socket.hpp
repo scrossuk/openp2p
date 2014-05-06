@@ -3,8 +3,8 @@
 
 #include <memory>
 
-#include <p2p/Buffer.hpp>
-#include <p2p/Socket.hpp>
+#include <p2p/Transport.hpp>
+#include <p2p/Transport/Socket.hpp>
 
 #include <p2p/UDP/Endpoint.hpp>
 

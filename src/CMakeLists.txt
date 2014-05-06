@@ -1,12 +1,4 @@
-add_library(openp2p STATIC
-	IOService.cpp
-	Signal.cpp
-	String.cpp
-	Thread.cpp
-	Timer.cpp
-	)
-
-add_subdirectory(Buffer)
+add_subdirectory(Concurrency)
 
 add_subdirectory(Crypt)
 
@@ -20,9 +12,11 @@ add_subdirectory(OFTorrent)
 
 add_subdirectory(Root)
 
-add_subdirectory(Stream)
-
 add_subdirectory(TCP)
 
+add_subdirectory(Transport)
+
 add_subdirectory(UDP)
+
+add_subdirectory(Util)
 

@@ -4,7 +4,7 @@
 #include <p2p/TCP/Endpoint.hpp>
 #include <p2p/UDP/Endpoint.hpp>
 
-#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

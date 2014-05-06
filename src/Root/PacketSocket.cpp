@@ -1,16 +1,14 @@
 #include <assert.h>
 #include <stdint.h>
 
-#include <p2p/Buffer.hpp>
-
-#include <p2p/Stream/BinaryStream.hpp>
-
 #include <p2p/Event/Source.hpp>
 #include <p2p/Event/Wait.hpp>
 
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Packet.hpp>
 #include <p2p/Root/PacketSocket.hpp>
+
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <p2p/Stream.hpp>
+#include <p2p/Transport/Stream.hpp>
 #include <p2p/OFTorrent/BlockStream.hpp>
 #include <p2p/OFTorrent/StreamGenerator.hpp>
 

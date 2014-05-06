@@ -12,7 +12,7 @@
 #include <p2p/FolderSync/Block.hpp>
 #include <p2p/FolderSync/BlockId.hpp>
 
-#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 	

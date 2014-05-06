@@ -5,9 +5,10 @@ add_executable(httpClient
 target_link_libraries(httpClient
 	openp2p-tcp
 	openp2p-ip
-	openp2p-stream
+	openp2p-concurrency
+	openp2p-transport
 	openp2p-event
-	openp2p
+	openp2p-util
 	boost_thread
 	boost_system
 	pthread

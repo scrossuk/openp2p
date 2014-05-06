@@ -5,7 +5,7 @@
 #include <cryptopp/ecp.h>
 #include <cryptopp/sha.h>
 
-#include <p2p/Buffer.hpp>
+#include <p2p/Transport.hpp>
 
 namespace p2p {
 

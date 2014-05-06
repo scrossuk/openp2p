@@ -1,13 +1,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <p2p.hpp>
+#include <p2p/Concurrency.hpp>
 #include <p2p/Crypt/AutoSeededRandomPool.hpp>
 #include <p2p/Event/Signal.hpp>
 #include <p2p/Event/Wait.hpp>
 #include <p2p/Kademlia.hpp>
-#include <p2p/MultiplexSocket.hpp>
 #include <p2p/Root.hpp>
+#include <p2p/Transport.hpp>
 #include <p2p/UDP.hpp>
 
 #include "Logger.hpp"
@@ -35,40 +35,6 @@ class EventThread: public Runnable {
 		Root::DHT::Service& dhtService_;
 		Event::Signal signal_;
 	
-};
-
-template <typename T>
-class MessageQueue {
-	public:
-		MessageQueue() { }
-		
-		Event::Source eventSource() const {
-			return signal_.eventSource();
-		}
-		
-		bool empty() const {
-			std::lock_guard<std::mutex> lock(mutex_);
-			return queue_.empty();
-		}
-		
-		T receive() {
-			std::lock_guard<std::mutex> lock(mutex_);
-			auto message = std::move(queue_.front());
-			queue_.pop();
-			return message;
-		}
-		
-		void send(T message) {
-			std::lock_guard<std::mutex> lock(mutex_);
-			queue_.push(std::move(message));
-			signal_.activate();
-		}
-		
-	private:
-		mutable std::mutex mutex_;
-		std::queue<T> queue_;
-		Event::Signal signal_;
-		
 };
 
 class QueryNodeThread: public Runnable {

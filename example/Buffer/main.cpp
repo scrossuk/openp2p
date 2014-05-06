@@ -1,8 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#include <p2p/Buffer.hpp>
-#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/Transport.hpp>
 
 using namespace p2p;
 

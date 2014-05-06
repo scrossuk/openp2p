@@ -2,9 +2,9 @@
 #include <iostream>
 #include <vector>
 
-#include <p2p.hpp>
-#include <p2p/Stream/BinaryStream.hpp>
+#include <p2p/Concurrency.hpp>
 #include <p2p/TCP.hpp>
+#include <p2p/Transport.hpp>
 
 using namespace p2p;
 

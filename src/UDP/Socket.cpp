@@ -4,20 +4,30 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
-#include <p2p/IOService.hpp>
-#include <p2p/Socket.hpp>
-
 #include <p2p/Event/Generator.hpp>
 #include <p2p/Event/Source.hpp>
 
+#include <p2p/Transport/Socket.hpp>
+
 #include <p2p/UDP/Endpoint.hpp>
 #include <p2p/UDP/Socket.hpp>
+
+#include "../Internal/IOService.hpp"
 
 namespace p2p {
 
 	namespace UDP {
 		
 		constexpr size_t MAX_DATAGRAM_SIZE = 65536;
+		
+		namespace {
+			
+			IOService& GetIOService() {
+				static IOService ioService;
+				return ioService;
+			}
+			
+		}
 		
 		struct SocketImpl {
 			boost::asio::ip::udp::socket socket;

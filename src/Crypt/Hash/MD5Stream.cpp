@@ -10,8 +10,8 @@
 #include <cryptopp/filters.h>
 #include <cryptopp/md5.h>
 
-#include <p2p/Buffer.hpp>
-#include <p2p/Stream.hpp>
+#include <p2p/Transport.hpp>
+#include <p2p/Transport/Stream.hpp>
 
 #include <p2p/Crypt/Hash/MD5Stream.hpp>
 

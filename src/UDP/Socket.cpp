@@ -123,7 +123,18 @@ namespace p2p {
 			}
 		}
 		
+		Socket::Socket(Socket&& other) {
+			std::swap(impl_, other.impl_);
+		}
+		
+		Socket& Socket::operator=(Socket&& other) {
+			std::swap(impl_, other.impl_);
+			return *this;
+		}
+		
 		Socket::~Socket() {
+			if (impl_.get() == nullptr) return;
+			
 			impl_->close();
 			std::unique_lock<std::mutex> lock(impl_->mutex);
 			while (impl_->isActiveReceive || impl_->isActiveSend) {

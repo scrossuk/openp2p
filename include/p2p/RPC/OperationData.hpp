@@ -2,6 +2,7 @@
 #define P2P_RPC_OPERATIONDATA_HPP
 
 #include <mutex>
+#include <stdexcept>
 
 #include <boost/optional.hpp>
 
@@ -43,13 +44,11 @@ namespace p2p {
 					return result_;
 				}
 				
-				const ResultType& get() const {
+				ResultType get() {
 					std::lock_guard<std::mutex> lock(mutex_);
-					return *result_;
-				}
-				
-				ResultType move() {
-					std::lock_guard<std::mutex> lock(mutex_);
+					if (!result_) {
+						throw std::runtime_error("Result not available.");
+					}
 					ResultType result = std::move(*result_);
 					result_ = boost::none;
 					return result;

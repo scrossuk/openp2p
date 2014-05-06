@@ -24,3 +24,26 @@ void Logger::log(const std::string& message) {
 	fflush(stdout);
 }
 
+std::string readLine() {
+	std::string line;
+	
+	while (true) {
+		const int c = getc(stdin);
+		if (c == EOF) {
+			return "";
+		}
+		
+		if (c == '\n') {
+			if (!line.empty()) {
+				break;
+			} else {
+				continue;
+			}
+		}
+		
+		line += (char) c;
+	}
+	
+	return line;
+}
+

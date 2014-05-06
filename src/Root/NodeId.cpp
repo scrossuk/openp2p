@@ -59,6 +59,14 @@ namespace p2p {
 			return ((byte >> bitIndex) & 1) == 1;
 		}
 		
+		uint8_t NodeId::operator[](size_t index) const {
+			return data_.at(index);
+		}
+		
+		uint8_t& NodeId::operator[](size_t index) {
+			return data_.at(index);
+		}
+		
 		bool NodeId::operator==(const NodeId& other) const {
 			return data_ == other.data_;
 		}

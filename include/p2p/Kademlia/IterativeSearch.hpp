@@ -20,13 +20,11 @@ namespace p2p {
 		template <typename IdType>
 		class RPCSocket {
 			public:
-				virtual Event::Source eventSource() const = 0;
-				
 				virtual RPC::Operation<std::vector<IdType>> performFind(const IdType& destId, const IdType& searchId) = 0;
 				
 		};
 		
-		template <typename IdType, size_t MIN_ITERATION_COUNT = 2, size_t TIMEOUT_MILLISECONDS = 250, size_t PARALLEL_REQUESTS = 3, size_t GROUP_SIZE = 20>
+		template <typename IdType, size_t GROUP_SIZE = 20, size_t MIN_ITERATION_COUNT = 2, size_t TIMEOUT_MILLISECONDS = 250, size_t PARALLEL_REQUESTS = 3>
 		std::vector<IdType> iterativeSearch(BucketSet<IdType>& bucketSet, RPCSocket<IdType>& socket, const IdType& searchId) {
 			SearchQueue<IdType> searchQueue(searchId);
 			for (const auto& initialId: bucketSet.getNearest(searchId, GROUP_SIZE)) {
@@ -51,19 +49,17 @@ namespace p2p {
 				timer.setMilliseconds(TIMEOUT_MILLISECONDS);
 				timer.schedule();
 				
-				size_t responseCount = 0;
-				
 				while (!activeRequests.empty() && !timer.hasExpired()) {
 					std::vector<Event::Source> eventSources;
 					eventSources.reserve(activeRequests.size() + 1);
 					
 					for (auto iterator = activeRequests.begin(); iterator != activeRequests.end(); ) {
-						const auto& rpc = *iterator;
+						auto& rpc = *iterator;
 						if (rpc.isComplete()) {
 							auto nextIterator = iterator;
 							++nextIterator;
 							
-							const auto& receivedGroup = rpc.get();
+							const auto receivedGroup = rpc.get();
 							for (const auto& receivedId: receivedGroup) {
 								bucketSet.add(receivedId);
 								searchQueue.add(receivedId);

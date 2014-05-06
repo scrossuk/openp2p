@@ -1,3 +1,4 @@
+#include <condition_variable>
 #include <mutex>
 
 #include <boost/asio.hpp>
@@ -25,12 +26,13 @@ namespace p2p {
 		
 		struct TimerImpl {
 			std::mutex mutex;
-			bool hasExpired;
+			std::condition_variable condition;
+			bool isRunning;
 			boost::asio::deadline_timer timer;
 			Generator eventGenerator;
 			
 			inline TimerImpl(boost::asio::io_service& pIOService) :
-				hasExpired(false), timer(pIOService) { }
+				isRunning(false), timer(pIOService) { }
 		};
 		
 		namespace {
@@ -38,7 +40,8 @@ namespace p2p {
 			void timerCallback(TimerImpl* impl, const boost::system::error_code&) {
 				std::lock_guard<std::mutex> lock(impl->mutex);
 				impl->eventGenerator.activate();
-				impl->hasExpired = true;
+				impl->isRunning = false;
+				impl->condition.notify_all();
 			}
 			
 		}
@@ -46,7 +49,12 @@ namespace p2p {
 		Timer::Timer()
 			: impl_(new TimerImpl(GetIOService())) { }
 			
-		Timer::~Timer() { }
+		Timer::~Timer() {
+			std::unique_lock<std::mutex> lock(impl_->mutex);
+			while (impl_->isRunning) {
+				impl_->condition.wait(lock);
+			}
+		}
 		
 		Timer::Timer(Timer&& other)
 			: impl_(std::move(other.impl_)) { }
@@ -63,13 +71,13 @@ namespace p2p {
 		
 		void Timer::schedule() {
 			std::lock_guard<std::mutex> lock(impl_->mutex);
-			impl_->hasExpired = false;
+			impl_->isRunning = true;
 			impl_->timer.async_wait(boost::bind(timerCallback, impl_.get(), _1));
 		}
 		
 		bool Timer::hasExpired() const {
 			std::lock_guard<std::mutex> lock(impl_->mutex);
-			return impl_->hasExpired;
+			return !impl_->isRunning;
 		}
 		
 		Source Timer::eventSource() const {

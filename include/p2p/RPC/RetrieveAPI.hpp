@@ -16,10 +16,8 @@ namespace p2p {
 				
 				virtual bool isComplete() const = 0;
 				
-				virtual const ResultType& get() const = 0;
+				virtual ResultType get() = 0;
 				
-				virtual ResultType move() = 0;
-			
 		};
 		
 	}

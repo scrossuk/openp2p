@@ -39,7 +39,7 @@ namespace p2p {
 				}
 				
 				void add(const IdType& id) {
-					map_.emplace(id, false);
+					map_.insert(std::make_pair(id, false));
 				}
 				
 				bool isNearestVisited() const {

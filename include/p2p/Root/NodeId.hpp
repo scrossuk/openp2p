@@ -32,6 +32,9 @@ namespace p2p {
 				
 				bool bitAt(size_t index) const;
 				
+				uint8_t operator[](size_t index) const;
+				uint8_t& operator[](size_t index);
+				
 				bool operator==(const NodeId&) const;
 				bool operator!=(const NodeId&) const;
 				bool operator<(const NodeId&) const;

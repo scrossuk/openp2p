@@ -20,4 +20,6 @@ class Logger {
 		
 };
 
+std::string readLine();
+
 #endif

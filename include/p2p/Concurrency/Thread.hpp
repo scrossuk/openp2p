@@ -1,7 +1,7 @@
 #ifndef P2P_CONCURRENCY_THREAD_HPP
 #define P2P_CONCURRENCY_THREAD_HPP
 
-#include <boost/thread.hpp>
+#include <memory>
 
 #include <p2p/Concurrency/Runnable.hpp>
 
@@ -11,12 +11,19 @@ namespace p2p {
 		
 		class Thread {
 			public:
+				Thread();
 				Thread(Runnable& runnable);
+				Thread(Thread&&);
+				Thread& operator=(Thread&&);
+				
 				~Thread();
 				
 			private:
-				Runnable& runnable_;
-				boost::thread internalThread_;
+				// Non-copyable.
+				Thread(const Thread&) = delete;
+				Thread& operator=(Thread) = delete;
+				
+				std::unique_ptr<struct ThreadImpl> impl_;
 				
 		};
 		

@@ -16,6 +16,10 @@ namespace p2p {
 			public:
 				Socket();
 				Socket(uint16_t port);
+				
+				Socket(Socket&&);
+				Socket& operator=(Socket&&);
+				
 				~Socket();
 				
 				bool isValid() const;
@@ -27,6 +31,10 @@ namespace p2p {
 				bool receive(UDP::Endpoint& endpoint, Buffer& buffer);
 				
 			private:
+				// Non-copyable.
+				Socket(const Socket&) = delete;
+				Socket& operator=(const Socket&) = delete;
+				
 				std::unique_ptr<struct SocketImpl> impl_;
 				
 		};

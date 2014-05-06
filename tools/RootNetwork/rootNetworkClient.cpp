@@ -37,6 +37,29 @@ class EventThread: public Runnable {
 	
 };
 
+class KademliaRPCSocket: public p2p::Kademlia::RPCSocket<Root::NodeId> {
+	public:
+		KademliaRPCSocket(Root::DHT::Service& dhtService, Logger& logger)
+			: dhtService_(dhtService), logger_(logger) { }
+		
+		RPC::Operation<std::vector<Root::NodeId>> performFind(const Root::NodeId& destId, const Root::NodeId& searchId) {
+			logger_.log(STR("Kademlia querying node '%s'.", destId.hexString().c_str()));
+			return RPC::Chain(dhtService_.getNearestNodes(destId, searchId),
+				[] (std::vector<Root::NodeInfo> nodeList) {
+					std::vector<Root::NodeId> idList;
+					for (const auto& nodeInfo: nodeList) {
+						idList.push_back(nodeInfo.id);
+					}
+					return idList;
+				});
+		}
+		
+	private:
+		Root::DHT::Service& dhtService_;
+		Logger& logger_;
+		
+};
+
 class QueryNodeThread: public Runnable {
 	public:
 		QueryNodeThread(Logger& logger,
@@ -71,12 +94,12 @@ class QueryNodeThread: public Runnable {
 					
 					knownNodes.insert(peerId);
 					
-					const auto endpoint = coreService_.ping(peerEndpoint, peerId).wait();
+					const auto endpoint = coreService_.ping(peerEndpoint, peerId).get();
 					
 					logger_.log(STR("Node reports my endpoint is '%s'.", endpoint.udpEndpoint.toString().c_str()));
 					// TODO: add this endpoint to our set of endpoints.
 					
-					const auto networks = coreService_.queryNetworks(peerEndpoint, peerId).wait();
+					const auto networks = coreService_.queryNetworks(peerEndpoint, peerId).get();
 					
 					logger_.log(STR("Node supports %llu networks.", (unsigned long long) networks.size()));
 					
@@ -96,7 +119,7 @@ class QueryNodeThread: public Runnable {
 					
 					dhtBucketSet_.add(peerId);
 					
-					const auto peerNearestNodes = dhtService_.getNearestNodes(peerId, myId_).wait();
+					const auto peerNearestNodes = dhtService_.getNearestNodes(peerId, myId_).get();
 					
 					if (peerNearestNodes.empty()) {
 						logger_.log("Node doesn't seem to know any other nodes.");
@@ -107,7 +130,7 @@ class QueryNodeThread: public Runnable {
 					
 					for (const auto& dhtNode: peerNearestNodes) {
 						logger_.log(STR("    Node '%s'", dhtNode.id.hexString().c_str()));
-						assert(!dhtNode.endpointSet.empty());
+						if (dhtNode.endpointSet.empty()) continue;
 						
 						// Query all our nearest nodes.
 						messageQueue_.send(Root::NodePair(dhtNode.id, *(dhtNode.endpointSet.begin())));
@@ -205,27 +228,19 @@ class NodeDetectDelegate: public Root::NodeDetectDelegate {
 	
 };
 
-std::string readLine() {
-	std::string line;
+Root::NodeId processTextId(const std::string& textId) {
+	assert(textId.size() <= 64);
+	assert((textId.size() % 2) == 0);
 	
-	while (true) {
-		const int c = getc(stdin);
-		if (c == EOF) {
-			return "";
-		}
-		
-		if (c == '\n') {
-			if (!line.empty()) {
-				break;
-			} else {
-				continue;
-			}
-		}
-		
-		line += (char) c;
+	Root::NodeId nodeId;
+	
+	for (size_t i = 0; i < (textId.size() / 2); i++) {
+		const auto subString = textId.substr(i * 2, 2);
+		const auto value = strtol(subString.c_str(), nullptr, 16);
+		nodeId[i] = value;
 	}
 	
-	return line;
+	return nodeId;
 }
 
 std::vector<std::string> parse(const std::string& args);
@@ -306,7 +321,7 @@ int main(int argc, char** argv) {
 		
 		const auto& command = commandArgs.at(0);
 		
-		if (command == "a" || command == "add") {
+		if (command == "add") {
 			if (commandArgs.size() != 2) {
 				logger.log(STR("%s: incorrect number of arguments", command.c_str()));
 				continue;
@@ -317,13 +332,42 @@ int main(int argc, char** argv) {
 			
 			const auto peerEndpoint = UDP::Endpoint(IP::V4Address::Localhost(), nodePort);
 			
-			const auto peerId = coreService.identify(peerEndpoint).wait();
+			const auto peerId = coreService.identify(peerEndpoint).get();
 			
 			logger.log(STR("%s: node's id is '%s'.", command.c_str(), peerId.hexString().c_str()));
 			
 			messageQueue.send(Root::NodePair(peerId, peerEndpoint));
 			
 			logger.log(STR("%s: submitted node to be queried", command.c_str()));
+		} else if (command == "find") {
+			if (commandArgs.size() != 2) {
+				logger.log(STR("%s: incorrect number of arguments", command.c_str()));
+				continue;
+			}
+			
+			const auto& searchIdText = commandArgs.at(1);
+			if (searchIdText.size() > 64) {
+				logger.log(STR("%s: search id '%s' is longer than 64 characters", command.c_str(), searchIdText.c_str()));
+				continue;
+			}
+			
+			if ((searchIdText.size() % 2) == 1) {
+				logger.log(STR("%s: search id '%s' is not a multiple of 2 characters in length", command.c_str(), searchIdText.c_str()));
+				continue;
+			}
+			
+			const auto searchId = processTextId(searchIdText);
+			
+			logger.log(STR("%s: searching for ID '%s'...", command.c_str(), searchId.hexString().c_str()));
+			
+			KademliaRPCSocket kademliaRPCSocket(dhtService, logger);
+			const auto nearestList = p2p::Kademlia::iterativeSearch<Root::NodeId, 2>(dhtBucketSet, kademliaRPCSocket, searchId);
+			
+			logger.log(STR("%s: found %llu nearest nodes:", command.c_str(), (unsigned long long) nearestList.size()));
+			
+			for (const auto& resultNodeId: nearestList) {
+				logger.log(STR("%s:     Node '%s'", command.c_str(), resultNodeId.hexString().c_str()));
+			}
 		} else if (command == "ls" || command == "list") {
 			for (const auto& nodeEntryPair: nodeDatabase.map()) {
 				const auto& nodeEntry = nodeEntryPair.second;

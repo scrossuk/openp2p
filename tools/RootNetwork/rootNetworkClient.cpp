@@ -369,6 +369,7 @@ int main(int argc, char** argv) {
 				logger.log(STR("%s:     Node '%s'", command.c_str(), resultNodeId.hexString().c_str()));
 			}
 		} else if (command == "ls" || command == "list") {
+			logger.log(STR("%s: found %llu nodes:", command.c_str(), (unsigned long long) nodeDatabase.map().size()));
 			for (const auto& nodeEntryPair: nodeDatabase.map()) {
 				const auto& nodeEntry = nodeEntryPair.second;
 				logger.log(STR("%s:     Node '%s' ->", command.c_str(), nodeEntry.identity.id().hexString().c_str()));

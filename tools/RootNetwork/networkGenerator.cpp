@@ -46,30 +46,30 @@ class QueryNodeThread: public Runnable {
 						continue;
 					}
 					
-					logger_.log(STR("--- Querying node '%s'...", peerId.hexString().c_str()));
+					//logger_.log(STR("--- Querying node '%s'...", peerId.hexString().c_str()));
 					
 					knownNodes.insert(peerId);
 					
 					const auto endpoint = coreService_.ping(peerEndpoint, peerId).get();
 					
-					logger_.log(STR("Node reports my endpoint is '%s'.", endpoint.udpEndpoint.toString().c_str()));
+					//logger_.log(STR("Node reports my endpoint is '%s'.", endpoint.udpEndpoint.toString().c_str()));
 					// TODO: add this endpoint to our set of endpoints.
 					
 					const auto networks = coreService_.queryNetworks(peerEndpoint, peerId).get();
 					
-					logger_.log(STR("Node supports %llu networks.", (unsigned long long) networks.size()));
+					//logger_.log(STR("Node supports %llu networks.", (unsigned long long) networks.size()));
 					
 					bool supportsDHT = false;
 					for (size_t i = 0; i < networks.size(); i++) {
-						logger_.log(STR("    Network %llu: %s.", (unsigned long long) i, networks.at(i).hexString().c_str()));
+						//logger_.log(STR("    Network %llu: %s.", (unsigned long long) i, networks.at(i).hexString().c_str()));
 						if (networks.at(i) == Root::NetworkId::Generate("p2p.rootdht")) {
-							logger_.log("        -> Supports DHT network.");
+							//logger_.log("        -> Supports DHT network.");
 							supportsDHT = true;
 						}
 					}
 					
 					if (!supportsDHT) {
-						logger_.log("Node doesn't support DHT.");
+						//logger_.log("Node doesn't support DHT.");
 						continue;
 					}
 					
@@ -78,15 +78,18 @@ class QueryNodeThread: public Runnable {
 					const auto peerNearestNodes = dhtService_.getNearestNodes(peerId, myId_).get();
 					
 					if (peerNearestNodes.empty()) {
-						logger_.log("Node doesn't seem to know any other nodes.");
+						//logger_.log("Node doesn't seem to know any other nodes.");
 						continue;
 					}
 					
-					logger_.log("Node reports our nearest nodes as:");
+					//logger_.log("Node reports our nearest nodes as:");
 					
 					for (const auto& dhtNode: peerNearestNodes) {
-						logger_.log(STR("    Node '%s'", dhtNode.id.hexString().c_str()));
-						if (dhtNode.endpointSet.empty()) continue;
+						//logger_.log(STR("    Node '%s'", dhtNode.id.hexString().c_str()));
+						if (dhtNode.endpointSet.empty()) {
+							logger_.log("Empty!");
+							continue;
+						}
 						
 						// Query all our nearest nodes.
 						messageQueue_.send(Root::NodePair(dhtNode.id, *(dhtNode.endpointSet.begin())));
@@ -123,6 +126,7 @@ class DHTServerDelegate: public Root::DHT::ServerDelegate {
 			for (const auto& id: idList) {
 				nodeList.push_back(nodeDatabase_.nodeEntry(id).toNodeInfo());
 			}
+			//printf("Received query for nearest nodes.\n");
 			return nodeList;
 		}
 		
@@ -174,6 +178,7 @@ class NodeDetectDelegate: public Root::NodeDetectDelegate {
 			if (!nodeDatabase_.isKnownId(nodePair.id)) return;
 			
 			if (nodeDatabase_.nodeEntry(nodePair.id).endpointSet.empty()) {
+				nodeDatabase_.nodeEntry(nodePair.id).endpointSet.insert(nodePair.endpoint);
 				messageQueue_.send(nodePair);
 			}
 		}
@@ -265,12 +270,9 @@ class NodeThread: public p2p::Runnable {
 				
 				Event::Wait({ coreService.eventSource(), dhtService.eventSource(), signal_.eventSource(), timer.eventSource() });
 			}
-			
-			logger_.log(STR("Exiting node thread for node at port %llu.", (unsigned long long) myPort_));
 		}
 		
 		void cancel() {
-			logger_.log(STR("Cancelled node thread for node at port %llu.", (unsigned long long) myPort_));
 			signal_.activate();
 		}
 		
@@ -297,17 +299,16 @@ int main(int argc, char** argv) {
 	const auto startPort = atoi(argv[1]);
 	const auto endPort = atoi(argv[2]);
 	
-	std::vector<NodeThread> nodeRunnables;
+	std::vector<std::unique_ptr<NodeThread>> nodeRunnables;
 	std::vector<p2p::Thread> nodeThreads;
 	
 	for (unsigned short port = startPort; port <= endPort; port++) {
 		logger.log(STR("Creating node at port %u.", (unsigned int) port));
 		const auto nextPort = (port == endPort) ? startPort : (port + 1);
-		nodeRunnables.push_back(NodeThread(port, nextPort, logger));
-	}
-	
-	for (size_t i = 0; i < nodeRunnables.size(); i++) {
-		nodeThreads.push_back(p2p::Thread(nodeRunnables.at(i)));
+		nodeRunnables.push_back(std::unique_ptr<NodeThread>(new NodeThread(port, nextPort, logger)));
+		nodeThreads.push_back(p2p::Thread(*(nodeRunnables.back())));
+		
+		sleep(1);
 	}
 	
 	logger.log("Press 'q' to quit.");

@@ -20,16 +20,8 @@ namespace p2p {
 		
 		constexpr size_t MAX_DATAGRAM_SIZE = 65536;
 		
-		namespace {
-			
-			IOService& GetIOService() {
-				static IOService ioService;
-				return ioService;
-			}
-			
-		}
-		
 		struct SocketImpl {
+			IOService ioService;
 			boost::asio::ip::udp::socket socket;
 			std::mutex mutex;
 			std::condition_variable condition;
@@ -39,8 +31,8 @@ namespace p2p {
 			boost::asio::ip::udp::endpoint receiveEndpoint;
 			Buffer receiveBuffer;
 			
-			inline SocketImpl(boost::asio::io_service& pIOService)
-				: socket(pIOService), isActiveReceive(false),
+			inline SocketImpl()
+				: socket(ioService), isActiveReceive(false),
 				isActiveSend(false), hasReceiveData(false) { }
 			
 			inline void close() {
@@ -73,7 +65,7 @@ namespace p2p {
 			
 		}
 		
-		Socket::Socket() : impl_(new SocketImpl(GetIOService())) {
+		Socket::Socket() : impl_(new SocketImpl()) {
 			boost::system::error_code ec;
 			
 			impl_->socket.open(boost::asio::ip::udp::v6(), ec);
@@ -91,7 +83,7 @@ namespace p2p {
 			}
 		}
 		
-		Socket::Socket(uint16_t port) : impl_(new SocketImpl(GetIOService())) {
+		Socket::Socket(uint16_t port) : impl_(new SocketImpl()) {
 			boost::system::error_code ec;
 			
 			impl_->socket.open(boost::asio::ip::udp::v6(), ec);

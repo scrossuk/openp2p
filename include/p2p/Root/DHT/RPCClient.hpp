@@ -5,10 +5,13 @@
 
 #include <queue>
 
+#include <p2p/Event/UnionGenerator.hpp>
+
 #include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Message.hpp>
+#include <p2p/Root/MessageResender.hpp>
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeInfo.hpp>
 #include <p2p/Root/RoutineIdGenerator.hpp>
@@ -26,7 +29,7 @@ namespace p2p {
 			
 			class RPCClient {
 				public:
-					RPCClient(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator);
+					RPCClient(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator, double timeoutMilliseconds = 500.0);
 					~RPCClient();
 					
 					Event::Source eventSource() const;
@@ -45,6 +48,8 @@ namespace p2p {
 					RPCClient& operator=(RPCClient) = delete;
 					
 					Socket<NodeId, Message>& socket_;
+					MessageResender<NodeId> resender_;
+					Event::UnionGenerator unionGenerator_;
 					RoutineIdGenerator& routineIdGenerator_;
 					RPC::Host<std::vector<NodeInfo>, RoutineId> getNearestHost_;
 					RPC::Host<Empty, RoutineId> subscribeHost_;

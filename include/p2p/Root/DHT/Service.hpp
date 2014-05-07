@@ -7,6 +7,7 @@
 #include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
+#include <p2p/Event/UnionGenerator.hpp>
 
 #include <p2p/RPC/Host.hpp>
 #include <p2p/RPC/Operation.hpp>
@@ -50,6 +51,7 @@ namespace p2p {
 					MultiplexClient<Root::NodeId, Root::Message> serverSocket_;
 					RPCClient client_;
 					RPCServer server_;
+					Event::UnionGenerator unionGenerator_;
 					
 			};
 			

@@ -4,6 +4,7 @@ add_library(openp2p-event STATIC
 	Signal.cpp
 	Source.cpp
 	Timer.cpp
+	UnionGenerator.cpp
 	Wait.cpp
 	)
 

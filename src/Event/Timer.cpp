@@ -28,11 +28,13 @@ namespace p2p {
 			std::mutex mutex;
 			std::condition_variable condition;
 			bool isRunning;
+			double milliseconds;
 			boost::asio::deadline_timer timer;
 			Generator eventGenerator;
 			
 			inline TimerImpl(boost::asio::io_service& pIOService) :
-				isRunning(false), timer(pIOService) { }
+				isRunning(false), milliseconds(0.0),
+				timer(pIOService) { }
 		};
 		
 		namespace {
@@ -51,6 +53,7 @@ namespace p2p {
 			
 		Timer::~Timer() {
 			std::unique_lock<std::mutex> lock(impl_->mutex);
+			(void) impl_->timer.cancel();
 			while (impl_->isRunning) {
 				impl_->condition.wait(lock);
 			}
@@ -66,12 +69,13 @@ namespace p2p {
 		
 		void Timer::setMilliseconds(double milliseconds) {
 			std::lock_guard<std::mutex> lock(impl_->mutex);
-			impl_->timer.expires_from_now(boost::posix_time::milliseconds(milliseconds));
+			impl_->milliseconds = milliseconds;
 		}
 		
 		void Timer::schedule() {
 			std::lock_guard<std::mutex> lock(impl_->mutex);
 			impl_->isRunning = true;
+			impl_->timer.expires_from_now(boost::posix_time::milliseconds(impl_->milliseconds));
 			impl_->timer.async_wait(boost::bind(timerCallback, impl_.get(), _1));
 		}
 		

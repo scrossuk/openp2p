@@ -5,6 +5,7 @@
 #include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
+#include <p2p/Event/UnionGenerator.hpp>
 #include <p2p/Event/Wait.hpp>
 
 #include <p2p/Root/Endpoint.hpp>
@@ -29,12 +30,13 @@ namespace p2p {
 				clientSocket_(multiplexHost_),
 				serverSocket_(multiplexHost_),
 				client_(clientSocket_, routineIdGenerator),
-				server_(serverSocket_) { }
+				server_(serverSocket_),
+				unionGenerator_({ client_.eventSource(), server_.eventSource() }) { }
 			
 			Service::~Service() { }
 			
 			Event::Source Service::eventSource() const {
-				return server_.eventSource();
+				return unionGenerator_.eventSource();
 			}
 			
 			bool Service::processMessage() {

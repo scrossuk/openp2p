@@ -40,16 +40,20 @@ namespace p2p {
 				return group;
 			}
 			
-			RPCClient::RPCClient(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator)
-				: socket_(socket), routineIdGenerator_(routineIdGenerator) { }
+			RPCClient::RPCClient(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator, double timeoutMilliseconds)
+				: socket_(socket), resender_(socket_, timeoutMilliseconds),
+				unionGenerator_({ socket_.eventSource(), resender_.eventSource() }),
+				routineIdGenerator_(routineIdGenerator) { }
 				
 			RPCClient::~RPCClient() { }
 			
 			Event::Source RPCClient::eventSource() const {
-				return socket_.eventSource();
+				return unionGenerator_.eventSource();
 			}
 			
 			bool RPCClient::processResponse() {
+				resender_.processResends();
+				
 				NodeId senderId;
 				Message message;
 				const bool result = socket_.receive(senderId, message);
@@ -70,16 +74,19 @@ namespace p2p {
 				
 				switch (message.type) {
 					case RPCMessage::GET_NEAREST_NODES: {
+						resender_.endRoutine(message.routine);
 						getNearestHost_.completeOperation(message.routine, readNodeGroup(message.payload));
 						return true;
 					}
 					
 					case RPCMessage::SUBSCRIBE: {
+						resender_.endRoutine(message.routine);
 						subscribeHost_.completeOperation(message.routine, Empty());
 						return true;
 					}
 					
 					case RPCMessage::GET_SUBSCRIBERS: {
+						resender_.endRoutine(message.routine);
 						getSubscribersHost_.completeOperation(message.routine, readNodeGroup(message.payload));
 						return true;
 					}
@@ -92,21 +99,21 @@ namespace p2p {
 			RPC::Operation<std::vector<NodeInfo>> RPCClient::getNearestNodes(const NodeId& destId, const NodeId& targetId) {
 				const auto routineId = routineIdGenerator_.generateId();
 				const auto rpcMessage = RPCMessage::GetNearestNodesRequest(targetId);
-				socket_.send(destId, rpcMessage.createMessage(routineId));
+				resender_.startRoutine(routineId, destId, rpcMessage.createMessage(routineId));
 				return getNearestHost_.startOperation(routineId);
 			}
 			
 			RPC::Operation<Empty> RPCClient::subscribe(const NodeId& destId, const NodeId& targetId, const std::vector<Endpoint>& myEndpoints) {
 				const auto routineId = routineIdGenerator_.generateId();
 				const auto rpcMessage = RPCMessage::SubscribeRequest(targetId, myEndpoints);
-				socket_.send(destId, rpcMessage.createMessage(routineId));
+				resender_.startRoutine(routineId, destId, rpcMessage.createMessage(routineId));
 				return subscribeHost_.startOperation(routineId);
 			}
 			
 			RPC::Operation<std::vector<NodeInfo>> RPCClient::getSubscribers(const NodeId& destId, const NodeId& targetId) {
 				const auto routineId = routineIdGenerator_.generateId();
 				const auto rpcMessage = RPCMessage::GetSubscribersRequest(targetId);
-				socket_.send(destId, rpcMessage.createMessage(routineId));
+				resender_.startRoutine(routineId, destId, rpcMessage.createMessage(routineId));
 				return getSubscribersHost_.startOperation(routineId);
 			}
 			

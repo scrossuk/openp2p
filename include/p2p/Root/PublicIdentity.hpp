@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <p2p/Crypt/RandomPool.hpp>
+
 #include <p2p/Root/Key.hpp>
 #include <p2p/Root/NodeId.hpp>
 #include <p2p/Root/Packet.hpp>
@@ -16,7 +18,7 @@ namespace p2p {
 			public:
 				PublicIdentity(const PublicKey&, uint64_t packetCount = 0);
 				
-				PublicIdentity(const PrivateIdentity&);
+				PublicIdentity(Crypt::RandomPool& randomPool, const PrivateIdentity&);
 				
 				uint64_t nextPacketCount() const;
 				

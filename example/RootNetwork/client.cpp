@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 	Crypt::ECDSA::PrivateKey privateKey(rand, Crypt::ECDSA::brainpoolP256r1);
 	
 	Root::NodeDatabase nodeDatabase;
-	Root::PrivateIdentity privateIdentity(privateKey);
+	Root::PrivateIdentity privateIdentity(rand, privateKey);
 	
 	printf("My id is '%s'.\n", privateIdentity.id().hexString().c_str());
 	
@@ -129,15 +129,15 @@ int main(int argc, char** argv) {
 	EventThread eventThreadRunnable(coreService, dhtService);
 	Thread eventThread(eventThreadRunnable);
 	
-	const auto peerId = coreService.identify(UDP::Endpoint(IP::V4Address::Localhost(), otherPort)).wait();
+	const auto peerId = coreService.identify(UDP::Endpoint(IP::V4Address::Localhost(), otherPort)).get();
 	
 	printf("Peer's id is '%s'.\n", peerId.hexString().c_str());
 	
-	const auto endpoint = coreService.ping(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
+	const auto endpoint = coreService.ping(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).get();
 	
 	printf("My endpoint is '%s'.\n", endpoint.udpEndpoint.toString().c_str());
 	
-	const auto networks = coreService.queryNetworks(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).wait();
+	const auto networks = coreService.queryNetworks(UDP::Endpoint(IP::V4Address::Localhost(), otherPort), peerId).get();
 	
 	printf("Node supports %llu networks.\n", (unsigned long long) networks.size());
 	
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
 		return 0;
 	}
 	
-	const auto myNearestNodes = dhtService.getNearestNodes(peerId, privateIdentity.id()).wait();
+	const auto myNearestNodes = dhtService.getNearestNodes(peerId, privateIdentity.id()).get();
 	printf("Peer reports %llu nearest nodes.\n", (unsigned long long) myNearestNodes.size());
 	
 	return 0;

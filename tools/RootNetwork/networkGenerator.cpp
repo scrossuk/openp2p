@@ -187,7 +187,7 @@ class NodeDetectDelegate: public Root::NodeDetectDelegate {
 class NodeThread: public p2p::Runnable {
 	public:
 		NodeThread(unsigned short myPort, unsigned short otherPort, Logger& logger)
-			: udpSocket_(myPort), otherPort_(otherPort), logger_(logger) { }
+			: myPort_(myPort), udpSocket_(myPort), otherPort_(otherPort), logger_(logger) { }
 		
 		NodeThread(NodeThread&&) = default;
 		NodeThread& operator=(NodeThread&&) = default;
@@ -198,7 +198,7 @@ class NodeThread: public p2p::Runnable {
 			Crypt::ECDSA::PrivateKey privateKey(rand, Crypt::ECDSA::brainpoolP256r1);
 			
 			Root::NodeDatabase nodeDatabase;
-			Root::PrivateIdentity privateIdentity(privateKey);
+			Root::PrivateIdentity privateIdentity(rand, privateKey);
 			
 			// Send/receive data on appropriate transport.
 			Root::TransportSocket transportSocket(udpSocket_);
@@ -238,12 +238,14 @@ class NodeThread: public p2p::Runnable {
 			
 			const auto peerEndpoint = UDP::Endpoint(IP::V4Address::Localhost(), otherPort_);
 			
-			sleep(5);
-			
 			logger_.log(STR("Querying peer at port %llu...", (unsigned long long) otherPort_));
 			
 			auto getPeerRPC = coreService.identify(peerEndpoint);
 			bool hasProcessedPeer = false;
+			
+			Event::Timer timer;
+			timer.setMilliseconds(2000.0);
+			timer.schedule();
 			
 			while (!signal_.isActive()) {
 				while (coreService.processMessage() || dhtService.processMessage()) { }
@@ -255,14 +257,20 @@ class NodeThread: public p2p::Runnable {
 					hasProcessedPeer = true;
 				}
 				
-				Event::Wait({ coreService.eventSource(), dhtService.eventSource(), signal_.eventSource() });
+				if (!hasProcessedPeer && timer.hasExpired()) {
+					logger_.log(STR("Failed to receive IDENTIFY reply for node at port %llu from node at port %llu...",
+						(unsigned long long) myPort_, (unsigned long long) otherPort_));
+					abort();
+				}
+				
+				Event::Wait({ coreService.eventSource(), dhtService.eventSource(), signal_.eventSource(), timer.eventSource() });
 			}
 			
-			logger_.log("Exiting node thread.");
+			logger_.log(STR("Exiting node thread for node at port %llu.", (unsigned long long) myPort_));
 		}
 		
 		void cancel() {
-			logger_.log("Cancelled node thread.");
+			logger_.log(STR("Cancelled node thread for node at port %llu.", (unsigned long long) myPort_));
 			signal_.activate();
 		}
 		
@@ -270,6 +278,7 @@ class NodeThread: public p2p::Runnable {
 		NodeThread(const NodeThread&) = delete;
 		NodeThread& operator=(const NodeThread&) = delete;
 		
+		unsigned short myPort_;
 		UDP::Socket udpSocket_;
 		unsigned short otherPort_;
 		Logger& logger_;

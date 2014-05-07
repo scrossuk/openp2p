@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <p2p/Crypt/AutoSeededRandomPool.hpp>
+#include <p2p/Crypt/RandomPool.hpp>
 #include <p2p/Crypt/ECDSA/PublicKey.hpp>
 #include <p2p/Crypt/ECDSA/VerifyStream.hpp>
 
@@ -17,10 +17,9 @@ namespace p2p {
 		PublicIdentity::PublicIdentity(const PublicKey& pPublicKey, uint64_t packetCount)
 			: publicKey_(pPublicKey), nextPacketCount_(packetCount) { }
 			
-		PublicIdentity::PublicIdentity(const PrivateIdentity& identity)
+		PublicIdentity::PublicIdentity(Crypt::RandomPool& randomPool, const PrivateIdentity& identity)
 			: nextPacketCount_(identity.nextPacketCount()) {
-				Crypt::AutoSeededRandomPool rand;
-				publicKey_ = PublicKey(rand, identity.privateKey());
+				publicKey_ = PublicKey(randomPool, identity.privateKey());
 			}
 		
 		uint64_t PublicIdentity::nextPacketCount() const {

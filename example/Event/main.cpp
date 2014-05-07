@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
 
 #include <p2p/Concurrency.hpp>
 #include <p2p/Event.hpp>

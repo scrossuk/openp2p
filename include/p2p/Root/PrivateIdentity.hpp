@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <p2p/Crypt/RandomPool.hpp>
+
 #include <p2p/Root/Key.hpp>
 #include <p2p/Root/NodeId.hpp>
 #include <p2p/Root/Packet.hpp>
@@ -13,7 +15,7 @@ namespace p2p {
 	
 		class PrivateIdentity {
 			public:
-				PrivateIdentity(const PrivateKey&, uint64_t packetCount = 0);
+				PrivateIdentity(Crypt::RandomPool& randomPool, const PrivateKey&, uint64_t packetCount = 0);
 				
 				uint64_t nextPacketCount() const;
 				
@@ -24,6 +26,7 @@ namespace p2p {
 				PacketSignature sign(const Packet&);
 				
 			private:
+				Crypt::RandomPool& randomPool_;
 				PrivateKey privateKey_;
 				uint64_t nextPacketCount_;
 				

@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
 	Crypt::ECDSA::PrivateKey privateKey(rand, Crypt::ECDSA::brainpoolP256r1);
 	
 	Root::NodeDatabase nodeDatabase;
-	Root::PrivateIdentity privateIdentity(privateKey);
+	Root::PrivateIdentity privateIdentity(rand, privateKey);
 	
 	logger.log("========");
 	logger.log(STR("======== My id is '%s'.", privateIdentity.id().hexString().c_str()));

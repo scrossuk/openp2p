@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <p2p/Crypt/AutoSeededRandomPool.hpp>
+#include <p2p/Crypt/RandomPool.hpp>
 #include <p2p/Crypt/ECDSA/SignStream.hpp>
 
 #include <p2p/Root/Key.hpp>
@@ -12,8 +12,8 @@ namespace p2p {
 
 	namespace Root {
 	
-		PrivateIdentity::PrivateIdentity(const PrivateKey& pPrivateKey, uint64_t pPacketCount)
-			: privateKey_(pPrivateKey), nextPacketCount_(pPacketCount) { }
+		PrivateIdentity::PrivateIdentity(Crypt::RandomPool& randomPool, const PrivateKey& pPrivateKey, uint64_t pPacketCount)
+			: randomPool_(randomPool), privateKey_(pPrivateKey), nextPacketCount_(pPacketCount) { }
 		
 		uint64_t PrivateIdentity::nextPacketCount() const {
 			return nextPacketCount_;
@@ -24,22 +24,20 @@ namespace p2p {
 		}
 		
 		NodeId PrivateIdentity::id() const {
-			Crypt::AutoSeededRandomPool rand;
-			return NodeId::Generate(PublicKey(rand, privateKey_));
+			return NodeId::Generate(PublicKey(randomPool_, privateKey_));
 		}
 		
 		PacketSignature PrivateIdentity::sign(const Packet& packet) {
 			// Advance packet count to prevent replays.
 			nextPacketCount_++;
 			
-			Crypt::AutoSeededRandomPool rand;
-			Crypt::ECDSA::SignStream signStream(rand, privateKey_);
+			Crypt::ECDSA::SignStream signStream(randomPool_, privateKey_);
 			BinaryOStream binStream(signStream);
 			WritePacket(binStream, packet);
 			
 			PacketSignature sig;
 			sig.signature = signStream.signature();
-			sig.publicKey = PublicKey(rand, privateKey_);
+			sig.publicKey = PublicKey(randomPool_, privateKey_);
 			
 			assert(sig.signature.size() == SIGNATURE_SIZE_BYTES);
 			return sig;

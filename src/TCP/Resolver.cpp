@@ -10,19 +10,21 @@
 #include <p2p/TCP/Endpoint.hpp>
 #include <p2p/TCP/Resolver.hpp>
 
-#include "../Internal/IOService.hpp"
+#include "../Event/IOService.hpp"
 
 namespace p2p {
 
 	namespace TCP {
 	
+		struct ResolverImpl {
+			boost::asio::ip::tcp::resolver resolver;
+			
+			inline ResolverImpl()
+				: resolver(Event::GetIOService()) { }
+		};
+		
 		namespace {
 		
-			IOService& GetIOService() {
-				static IOService ioService;
-				return ioService;
-			}
-			
 			void resolveCallback(Signal* signal, bool* resolveResult, std::vector<TCP::Endpoint>* endpointList,
 								 const boost::system::error_code& ec, boost::asio::ip::tcp::resolver::iterator iterator) {
 								 
@@ -43,7 +45,9 @@ namespace p2p {
 			
 		}
 		
-		Resolver::Resolver() : internalResolver_(GetIOService()) { }
+		Resolver::Resolver() : impl_(new ResolverImpl()) { }
+		
+		Resolver::~Resolver() { }
 		
 		// TODO: make this non-blocking!
 		boost::optional< std::vector<TCP::Endpoint> > Resolver::resolve(const std::string& host, const std::string& service) {
@@ -55,7 +59,7 @@ namespace p2p {
 			
 			std::vector<TCP::Endpoint> endpointList;
 			
-			internalResolver_.async_resolve(query, boost::bind(resolveCallback, &signal, &resolveResult, &endpointList, _1, _2));
+			impl_->resolver.async_resolve(query, boost::bind(resolveCallback, &signal, &resolveResult, &endpointList, _1, _2));
 											
 			signal.wait();
 			

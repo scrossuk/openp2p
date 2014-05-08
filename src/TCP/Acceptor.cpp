@@ -10,7 +10,7 @@
 #include <p2p/TCP/Acceptor.hpp>
 #include <p2p/TCP/Stream.hpp>
 
-#include "../Internal/IOService.hpp"
+#include "../Event/IOService.hpp"
 
 namespace p2p {
 
@@ -18,11 +18,6 @@ namespace p2p {
 	
 		namespace {
 		
-			IOService& GetIOService() {
-				static IOService ioService;
-				return ioService;
-			}
-			
 			void acceptCallback(Signal* signal, bool* acceptResult, const boost::system::error_code& ec) {
 				*acceptResult = !bool(ec);
 				signal->activate();
@@ -33,11 +28,11 @@ namespace p2p {
 		struct AcceptorImpl {
 			boost::asio::ip::tcp::acceptor acceptor;
 			
-			inline AcceptorImpl(boost::asio::io_service& pIOService)
-				: acceptor(pIOService) { }
+			inline AcceptorImpl()
+				: acceptor(Event::GetIOService()) { }
 		};
 		
-		Acceptor::Acceptor(uint16_t port) : impl_(new AcceptorImpl(GetIOService())) {
+		Acceptor::Acceptor(uint16_t port) : impl_(new AcceptorImpl()) {
 			boost::system::error_code ec;
 			
 			impl_->acceptor.open(boost::asio::ip::tcp::v6(), ec);

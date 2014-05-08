@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <string>
 
@@ -16,6 +17,10 @@
 
 using namespace p2p;
 
+double getRandFloat() {
+	return double(rand() % 10000) / 10000.0;
+}
+
 class QueryNodeThread: public Runnable {
 	public:
 		QueryNodeThread(Logger& logger,
@@ -30,8 +35,12 @@ class QueryNodeThread: public Runnable {
 		void run() {
 			std::set<Root::NodeId> knownNodes;
 			
+			Event::Timer timer;
+			timer.setMilliseconds(getRandFloat());
+			timer.schedule();
+			
 			while (!signal_.isActive()) {
-				while (!messageQueue_.empty()) {
+				if (timer.hasExpired() && !messageQueue_.empty()) {
 					const auto nodePair = messageQueue_.receive();
 					const auto& peerId = nodePair.id;
 					const auto& peerEndpoint = nodePair.endpoint;
@@ -52,6 +61,7 @@ class QueryNodeThread: public Runnable {
 					
 					const auto endpoint = coreService_.ping(peerEndpoint, peerId).get();
 					
+					(void) endpoint;
 					//logger_.log(STR("Node reports my endpoint is '%s'.", endpoint.udpEndpoint.toString().c_str()));
 					// TODO: add this endpoint to our set of endpoints.
 					
@@ -69,7 +79,7 @@ class QueryNodeThread: public Runnable {
 					}
 					
 					if (!supportsDHT) {
-						//logger_.log("Node doesn't support DHT.");
+						logger_.log("Node doesn't support DHT.");
 						continue;
 					}
 					
@@ -96,7 +106,12 @@ class QueryNodeThread: public Runnable {
 					}
 				}
 				
-				Event::Wait({ messageQueue_.eventSource(), signal_.eventSource() });
+				if (timer.hasExpired()) {
+					timer.setMilliseconds(getRandFloat() * 1000.0);
+					timer.schedule();
+				}
+				
+				Event::Wait({ messageQueue_.eventSource(), signal_.eventSource(), timer.eventSource() });
 			}
 		}
 		
@@ -248,10 +263,6 @@ class NodeThread: public p2p::Runnable {
 			auto getPeerRPC = coreService.identify(peerEndpoint);
 			bool hasProcessedPeer = false;
 			
-			Event::Timer timer;
-			timer.setMilliseconds(2000.0);
-			timer.schedule();
-			
 			while (!signal_.isActive()) {
 				while (coreService.processMessage() || dhtService.processMessage()) { }
 				
@@ -262,13 +273,7 @@ class NodeThread: public p2p::Runnable {
 					hasProcessedPeer = true;
 				}
 				
-				if (!hasProcessedPeer && timer.hasExpired()) {
-					logger_.log(STR("Failed to receive IDENTIFY reply for node at port %llu from node at port %llu...",
-						(unsigned long long) myPort_, (unsigned long long) otherPort_));
-					abort();
-				}
-				
-				Event::Wait({ coreService.eventSource(), dhtService.eventSource(), signal_.eventSource(), timer.eventSource() });
+				Event::Wait({ coreService.eventSource(), dhtService.eventSource(), signal_.eventSource() });
 			}
 		}
 		

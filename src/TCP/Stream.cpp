@@ -13,21 +13,12 @@
 #include <p2p/TCP/Endpoint.hpp>
 #include <p2p/TCP/Stream.hpp>
 
-#include "../Internal/IOService.hpp"
+#include "../Event/IOService.hpp"
 
 namespace p2p {
 
 	namespace TCP {
 	
-		namespace {
-			
-			IOService& GetIOService() {
-				static IOService ioService;
-				return ioService;
-			}
-			
-		}
-		
 		struct StreamImpl {
 			boost::asio::ip::tcp::socket socket;
 			std::mutex mutex;
@@ -36,8 +27,8 @@ namespace p2p {
 			bool isActiveConnect, isActiveRead, isActiveWrite;
 			std::vector<uint8_t> readBuffer, writeBuffer;
 			
-			inline StreamImpl(boost::asio::io_service& pIOService)
-				: socket(pIOService), isActiveConnect(false),
+			inline StreamImpl()
+				: socket(Event::GetIOService()), isActiveConnect(false),
 				isActiveRead(false), isActiveWrite(false) { }
 			
 			inline void close() {
@@ -80,7 +71,7 @@ namespace p2p {
 			
 		}
 		
-		Stream::Stream() : impl_(new StreamImpl(GetIOService())) { }
+		Stream::Stream() : impl_(new StreamImpl()) { }
 		
 		Stream::~Stream() {
 			impl_->close();

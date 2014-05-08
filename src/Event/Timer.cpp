@@ -8,22 +8,13 @@
 #include <p2p/Event/Source.hpp>
 #include <p2p/Event/Timer.hpp>
 
-#include "../Internal/IOService.hpp"
+#include "IOService.hpp"
 #include "SourceImpl.hpp"
 
 namespace p2p {
 
 	namespace Event {
 	
-		namespace {
-			
-			IOService& GetIOService() {
-				static IOService ioService;
-				return ioService;
-			}
-			
-		}
-		
 		struct TimerImpl {
 			std::mutex mutex;
 			std::condition_variable condition;
@@ -32,9 +23,9 @@ namespace p2p {
 			boost::asio::deadline_timer timer;
 			Generator eventGenerator;
 			
-			inline TimerImpl(boost::asio::io_service& pIOService) :
+			inline TimerImpl() :
 				isRunning(false), milliseconds(0.0),
-				timer(pIOService) { }
+				timer(GetIOService()) { }
 		};
 		
 		namespace {
@@ -49,7 +40,7 @@ namespace p2p {
 		}
 		
 		Timer::Timer()
-			: impl_(new TimerImpl(GetIOService())) { }
+			: impl_(new TimerImpl()) { }
 			
 		Timer::~Timer() {
 			std::unique_lock<std::mutex> lock(impl_->mutex);

@@ -12,7 +12,7 @@
 #include <p2p/UDP/Endpoint.hpp>
 #include <p2p/UDP/Socket.hpp>
 
-#include "../Internal/IOService.hpp"
+#include "../Event/IOService.hpp"
 
 namespace p2p {
 
@@ -21,7 +21,6 @@ namespace p2p {
 		constexpr size_t MAX_DATAGRAM_SIZE = 65536;
 		
 		struct SocketImpl {
-			IOService ioService;
 			boost::asio::ip::udp::socket socket;
 			std::mutex mutex;
 			std::condition_variable condition;
@@ -32,7 +31,7 @@ namespace p2p {
 			Buffer receiveBuffer;
 			
 			inline SocketImpl()
-				: socket(ioService), isActiveReceive(false),
+				: socket(Event::GetIOService()), isActiveReceive(false),
 				isActiveSend(false), hasReceiveData(false) { }
 			
 			inline void close() {

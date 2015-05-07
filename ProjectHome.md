@@ -1,0 +1,9 @@
+OpenP2P is a free open source network layer library for facilitating decentralised peer-to-peer communication. The aim of the project is to devise a system which enables applications to extend it and utilise its basic protocols for more advanced and useful purposes. Such a decentralised system can save on the inherent lack of redundancy and considerable costs present in a centralised client-server model and thereby achieve a greater level of reliability.
+
+A simple interface and high speed communication are among the primary goals of the project, ensuring it is a viable basis for applications that may make extensive use of the network (e.g. a multiplayer game) and potentially allowing existing applications to either adopt it as an additional networking solution or switch to it completely.
+
+The project also has important implications in terms of data storage and might represent a challenge to the very central structures offered by online services such as the 'cloud'. Companies such as Google seek to dominate the information of individuals and thus offer client systems with little more than an interface to the internet, encouraging users to shift their data to Google's services. While such a solution may be attractive, it has a number of problems in terms of the practical issues of a central network and the battle for control over data, and processing that data.
+
+Storing data on a computer belonging to someone else could potentially limit your access and usage of it, as well as leaving you open to surveillance and censorship. OpenP2P is designed to spread the control over data evenly and allow individual nodes to choose the others they connect to, as well as saving costs for businesses that may not want to deploy their own servers and maintain them.
+
+The current implementation, as here, is in C++. More information can be found at the [Project Website](http://openp2p.org).

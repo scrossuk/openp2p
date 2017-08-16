@@ -3,7 +3,9 @@
 
 #include <string>
 
-std::string STR(const char * format, ...)
+#include <p2p/Util/Util_api.hpp>
+
+std::string UTIL_OPENP2P_API STR(const char * format, ...)
 	__attribute__((format(printf, 1, 2)));
 
 #endif

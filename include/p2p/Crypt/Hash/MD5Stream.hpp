@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include <p2p/Crypt/Crypt_api.hpp>
 #include <p2p/Transport.hpp>
 #include <p2p/Transport/Stream.hpp>
 
@@ -22,7 +23,7 @@ namespace p2p {
 			 * be used for applications where hash security
 			 * is not required.
 			 */
-			class MD5Stream: public OStream {
+			class CRYPT_OPENP2P_API MD5Stream: public OStream {
 				public:
 					MD5Stream();
 					~MD5Stream();

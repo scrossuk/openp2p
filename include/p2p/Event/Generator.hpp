@@ -3,13 +3,15 @@
 
 #include <memory>
 
+#include <p2p/Event/Event_api.hpp>
+
 namespace p2p {
 
 	namespace Event {
 	
 		class Source;
 		
-		class Generator {
+		class EVENT_OPENP2P_API Generator {
 			public:
 				Generator(bool initialState = false);
 				~Generator();

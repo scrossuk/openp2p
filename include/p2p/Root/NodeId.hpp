@@ -6,6 +6,7 @@
 #include <array>
 #include <functional>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Root/Key.hpp>
 #include <p2p/Root/Parameters.hpp>
 
@@ -15,7 +16,7 @@ namespace p2p {
 
 	namespace Root {
 	
-		class NodeId {
+		class ROOT_OPENP2P_API NodeId {
 			public:
 				static constexpr size_t SIZE_IN_BITS = NODE_ID_SIZE_BITS;
 				

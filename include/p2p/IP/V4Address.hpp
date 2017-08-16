@@ -8,13 +8,15 @@
 
 #include <boost/asio.hpp>
 
+#include <p2p/IP/IP_api.hpp>
+
 namespace p2p {
 
 	namespace IP {
 	
 		typedef boost::asio::ip::address_v4 V4AddressImplType;
 		
-		struct V4Address {
+		struct IP_OPENP2P_API V4Address {
 			std::array<uint8_t, 4> data;
 			
 			static V4AddressImplType ToImpl(const V4Address&);

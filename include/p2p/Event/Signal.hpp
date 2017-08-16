@@ -3,13 +3,14 @@
 
 #include <memory>
 
+#include <p2p/Event/Event_api.hpp>
 #include <p2p/Event/Source.hpp>
 
 namespace p2p {
 
 	namespace Event {
 		
-		class Signal {
+		class EVENT_OPENP2P_API Signal {
 			public:
 				Signal();
 				~Signal();

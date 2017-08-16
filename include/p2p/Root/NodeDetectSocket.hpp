@@ -1,6 +1,7 @@
 #ifndef P2P_ROOTNETWORK_NODEDETECTSOCKET_HPP
 #define P2P_ROOTNETWORK_NODEDETECTSOCKET_HPP
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
@@ -12,13 +13,13 @@ namespace p2p {
 	
 	namespace Root {
 		
-		class NodeDetectDelegate {
+		class ROOT_OPENP2P_API NodeDetectDelegate {
 			public:
 				virtual void detectedNodePair(const NodePair& nodePair) = 0;
 				
 		};
 		
-		class NodeDetectSocket: public Socket<NodePair, Message> {
+		class ROOT_OPENP2P_API NodeDetectSocket: public Socket<NodePair, Message> {
 			public:
 				NodeDetectSocket(Socket<NodePair, Message>& socket, NodeDetectDelegate& delegate);
 				

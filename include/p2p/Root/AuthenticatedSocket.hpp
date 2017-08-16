@@ -1,6 +1,7 @@
 #ifndef P2P_ROOTNETWORK_AUTHENTICATEDSOCKET_HPP
 #define P2P_ROOTNETWORK_AUTHENTICATEDSOCKET_HPP
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
@@ -19,7 +20,7 @@ namespace p2p {
 	
 		class PrivateIdentity;
 		
-		class IdentityDelegate {
+		class ROOT_OPENP2P_API IdentityDelegate {
 			public:
 				virtual PrivateIdentity& getPrivateIdentity() = 0;
 				
@@ -27,7 +28,7 @@ namespace p2p {
 				
 		};
 		
-		class AuthenticatedSocket: public Socket<NodePair, Message> {
+		class ROOT_OPENP2P_API AuthenticatedSocket: public Socket<NodePair, Message> {
 			public:
 				AuthenticatedSocket(IdentityDelegate& delegate, Socket<Endpoint, SignedPacket>& socket);
 				

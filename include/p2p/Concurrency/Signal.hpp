@@ -4,9 +4,11 @@
 #include <condition_variable>
 #include <mutex>
 
+#include <p2p/Concurrency/Concurrency_api.hpp>
+
 namespace p2p {
 
-	class Signal {
+	class CONCURRENCY_OPENP2P_API Signal {
 		public:
 			Signal();
 			

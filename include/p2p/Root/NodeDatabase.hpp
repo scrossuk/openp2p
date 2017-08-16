@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/Key.hpp>
 #include <p2p/Root/NodeId.hpp>
@@ -31,7 +32,7 @@ namespace p2p {
 			}
 		};
 		
-		class NodeDatabase {
+		class ROOT_OPENP2P_API NodeDatabase {
 			public:
 				NodeDatabase();
 				

@@ -3,6 +3,7 @@
 
 #include <map>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>

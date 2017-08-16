@@ -3,13 +3,14 @@
 
 #include <memory>
 
+#include <p2p/Concurrency/Concurrency_api.hpp>
 #include <p2p/Concurrency/Runnable.hpp>
 
 namespace p2p {
 	
 	namespace Concurrency {
 		
-		class Thread {
+		class CONCURRENCY_OPENP2P_API Thread {
 			public:
 				Thread();
 				Thread(Runnable& runnable);

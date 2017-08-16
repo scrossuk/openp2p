@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Root/NetworkId.hpp>
 #include <p2p/Root/NodeId.hpp>
 #include <p2p/Root/Types.hpp>

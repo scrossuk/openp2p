@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Crypt/RandomPool.hpp>
 
 #include <p2p/Root/Key.hpp>
@@ -13,7 +14,7 @@ namespace p2p {
 
 	namespace Root {
 	
-		class PrivateIdentity {
+		class ROOT_OPENP2P_API PrivateIdentity {
 			public:
 				PrivateIdentity(Crypt::RandomPool& randomPool, const PrivateKey&, uint64_t packetCount = 0);
 				

@@ -4,12 +4,13 @@
 #include <stdint.h>
 #include <cstddef>
 
+#include <p2p/Transport/Transport_api.hpp>
 #include <p2p/Transport/Stream.hpp>
 #include <p2p/Transport/Buffer.hpp>
 
 namespace p2p {
 
-	class BufferBuilder: public OStream {
+	class TRANSPORT_OPENP2P_API BufferBuilder: public OStream {
 		public:
 			BufferBuilder(Buffer&);
 			

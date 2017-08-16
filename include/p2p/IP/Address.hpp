@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include <p2p/IP/IP_api.hpp>
 #include <p2p/IP/Version.hpp>
 #include <p2p/IP/V4Address.hpp>
 #include <p2p/IP/V6Address.hpp>
@@ -13,7 +14,7 @@ namespace p2p {
 	
 		typedef boost::asio::ip::address AddressImplType;
 		
-		struct Address {
+		struct IP_OPENP2P_API Address {
 			Version version;
 			
 			union {

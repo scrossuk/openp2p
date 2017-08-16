@@ -1,4 +1,18 @@
-find_package(LATEX)
-include(UseLATEX.cmake)
-add_latex_document("OpenP2P.tex" DEFAULT_PDF MANGLE_TARGET_NAMES)
-add_latex_document("Root Network.tex" DEFAULT_PDF MANGLE_TARGET_NAMES)
+
+# 
+# Target 'docs'
+# 
+
+if(NOT OPTION_BUILD_DOCS)
+    return()
+endif()
+
+add_custom_target(docs)
+
+
+# 
+# Documentation
+# 
+
+add_subdirectory(api-docs)
+add_subdirectory(manual)

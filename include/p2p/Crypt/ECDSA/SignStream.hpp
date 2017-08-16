@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include <p2p/Crypt/Crypt_api.hpp>
 #include <p2p/Transport.hpp>
 #include <p2p/Transport/Stream.hpp>
 
@@ -18,7 +19,7 @@ namespace p2p {
 		
 			class PrivateKey;
 			
-			class SignStream: public OStream {
+			class CRYPT_OPENP2P_API SignStream: public OStream {
 				public:
 					SignStream(RandomPool& pool, const PrivateKey& privateKey);
 					~SignStream();

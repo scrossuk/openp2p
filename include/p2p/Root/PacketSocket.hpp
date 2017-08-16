@@ -1,6 +1,7 @@
 #ifndef P2P_ROOTNETWORK_PACKETSOCKET_HPP
 #define P2P_ROOTNETWORK_PACKETSOCKET_HPP
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Transport.hpp>
 #include <p2p/Transport/Socket.hpp>
 
@@ -15,7 +16,7 @@ namespace p2p {
 
 	namespace Root {
 		
-		class PacketSocket: public Socket<Endpoint, SignedPacket> {
+		class ROOT_OPENP2P_API PacketSocket: public Socket<Endpoint, SignedPacket> {
 			public:
 				PacketSocket(Socket<Endpoint, Buffer>& socket);
 				

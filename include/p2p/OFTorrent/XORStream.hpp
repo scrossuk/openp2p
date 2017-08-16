@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
+#include <p2p/OFTorrent/OFTorrent_api.hpp>
 #include <p2p/Transport/Stream.hpp>
-
 #include <p2p/Transport/BufferedStream.hpp>
 
 namespace p2p {
@@ -14,7 +14,7 @@ namespace p2p {
 		/**
 		 * A stream that reads from two streams, and xors them together.
 		 */
-		class XORStream: public IStream {
+		class OFTORRENT_OPENP2P_API XORStream: public IStream {
 			public:
 				XORStream(IStream& source0, IStream& source1);
 				

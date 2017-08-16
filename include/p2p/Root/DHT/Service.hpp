@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <p2p/Root/Root_api.hpp>
+
 #include <p2p/Transport/MultiplexSocket.hpp>
 #include <p2p/Transport/Socket.hpp>
 
@@ -25,7 +27,7 @@ namespace p2p {
 	
 		namespace DHT {
 		
-			class Service {
+			class ROOT_OPENP2P_API Service {
 				public:
 					Service(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator, ServerDelegate& delegate);
 					~Service();

@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include <p2p/UDP/UDP_api.hpp>
 #include <p2p/Transport.hpp>
 #include <p2p/Transport/Socket.hpp>
 
@@ -12,7 +13,7 @@ namespace p2p {
 
 	namespace UDP {
 	
-		class Socket: public p2p::Socket<UDP::Endpoint, Buffer> {
+		class UDP_OPENP2P_API Socket: public p2p::Socket<UDP::Endpoint, Buffer> {
 			public:
 				Socket();
 				Socket(uint16_t port);

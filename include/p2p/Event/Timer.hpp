@@ -3,13 +3,15 @@
 
 #include <memory>
 
+#include <p2p/Event/Event_api.hpp>
+
 namespace p2p {
 
 	namespace Event {
 	
 		class Source;
 		
-		class Timer {
+		class EVENT_OPENP2P_API Timer {
 			public:
 				Timer();
 				~Timer();

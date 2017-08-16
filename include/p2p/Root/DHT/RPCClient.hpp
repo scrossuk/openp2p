@@ -5,6 +5,7 @@
 
 #include <queue>
 
+#include <p2p/Event/Event_api.hpp>
 #include <p2p/Event/UnionGenerator.hpp>
 
 #include <p2p/Transport/Socket.hpp>
@@ -27,7 +28,7 @@ namespace p2p {
 		
 			struct Empty {};
 			
-			class RPCClient {
+			class ROOT_OPENP2P_API RPCClient {
 				public:
 					RPCClient(Socket<NodeId, Message>& socket, RoutineIdGenerator& routineIdGenerator, double timeoutMilliseconds = 500.0);
 					~RPCClient();

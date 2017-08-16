@@ -4,13 +4,15 @@
 #include <memory>
 #include <vector>
 
+#include <p2p/Event/Event_api.hpp>
+
 namespace p2p {
 
 	namespace Event {
 	
 		class Source;
 		
-		class UnionGenerator {
+		class EVENT_OPENP2P_API UnionGenerator {
 			public:
 				UnionGenerator(std::vector<Source> sourceList);
 				~UnionGenerator();

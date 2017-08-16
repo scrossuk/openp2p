@@ -5,6 +5,7 @@
 #include <cryptopp/ecp.h>
 #include <cryptopp/sha.h>
 
+#include <p2p/Crypt/Crypt_api.hpp>
 #include <p2p/Crypt/ECDSA/Curve.hpp>
 
 namespace p2p {
@@ -15,7 +16,7 @@ namespace p2p {
 		
 		namespace ECDSA {
 		
-			class PrivateKey {
+			class CRYPT_OPENP2P_API PrivateKey {
 				public:
 					PrivateKey();
 					PrivateKey(RandomPool& pool, Curve curve);

@@ -1,6 +1,7 @@
 #ifndef P2P_ROOTNETWORK_ENDPOINTMAPSOCKET_HPP
 #define P2P_ROOTNETWORK_ENDPOINTMAPSOCKET_HPP
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Transport/Socket.hpp>
 
 #include <p2p/Event/Source.hpp>
@@ -15,7 +16,7 @@ namespace p2p {
 	
 	namespace Root {
 		
-		class EndpointMapSocket: public Socket<NodeId, Message> {
+		class ROOT_OPENP2P_API EndpointMapSocket: public Socket<NodeId, Message> {
 			public:
 				EndpointMapSocket(Socket<NodePair, Message>& socket, NodeDatabase& database);
 				

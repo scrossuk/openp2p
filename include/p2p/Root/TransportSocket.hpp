@@ -1,6 +1,7 @@
 #ifndef P2P_ROOTNETWORK_TRANSPORTSOCKET_HPP
 #define P2P_ROOTNETWORK_TRANSPORTSOCKET_HPP
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Transport.hpp>
 #include <p2p/Transport/Socket.hpp>
 
@@ -21,7 +22,7 @@ namespace p2p {
 		 * through the appropriate underlying transports (e.g.
 		 * UDP or TCP).
 		 */
-		class TransportSocket: public Socket<Endpoint, Buffer> {
+		class ROOT_OPENP2P_API TransportSocket: public Socket<Endpoint, Buffer> {
 			public:
 				TransportSocket(Socket<UDP::Endpoint, Buffer>& udpSocket);
 				

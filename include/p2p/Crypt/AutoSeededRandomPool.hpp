@@ -6,13 +6,14 @@
 
 #include <cryptopp/osrng.h>
 
+#include <p2p/Crypt/Crypt_api.hpp>
 #include <p2p/Crypt/RandomPool.hpp>
 
 namespace p2p {
 
 	namespace Crypt {
 	
-		class AutoSeededRandomPool: public RandomPool {
+		class CRYPT_OPENP2P_API AutoSeededRandomPool: public RandomPool {
 			public:
 				void generateBlock(uint8_t* data, size_t size);
 				

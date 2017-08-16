@@ -5,6 +5,7 @@
 
 #include <boost/optional.hpp>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Transport.hpp>
 
 #include <p2p/Root/NetworkId.hpp>

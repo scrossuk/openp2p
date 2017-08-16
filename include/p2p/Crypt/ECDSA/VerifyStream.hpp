@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include <p2p/Crypt/Crypt_api.hpp>
 #include <p2p/Transport.hpp>
 #include <p2p/Transport/Stream.hpp>
 
@@ -16,7 +17,7 @@ namespace p2p {
 		
 			class PublicKey;
 			
-			class VerifyStream: public OStream {
+			class CRYPT_OPENP2P_API VerifyStream: public OStream {
 				public:
 					VerifyStream(const PublicKey& publicKey, const Buffer& signature);
 					~VerifyStream();

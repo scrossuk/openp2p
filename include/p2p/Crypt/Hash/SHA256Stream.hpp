@@ -5,6 +5,7 @@
 
 #include <memory>
 
+#include <p2p/Crypt/Crypt_api.hpp>
 #include <p2p/Transport.hpp>
 #include <p2p/Transport/Stream.hpp>
 
@@ -14,7 +15,7 @@ namespace p2p {
 	
 		namespace Hash {
 		
-			class SHA256Stream: public OStream {
+			class CRYPT_OPENP2P_API SHA256Stream: public OStream {
 				public:
 					SHA256Stream();
 					~SHA256Stream();

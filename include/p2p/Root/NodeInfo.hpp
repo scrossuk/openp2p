@@ -3,6 +3,7 @@
 
 #include <set>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/NodeId.hpp>
 

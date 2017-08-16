@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include <mutex>
+#include <p2p/Root/Root_api.hpp>
 
 namespace p2p {
 
@@ -17,7 +18,7 @@ namespace p2p {
 		 * roll over from (2^32 - 1) to 0 (it's assumed routines
 		 * will have ended by the time their ID is re-used).
 		 */
-		class RoutineIdGenerator {
+		class ROOT_OPENP2P_API RoutineIdGenerator {
 			public:
 				RoutineIdGenerator(uint32_t initialValue = 0);
 				

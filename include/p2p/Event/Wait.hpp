@@ -3,13 +3,14 @@
 
 #include <vector>
 
+#include <p2p/Event/Event_api.hpp>
 #include <p2p/Event/Source.hpp>
 
 namespace p2p {
 
 	namespace Event {
 	
-		void Wait(const std::vector<Source>& sources);
+		void EVENT_OPENP2P_API Wait(const std::vector<Source>& sources);
 		
 	}
 	

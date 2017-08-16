@@ -7,17 +7,16 @@
 
 #include <boost/asio.hpp>
 
+#include <p2p/TCP/TCP_api.hpp>
 #include <p2p/Transport/Stream.hpp>
-
 #include <p2p/Event/Source.hpp>
-
 #include <p2p/TCP/Endpoint.hpp>
 
 namespace p2p {
 
 	namespace TCP {
 	
-		class Stream: public p2p::IOStream {
+		class TCP_OPENP2P_API Stream: public p2p::IOStream {
 			public:
 				Stream();
 				~Stream();

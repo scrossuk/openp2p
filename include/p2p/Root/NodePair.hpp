@@ -1,6 +1,7 @@
 #ifndef P2P_ROOTNETWORK_NODEPAIR_HPP
 #define P2P_ROOTNETWORK_NODEPAIR_HPP
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Root/Endpoint.hpp>
 #include <p2p/Root/NodeId.hpp>
 

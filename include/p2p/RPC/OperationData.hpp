@@ -41,7 +41,7 @@ namespace p2p {
 				
 				bool isComplete() const {
 					std::lock_guard<std::mutex> lock(mutex_);
-					return result_;
+					return static_cast<bool>(result_);
 				}
 				
 				ResultType get() {

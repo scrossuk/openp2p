@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include <p2p/Root/Root_api.hpp>
+
 namespace p2p {
 
 	namespace Root {

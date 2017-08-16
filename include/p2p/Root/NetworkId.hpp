@@ -7,6 +7,7 @@
 #include <functional>
 #include <string>
 
+#include <p2p/Root/Root_api.hpp>
 #include <p2p/Root/Parameters.hpp>
 
 #include <p2p/Transport.hpp>
@@ -15,7 +16,7 @@ namespace p2p {
 
 	namespace Root {
 	
-		class NetworkId {
+		class ROOT_OPENP2P_API NetworkId {
 			public:
 				NetworkId();
 				

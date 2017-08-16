@@ -1,81 +1,211 @@
-# --- Script Setup
 
-cmake_minimum_required (VERSION 2.8)
+# 
+# CMake options
+# 
 
-if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
-	message(FATAL_ERROR "In-source builds are not allowed.")
-endif("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
+# CMake version
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-# Disable in-source builds and modifications
-# to the source tree.
-set(CMAKE_DISABLE_SOURCE_CHANGES ON)
-set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+#
+# Configure CMake environment
+#
 
-# Enable compiler tests.
-enable_testing()
+# Register general cmake commands
+include(cmake/Custom.cmake)
 
-project(OpenP2P C CXX)
+# Set policies
+set_policy(CMP0028 NEW) # ENABLE CMP0028: Double colon in target name means ALIAS or IMPORTED target.
+set_policy(CMP0054 NEW) # ENABLE CMP0054: Only interpret if() arguments as variables or keywords when unquoted.
+set_policy(CMP0042 NEW) # ENABLE CMP0042: MACOSX_RPATH is enabled by default.
+set_policy(CMP0063 NEW) # ENABLE CMP0063: Honor visibility properties for all target types.
 
-if(NOT CMAKE_BUILD_TYPE)
-	# Build debug by default.
-	set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose build type (options are None, Debug, Release, RelWithDebInfo and MinSizeRel)." FORCE)
-endif(NOT CMAKE_BUILD_TYPE)
+# Include cmake modules
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# --- Compiler Properties
+include(GenerateExportHeader)
 
-set(OPENP2P_MAJOR_VERSION 1)
-set(OPENP2P_MINOR_VERSION 0)
-set(OPENP2P_PATCH_VERSION 0)
-set(OPENP2P_BUILD_VERSION 0)
-set(OPENP2P_VERSION ${OPENP2P_MAJOR_VERSION}.${OPENP2P_MINOR_VERSION}.${OPENP2P_PATCH_VERSION}.${OPENP2P_BUILD_VERSION})
+set(WriterCompilerDetectionHeaderFound NOTFOUND)
+# This module is only available with CMake >=3.1, so check whether it could be found
+# BUT in CMake 3.1 this module doesn't recognize AppleClang as compiler, so just use it as of CMake 3.2
+if (${CMAKE_VERSION} VERSION_GREATER "3.2")
+    include(WriteCompilerDetectionHeader OPTIONAL RESULT_VARIABLE WriterCompilerDetectionHeaderFound)
+endif()
 
-message(STATUS "Building OpenP2P version ${OPENP2P_VERSION} using build type '${CMAKE_BUILD_TYPE}'.")
-message(STATUS "    Source directory is '${PROJECT_SOURCE_DIR}'.")
-message(STATUS "    Build directory is '${PROJECT_BINARY_DIR}'.")
+# Include custom cmake modules
+include(cmake/GetGitRevisionDescription.cmake)
+include(cmake/HealthCheck.cmake)
+include(cmake/GenerateTemplateExportHeader.cmake)
 
-# --- Compiler Flags
 
-add_definitions( -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS )
+# 
+# Project description and (meta) information
+# 
 
-# Enable most warnings.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic -Wall -Wextra -Wshadow -Wundef -Wpointer-arith -Wcast-align -Wwrite-strings")
+# Get git revision
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
+if(NOT GIT_SHA1)
+    set(GIT_REV "0")
+endif()
 
-# Use C++11.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+# Meta information about the project
+set(META_PROJECT_NAME        "OpenP2P")
+set(META_PROJECT_DESCRIPTION "Network layer library for facilitating decentralised peer-to-peer communication.")
+set(META_AUTHOR_ORGANIZATION "OpenP2P")
+set(META_AUTHOR_DOMAIN       "http://openp2p.org")
+set(META_AUTHOR_MAINTAINER   "Stephen Cross")
+set(META_VERSION_MAJOR       "1")
+set(META_VERSION_MINOR       "0")
+set(META_VERSION_PATCH       "0")
+set(META_VERSION_REVISION    "${GIT_REV}")
+set(META_VERSION             "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
+set(META_NAME_VERSION        "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})")
+set(META_CMAKE_INIT_SHA      "${GIT_SHA1}")
 
-# Enable/disable optimisation depending on build type.
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
+string(MAKE_C_IDENTIFIER ${META_PROJECT_NAME} META_PROJECT_ID)
+string(TOUPPER ${META_PROJECT_ID} META_PROJECT_ID)
 
-# Add version as preprocessor defines.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENP2P_VERSION=${OPENP2P_VERSION}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENP2P_MAJOR_VERSION=${OPENP2P_MAJOR_VERSION}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENP2P_MINOR_VERSION=${OPENP2P_MINOR_VERSION}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENP2P_PATCH_VERSION=${OPENP2P_PATCH_VERSION}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DOPENP2P_BUILD_VERSION=${OPENP2P_BUILD_VERSION}")
 
-# Enable/disable profiling information.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+# 
+# Project configuration options
+# 
 
-# --- Subdirectories
+# Project options
+option(BUILD_SHARED_LIBS     "Build shared instead of static libraries."              ON)
+option(OPTION_SELF_CONTAINED "Create a self-contained install with all dependencies." OFF)
+option(OPTION_BUILD_TESTS    "Build tests."                                           ON)
+option(OPTION_BUILD_DOCS     "Build documentation."                                   OFF)
+option(OPTION_BUILD_EXAMPLES "Build examples."                                        ON)
 
-# All headers are in the /include directory.
-include_directories (
-	"${PROJECT_SOURCE_DIR}/include"
-	)
 
-# Documentation.
+# 
+# Declare project
+# 
+
+# Generate folders for IDE targets (e.g., VisualStudio solutions)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(IDE_FOLDER "")
+
+# Declare project
+project(${META_PROJECT_NAME} C CXX)
+
+# Set output directories
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+
+# Create version file
+file(WRITE "${PROJECT_BINARY_DIR}/VERSION" "${META_NAME_VERSION}")
+
+
+# 
+# Compiler settings and options
+# 
+
+include(cmake/CompileOptions.cmake)
+
+
+#
+# Project Health Check Setup
+#
+
+# Add cmake-init template check cmake targets
+add_check_template_target(${META_CMAKE_INIT_SHA})
+
+# Configure health check tools
+enable_cppcheck(On)
+enable_clang_tidy(On)
+
+
+# 
+# Deployment/installation setup
+# 
+
+# Get project name
+set(project ${META_PROJECT_NAME})
+
+# Check for system dir install
+set(SYSTEM_DIR_INSTALL FALSE)
+if("${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr" OR "${CMAKE_INSTALL_PREFIX}" STREQUAL "/usr/local")
+    set(SYSTEM_DIR_INSTALL TRUE)
+endif()
+
+# Installation paths
+if(UNIX AND SYSTEM_DIR_INSTALL)
+    # Install into the system (/usr/bin or /usr/local/bin)
+    set(INSTALL_ROOT      "share/${project}")       # /usr/[local]/share/<project>
+    set(INSTALL_CMAKE     "share/${project}/cmake") # /usr/[local]/share/<project>/cmake
+    set(INSTALL_EXAMPLES  "share/${project}")       # /usr/[local]/share/<project>
+    set(INSTALL_DATA      "share/${project}")       # /usr/[local]/share/<project>
+    set(INSTALL_BIN       "bin")                    # /usr/[local]/bin
+    set(INSTALL_SHARED    "lib")                    # /usr/[local]/lib
+    set(INSTALL_LIB       "lib")                    # /usr/[local]/lib
+    set(INSTALL_INCLUDE   "include")                # /usr/[local]/include
+    set(INSTALL_DOC       "share/doc/${project}")   # /usr/[local]/share/doc/<project>
+    set(INSTALL_SHORTCUTS "share/applications")     # /usr/[local]/share/applications
+    set(INSTALL_ICONS     "share/pixmaps")          # /usr/[local]/share/pixmaps
+    set(INSTALL_INIT      "/etc/init")              # /etc/init (upstart init scripts)
+else()
+    # Install into local directory
+    set(INSTALL_ROOT      ".")                      # ./
+    set(INSTALL_CMAKE     "cmake")                  # ./cmake
+    set(INSTALL_EXAMPLES  ".")                      # ./
+    set(INSTALL_DATA      ".")                      # ./
+    set(INSTALL_BIN       ".")                      # ./
+    set(INSTALL_SHARED    "lib")                    # ./lib
+    set(INSTALL_LIB       "lib")                    # ./lib
+    set(INSTALL_INCLUDE   "include")                # ./include
+    set(INSTALL_DOC       "doc")                    # ./doc
+    set(INSTALL_SHORTCUTS "misc")                   # ./misc
+    set(INSTALL_ICONS     "misc")                   # ./misc
+    set(INSTALL_INIT      "misc")                   # ./misc
+endif()
+
+# Set runtime path
+set(CMAKE_SKIP_BUILD_RPATH            FALSE) # Add absolute path to all dependencies for BUILD
+set(CMAKE_BUILD_WITH_INSTALL_RPATH    FALSE) # Use CMAKE_INSTALL_RPATH for INSTALL
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE) # Do NOT add path to dependencies for INSTALL
+
+if(NOT SYSTEM_DIR_INSTALL)
+    # Find libraries relative to binary
+    if(APPLE)
+        set(CMAKE_INSTALL_RPATH "@loader_path/../../../${INSTALL_LIB}")
+    else()
+        set(CMAKE_INSTALL_RPATH "$ORIGIN/${INSTALL_LIB}")       
+    endif()
+endif()
+
+
+# 
+# Project modules
+# 
+
+add_subdirectory(source)
 add_subdirectory(docs)
+add_subdirectory(examples)
 
-# Examples.
-add_subdirectory(example)
+if(OPTION_BUILD_TESTS)
+    set(IDE_FOLDER "Tests")
+    add_subdirectory(tests)
+endif()
 
-# Library code.
-add_subdirectory(src)
+add_subdirectory(deploy)
 
-# Tests.
-add_subdirectory(tests)
 
-# Tools.
-add_subdirectory(tools)
+# 
+# Deployment (global project files)
+# 
 
+# Install version file
+install(FILES "${PROJECT_BINARY_DIR}/VERSION" DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+
+# Install cmake find script for the project
+install(FILES ${META_PROJECT_NAME}Config.cmake DESTINATION ${INSTALL_ROOT} COMPONENT dev)
+
+# Install the project meta files
+#install(FILES AUTHORS   DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+install(FILES LICENSE   DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+install(FILES README.md DESTINATION ${INSTALL_ROOT} COMPONENT runtime)
+
+# Install runtime data
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/data DESTINATION ${INSTALL_DATA} COMPONENT runtime)

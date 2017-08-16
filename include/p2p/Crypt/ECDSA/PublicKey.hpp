@@ -5,6 +5,7 @@
 #include <cryptopp/ecp.h>
 #include <cryptopp/sha.h>
 
+#include <p2p/Crypt/Crypt_api.hpp>
 #include <p2p/Transport.hpp>
 
 namespace p2p {
@@ -17,7 +18,7 @@ namespace p2p {
 		
 			class PrivateKey;
 			
-			class PublicKey {
+			class CRYPT_OPENP2P_API PublicKey {
 				public:
 					PublicKey();
 					PublicKey(RandomPool& pool, const PrivateKey& privateKey);

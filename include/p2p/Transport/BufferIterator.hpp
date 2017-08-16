@@ -3,13 +3,13 @@
 
 #include <stdint.h>
 
+#include <p2p/Transport/Transport_api.hpp>
 #include <p2p/Transport/Stream.hpp>
-
 #include <p2p/Transport/Buffer.hpp>
 
 namespace p2p {
 
-	class BufferIterator: public IStream {
+	class TRANSPORT_OPENP2P_API BufferIterator: public IStream {
 		public:
 			BufferIterator(const Buffer& buffer, size_t position = 0);
 			

@@ -6,6 +6,7 @@
 
 #include <boost/scoped_array.hpp>
 
+#include <p2p/Transport/Transport_api.hpp>
 #include <p2p/Transport/Stream.hpp>
 
 namespace p2p {
@@ -16,7 +17,7 @@ namespace p2p {
 	 * smaller read than the other it is necessary to keep the data from the larger read.
 	 * Note that, as with all streams, instances of this class are NOT thread safe.
 	 */
-	class BufferedStream {
+	class TRANSPORT_OPENP2P_API BufferedStream {
 		public:
 			static const size_t DefaultBufferSize = 4096;
 			

@@ -7,13 +7,14 @@
 
 #include <boost/optional.hpp>
 
+#include <p2p/TCP/TCP_api.hpp>
 #include <p2p/TCP/Endpoint.hpp>
 
 namespace p2p {
 
 	namespace TCP {
 	
-		class Resolver {
+		class TCP_OPENP2P_API Resolver {
 			public:
 				Resolver();
 				~Resolver();

@@ -8,13 +8,15 @@
 
 #include <boost/asio.hpp>
 
+#include <p2p/IP/IP_api.hpp>
+
 namespace p2p {
 
 	namespace IP {
 	
 		typedef boost::asio::ip::address_v6 V6AddressImplType;
 		
-		struct V6Address {
+		struct IP_OPENP2P_API V6Address {
 			std::array<uint8_t, 16> data;
 			
 			static V6AddressImplType ToImpl(const V6Address&);
